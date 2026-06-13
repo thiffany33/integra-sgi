@@ -1,7 +1,11 @@
+import Banner from "../../components/banner/banner";
+
 function Home() {
     return (
-        <h1>Home</h1>
-    )
+        <>
+            <Banner />
+        </>
+    );
 }
 
-export default Home
+export default Home;
