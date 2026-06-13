@@ -1,18 +1,13 @@
+import { Link } from "react-router-dom";
+
 function Banner() {
     return (
-        <section>
-            <h1>Integra SGI</h1>
-
-            <p>
-                Plataforma digital para apoio à implementação
-                de Sistemas Integrados de Gestão.
-            </p>
-
+       <Link to="/register">
             <button>
                 Começar Agora
             </button>
-        </section>
-    );
+        </Link>
+    )
 }
 
 export default Banner;
