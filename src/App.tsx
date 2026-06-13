@@ -1,9 +1,7 @@
+import AppRoutes from "./routes/appRoutes";
+
 function App() {
-  return (
-    <>
-      <h1>Integra SGI</h1>
-    </>
-  )
+    return <AppRoutes />;
 }
 
-export default App
+export default App;
