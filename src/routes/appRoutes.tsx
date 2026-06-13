@@ -9,33 +9,35 @@ import Requirement from "../pages/requirement/requirement";
 import Downloads from "../pages/downloads/downloads";
 import Contact from "../pages/contact/contact";
 import NotFound from "../pages/notFound/notFound";
+import Layout from "../components/layout/layout";
 
 function AppRoutes() {
     return (
-        <BrowserRouter>
+       <BrowserRouter>
             <Routes>
 
-                <Route path="/" element={<Home />} />
+                <Route element={<Layout />}>
 
-                <Route path="/login" element={<Login />} />
+                    <Route path="/" element={<Home />} />
 
-                <Route path="/register" element={<Register />} />
+                    <Route path="/login" element={<Login />} />
 
-                <Route path="/select-systems" element={<SelectSystems />} />
+                    <Route path="/register" element={<Register />} />
 
-                <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/select-systems" element={<SelectSystems />} />
 
-                <Route path="/requirement" element={<Requirement />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
 
-                <Route path="/downloads" element={<Downloads />} />
+                    <Route path="/requirement" element={<Requirement />} />
 
-                <Route path="/contact" element={<Contact />} />
+                    <Route path="/downloads" element={<Downloads />} />
 
+                    <Route path="/contact" element={<Contact />} />
+
+                </Route>
                 <Route path="*" element={<NotFound />} />
-
             </Routes>
         </BrowserRouter>
     );
-}
-
+}   
 export default AppRoutes;
