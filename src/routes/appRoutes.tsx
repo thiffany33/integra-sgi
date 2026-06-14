@@ -10,6 +10,7 @@ import Downloads from "../pages/downloads/downloads";
 import Contact from "../pages/contact/contact";
 import NotFound from "../pages/notFound/notFound";
 import Layout from "../components/layout/layout";
+import Representative from "../pages/representative/representative";
 
 function AppRoutes() {
     return (
@@ -34,9 +35,12 @@ function AppRoutes() {
 
                     <Route path="/contact" element={<Contact />} />
 
+                    <Route path="/representative" element={<Representative />} />
+
                 </Route>
                 <Route path="*" element={<NotFound />} />
             </Routes>
+            
         </BrowserRouter>
     );
 }   
