@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Representative() {
     return (
         <>
@@ -21,11 +23,13 @@ function Representative() {
                     <input type="text" />
                 </div>
 
+            </form>
+
+            <Link to="/select-systems">
                 <button>
                     Próximo
                 </button>
-
-            </form>
+            </Link>
 
         </>
     );
