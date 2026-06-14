@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Register() {
     return (
         <>
@@ -26,11 +28,13 @@ function Register() {
                     <input type="email" />
                 </div>
 
+            </form>
+
+            <Link to="/representative">
                 <button>
                     Próximo
                 </button>
-
-            </form>
+            </Link>
 
         </>
     );
