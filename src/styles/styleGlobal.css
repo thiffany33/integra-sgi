@@ -1,0 +1,37 @@
+:root {
+
+    /* ===========================
+       CORES
+    =========================== */
+
+    --color-primary-blue: #203e5e;
+
+    --color-primary-green: #0f7343;
+
+    --color-secondary-red: #980206;
+
+    --color-secondary-brown: #995816;
+
+
+    /* ===========================
+       FONTES
+    =========================== */
+
+    --font-title: "Montserrat", sans-serif;
+
+    --font-text: "Open Sans", sans-serif;
+
+
+    /* ===========================
+       PESOS
+    =========================== */
+
+    --font-weight-title: 700;
+
+    --font-weight-text: 400;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+}
