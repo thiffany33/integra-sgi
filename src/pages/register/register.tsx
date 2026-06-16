@@ -20,7 +20,43 @@ function Register() {
 
                 <div>
                     <label>Ramo de Atividade</label>
-                    <input type="text" />
+
+                    <select>
+
+                        <option>
+                            Selecione
+                        </option>
+
+                        <option>
+                            Alimentar
+                        </option>
+
+                        <option>
+                            Construção
+                        </option>
+
+                        <option>
+                            Serviços
+                        </option>
+
+                        <option>
+                            Agronegócio
+                        </option>
+
+                        <option>
+                            Comércio
+                        </option>
+
+                        <option>
+                            Indústria
+                        </option>
+
+                        <option>
+                            Tecnologia
+                        </option>
+
+                    </select>
+
                 </div>
 
                 <div>
