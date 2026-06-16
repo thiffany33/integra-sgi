@@ -23,13 +23,7 @@ function Dashboard() {
 
             <Link to="/requirement">
                 <button>
-                    Requisitos
-                </button>
-            </Link>
-
-            <Link to="/downloads">
-                <button>
-                    Downloads
+                    Entrar no SIG
                 </button>
             </Link>
 
