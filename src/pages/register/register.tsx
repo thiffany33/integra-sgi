@@ -4,12 +4,12 @@ function Register() {
     return (
         <>
 
-            <h1>Cadastro da Empresa</h1>
+            <h1>Registe sua Organização</h1>
 
             <form>
 
                 <div>
-                    <label>Nome da Empresa</label>
+                    <label>Nome da Organização</label>
                     <input type="text" />
                 </div>
 

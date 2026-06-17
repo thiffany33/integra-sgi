@@ -4,7 +4,7 @@ function Representative() {
     return (
         <>
 
-            <h1>Representante da Empresa</h1>
+            <h1>Representante da Organização</h1>
 
             <form>
 
