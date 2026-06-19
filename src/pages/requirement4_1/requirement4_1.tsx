@@ -1,3 +1,5 @@
+import Accordion from "../../components/accordion/accordion";
+
 function Requirement4_1() {
     return (
         <>
@@ -6,94 +8,58 @@ function Requirement4_1() {
                 4.1 Compreender a organização e o seu contexto
             </h1>
 
-            <details>
+                <Accordion title="O que é?">
+                    <p>
+                        A organização deve compreender os fatores internos
+                        e externos que influenciam o sistema de gestão.
+                    </p>
+                </Accordion>
 
-                <summary>
-                    O que é?
-                </summary>
+                <Accordion title="Por que é importante">
+                    <p>
+                        Permite identificar riscos, oportunidades
+                        e fatores que podem impactar os objetivos.
+                    </p>
+                </Accordion>
 
-                <p>
-                    A organização deve compreender os fatores internos
-                    e externos que influenciam o sistema de gestão.
-                </p>
+                <Accordion title="Como Implementar?">
+                    <ul>
 
-            </details>
+                        <li>Identificar fatores internos.</li>
 
-            <details>
+                        <li>Identificar fatores externos.</li>
 
-                <summary>
-                    Por que é importante?
-                </summary>
+                        <li>Avaliar riscos e oportunidades.</li>
 
-                <p>
-                    Permite identificar riscos, oportunidades
-                    e fatores que podem impactar os objetivos.
-                </p>
+                    </ul>
+                </Accordion>
 
-            </details>
+                <Accordion title="Vídeo Explicativo">
+                    <p>
+                        LINK DO VIDEO DO YOUTUBE
+                    </p>
 
-            <details>
+                </Accordion>
 
-                <summary>
-                    Como implementar?
-                </summary>
+                <Accordion title="Modelos Disponíveis">
+                      <ul>
 
-                <ul>
+                        <li>
+                            Modelo SWOT
+                        </li>
 
-                    <li>Identificar fatores internos.</li>
+                        <li>
+                            Modelo de Contexto Organizacional
+                        </li>
 
-                    <li>Identificar fatores externos.</li>
+                    </ul>
+                </Accordion>
 
-                    <li>Avaliar riscos e oportunidades.</li>
-
-                </ul>
-
-            </details>
-
-            <details>
-
-                <summary>
-                    Exemplo prático
-                </summary>
-
-                <p>
-                    Uma indústria alimentar pode considerar
-                    alterações legais e formação de colaboradores.
-                </p>
-
-            </details>
-
-            <details>
-
-                <summary>
-                    Modelos disponíveis
-                </summary>
-
-                <ul>
-
-                    <li>
-                        Modelo SWOT
-                    </li>
-
-                    <li>
-                        Modelo de Contexto Organizacional
-                    </li>
-
-                </ul>
-
-            </details>
-
-            <details>
-
-                <summary>
-                    Referência Oficial
-                </summary>
-
-                <p>
-                    Consulte a versão oficial da norma através do IPQ.
-                </p>
-
-            </details>
+                <Accordion title="REFERÊNCIA OFICIAL">
+                    <p>
+                        Consulte a versão oficial da norma através do IPQ.
+                    </p>
+                </Accordion>
 
         </>
     );
