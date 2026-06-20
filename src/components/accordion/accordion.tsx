@@ -14,6 +14,8 @@ function Accordion({ title, children }: AccordionProps) {
             {children}
 
         </details>
+
+        
     );
 }
 

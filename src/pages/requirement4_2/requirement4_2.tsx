@@ -1,4 +1,5 @@
 import Accordion from "../../components/accordion/accordion";
+import matrizPartesInteressadas from "../../assets/documents/requirement4/4_2/4_2_modelo_partes_interessadas.xlsx";
 
 function Requirement4_2() {
     return (
@@ -33,30 +34,6 @@ function Requirement4_2() {
 
             </Accordion>
 
-            <Accordion title="Como implementar?">
-
-                <ul>
-
-                    <li>
-                        Identificar as partes interessadas.
-                    </li>
-
-                    <li>
-                        Identificar as necessidades e expectativas de cada parte interessada.
-                    </li>
-
-                    <li>
-                        Avaliar quais requisitos são relevantes para o sistema de gestão.
-                    </li>
-
-                    <li>
-                        Rever periodicamente as informações.
-                    </li>
-
-                </ul>
-
-            </Accordion>
-
             <Accordion title="Vídeo Explicativo">
 
                 <p>
@@ -65,41 +42,37 @@ function Requirement4_2() {
 
             </Accordion>
 
-            <Accordion title="Ferramentas de Apoio">
+           <Accordion title="Ferramentas de Apoio">
+                <div>
 
-                <p>
-                    📄 Matriz de Partes Interessadas
-                </p>
+                    <h3>
+                        Matriz de Partes Interessadas
+                    </h3>
 
-                <p>
-                    ⬇ Download
-                </p>
+                    <div>
 
-                <p>
-                    🎥 Vídeo Explicativo
-                </p>
+                        <a
+                            href={matrizPartesInteressadas}
+                            download
+                        >
+                            Download do Modelo
+                        </a>
 
-                <hr />
+                    </div>
 
-                <p>
-                    📄 Levantamento de Necessidades e Expectativas
-                </p>
+                    <div>
 
-                <p>
-                    ⬇ Download
-                </p>
+                        <a
+                            href="https://youtube.com"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Vídeo Explicativo
+                        </a>
 
-                <p>
-                    🎥 Vídeo Explicativo
-                </p>
+                    </div>
 
-            </Accordion>
-
-            <Accordion title="Referência Oficial">
-
-                <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
-                </p>
+                </div>
 
             </Accordion>
 
