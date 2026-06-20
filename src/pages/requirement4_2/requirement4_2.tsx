@@ -1,5 +1,4 @@
 import Accordion from "../../components/accordion/accordion";
-import matrizPartesInteressadas from "../../assets/documents/requirement4/4_2/4_2_modelo_partes_interessadas.xlsx";
 
 function Requirement4_2() {
     return (
@@ -52,7 +51,7 @@ function Requirement4_2() {
                     <div>
 
                         <a
-                            href={matrizPartesInteressadas}
+                            href={"/documents/requirement4/4_2/4_2_modelo_partes_interessadas.xlsx"}
                             download
                         >
                             Download do Modelo
@@ -61,7 +60,6 @@ function Requirement4_2() {
                     </div>
 
                     <div>
-
                         <a
                             href="https://youtube.com"
                             target="_blank"
