@@ -43,7 +43,7 @@ function AppRoutes() {
                     <Route path="/representative" element={<Representative />} />
 
                     <Route 
-                        path="/requiriment4"
+                        path="/requirement4"
                         element={<Requirement4 />}
                     />
 

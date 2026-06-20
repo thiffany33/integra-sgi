@@ -35,29 +35,60 @@ function Requirement4_1() {
                 </Accordion>
 
                 <Accordion title="Vídeo Explicativo">
-                    <p>
-                        LINK DO VIDEO DO YOUTUBE
-                    </p>
+
+                    <div>
+
+                        <a
+                            href="https://youtube.com"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Assistir vídeo explicativo
+                        </a>
+
+                    </div>
 
                 </Accordion>
 
-                <Accordion title="Modelos Disponíveis">
-                      <ul>
+                <Accordion title="Ferramentas de Apoio">
 
-                        <li>
+                    <div>
+
+                        <h3>
                             Modelo SWOT
-                        </li>
+                        </h3>
 
-                        <li>
-                            Modelo de Contexto Organizacional
-                        </li>
+                        <div>
 
-                    </ul>
+                            <a
+                                href="/documents/requirement4/4_1/4_1_modelo_swot.docx"
+                                download
+                            >
+                                Download do Modelo
+                            </a>
+
+                        </div>
+
+                        <div>
+
+                            <a
+                                href="https://youtube.com"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Vídeo Explicativo do Modelo
+                            </a>
+
+                        </div>
+
+                    </div>
+
                 </Accordion>
+
 
                 <Accordion title="REFERÊNCIA OFICIAL">
                     <p>
-                        Consulte a versão oficial da norma através do IPQ.
+                        Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
                     </p>
                 </Accordion>
 
