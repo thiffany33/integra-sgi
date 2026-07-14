@@ -1,6 +1,12 @@
 import Accordion from "../../components/accordion/accordion";
+import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
 function Requirement5_3() {
+
+    const systems = JSON.parse(
+        localStorage.getItem("selectedSystems") || "{}"
+    );
+
     return (
         <>
 
@@ -198,6 +204,25 @@ function Requirement5_3() {
                 </p>
 
             </Accordion>
+
+            <RequirementNavigation
+
+                previousLink="/requirement5_2"
+                previousLabel="5.2 Política Integrada"
+
+                nextLink={
+                    systems.sgsst
+                        ? "/requirement5_4"
+                        : "/requirement6"
+                }
+
+                nextLabel={
+                    systems.sgsst
+                        ? "5.4 Consulta e Participação dos Trabalhadores"
+                        : "Requisito 6 - Planeamento"
+                }
+
+            />
 
         </>
     );

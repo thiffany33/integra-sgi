@@ -1,4 +1,5 @@
 import Accordion from "../../components/accordion/accordion";
+import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
 function Requirement5_4() {
 
@@ -88,6 +89,15 @@ function Requirement5_4() {
                 </p>
 
             </Accordion>
+
+                <RequirementNavigation
+
+                previousLink="/requirement5_3"
+                previousLabel="Requisito 5.3"
+
+                nextLink="/requirement6"
+                nextLabel="6 - Planeamento"
+            /> 
 
         </>
 

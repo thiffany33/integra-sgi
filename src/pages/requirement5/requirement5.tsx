@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Accordion from "../../components/accordion/accordion";
+import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
 function Requirement5() {
 
@@ -97,6 +98,16 @@ function Requirement5() {
                 </div>
 
             </Accordion>
+
+            <RequirementNavigation
+
+                previousLink="/requirement4_4"
+                previousLabel="Requisito 4.4"
+
+                nextLink="/requirement5_1"
+                nextLabel="4.1 Liderança e Compromisso"
+
+            /> 
 
         </>
     );
