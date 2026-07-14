@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
-import getSelectedSystems from "../../utils/selectedSystems";
-
 function Dashboard() {
 
-    const systems = getSelectedSystems();
+    const systems = JSON.parse(
+        localStorage.getItem("selectedSystems") || "{}"
+    );
 
     return (
         <>
@@ -26,7 +26,7 @@ function Dashboard() {
                 {systems.sgq && (
 
                     <li>
-                        SGQ - ISO 9001
+                        SGQ - Sistema de Gestão da Qualidade (ISO 9001)
                     </li>
 
                 )}
@@ -34,7 +34,7 @@ function Dashboard() {
                 {systems.sga && (
 
                     <li>
-                        SGA - ISO 14001
+                        SGA - Sistema de Gestão Ambiental (ISO 14001)
                     </li>
 
                 )}
@@ -42,7 +42,7 @@ function Dashboard() {
                 {systems.sgsst && (
 
                     <li>
-                        SGSST - ISO 45001
+                        SGSST - Sistema de Gestão da Segurança e Saúde no Trabalho (ISO 45001)
                     </li>
 
                 )}
