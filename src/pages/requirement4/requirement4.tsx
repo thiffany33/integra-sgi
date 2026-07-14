@@ -1,4 +1,6 @@
 import Accordion from "../../components/accordion/accordion";
+import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+
 
 function Requirement4() {
     return (
@@ -68,6 +70,15 @@ function Requirement4() {
                 </div>
 
             </Accordion>
+
+
+            <RequirementNavigation
+
+                nextLink="/requirement4_1"
+                nextLabel="4.1 Contexto da Organização"
+
+            />
+
 
         </>
     );

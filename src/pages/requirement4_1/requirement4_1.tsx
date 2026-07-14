@@ -1,4 +1,5 @@
 import Accordion from "../../components/accordion/accordion";
+import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
 function Requirement4_1() {
     return (
@@ -91,6 +92,18 @@ function Requirement4_1() {
                         Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
                     </p>
                 </Accordion>
+
+
+                <RequirementNavigation
+
+                    previousLink="/requirement4"
+                    previousLabel="Requisito 4"
+
+                    nextLink="/requirement4_2"
+                    nextLabel="4.2 Partes Interessadas"
+
+                />
+
 
         </>
     );

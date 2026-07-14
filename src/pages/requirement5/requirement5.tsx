@@ -2,6 +2,11 @@ import { Link } from "react-router-dom";
 import Accordion from "../../components/accordion/accordion";
 
 function Requirement5() {
+
+    const systems = JSON.parse(
+        localStorage.getItem("selectedSystems") || "{}"
+    );
+
     return (
         <>
 
@@ -12,11 +17,11 @@ function Requirement5() {
             <Accordion title="O que é?">
 
                 <p>
-                    O requisito 5 estabelece o papel da liderança na implementação,
-                    manutenção e melhoria do Sistema Integrado de Gestão.
-                    A gestão de topo deve demonstrar compromisso, definir a política
-                    do sistema e assegurar que responsabilidades e autoridades
-                    estejam claramente atribuídas.
+                    O requisito 5 estabelece o papel da gestão de topo na
+                    implementação, manutenção e melhoria do Sistema Integrado
+                    de Gestão. A liderança deve demonstrar compromisso,
+                    disponibilizar recursos e assegurar que as responsabilidades
+                    são claramente definidas.
                 </p>
 
             </Accordion>
@@ -67,11 +72,25 @@ function Requirement5() {
 
                             <Link to="/requirement5_3">
 
-                                5.3 Papéis, Responsabilidades e Autoridades
+                                5.3 Funções, Responsabilidades e Autoridades Organizacionais
 
                             </Link>
 
                         </li>
+
+                        {systems.sgsst && (
+
+                            <li>
+
+                                <Link to="/requirement5_4">
+
+                                    5.4 Consulta e Participação dos Trabalhadores
+
+                                </Link>
+
+                            </li>
+
+                        )}
 
                     </ul>
 

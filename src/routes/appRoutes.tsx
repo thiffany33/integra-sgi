@@ -16,6 +16,11 @@ import Requirement4_1 from "../pages/requirement4_1/requirement4_1";
 import Requirement4_2 from "../pages/requirement4_2/requirement4_2";
 import Requirement4_3 from "../pages/requirement4_3/requirement4_3";
 import Requirement4_4 from "../pages/requirement4_4/requirement4_4";
+import Requirement5 from "../pages/requirement5/requirement5";
+import Requirement5_1 from "../pages/requirement5_1/requirement5_1";
+import Requirement5_2 from "../pages/requirement5_2/requirement5_2";
+import Requirement5_3 from "../pages/requirement5_3/requirement5_3";
+import Requirement5_4 from "../pages/requirement5_4/requirement5_4";
 
 function AppRoutes() {
     return (
@@ -65,6 +70,31 @@ function AppRoutes() {
                     <Route
                         path="/requirement4_4"
                         element={<Requirement4_4 />}
+                    />
+
+                    <Route
+                    path="/requirement5"
+                    element={<Requirement5 />}
+                    />
+
+                    <Route
+                        path="/requirement5_1"
+                        element={<Requirement5_1 />}
+                    />
+
+                    <Route
+                        path="/requirement5_2"
+                        element={<Requirement5_2 />}
+                    />
+
+                    <Route
+                        path="/requirement5_3"
+                        element={<Requirement5_3 />}
+                    />
+
+                    <Route
+                        path="/requirement5_4"
+                        element={<Requirement5_4 />}
                     />
 
                 </Route>
