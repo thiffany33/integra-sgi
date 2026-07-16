@@ -64,17 +64,6 @@ function Quality() {
 
             </Accordion>
 
-            <Accordion title="💡 Dica do Auditor">
-
-                <p>
-                    A ISO 9001 não exige uma metodologia específica para avaliar
-                    riscos. O mais importante é que a organização demonstre que
-                    identificou os riscos relevantes, planeou ações e acompanha a
-                    eficácia dessas ações.
-                </p>
-
-            </Accordion>
-
             <Accordion title="Vídeo Explicativo">
 
                 <a
