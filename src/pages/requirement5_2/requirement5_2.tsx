@@ -136,7 +136,7 @@ function Requirement5_2() {
                 previousLink="/requirement5_1"
                 previousLabel="Requisito 5.1"
 
-                nextLink="/requirement4_2"
+                nextLink="/requirement5_2"
                 nextLabel="5.3 - Funções e Responsabilidades"
 
             /> 

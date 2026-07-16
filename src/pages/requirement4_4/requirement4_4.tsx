@@ -81,68 +81,42 @@ function Requirement4_4() {
                 <div>
 
                     <h3>
-                        Mapa de Processos
+                        Matriz e Mapa de Processos
                     </h3>
 
                     <div>
 
                         <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
+                            href="/documents/requirement4/4_4-/modelo_mapa_de_processos.xlsx"
+                            download
                         >
-                            Como elaborar um Mapa de Processos
+                            Download do Modelo
                         </a>
 
                     </div>
 
                 </div>
 
-                <hr />
 
                 <div>
 
                     <h3>
-                        Matriz de Interação de Processos
+                        Cadeia de Valor
                     </h3>
 
                     <div>
 
                         <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
+                            href="/documents/requirement4/4_4/4_4_modelo_cadeia_de_valor.xlsx"
+                            download
                         >
-                            Como elaborar uma Matriz de Interação de Processos
+                            Download do Modelo
                         </a>
 
                     </div>
 
                 </div>
 
-                <hr />
-
-                <div>
-
-                    <h3>
-                        Caracterização de Processo
-                    </h3>
-
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Como elaborar uma Caracterização de Processo
-                        </a>
-
-                    </div>
-
-                </div>
-
-                <hr />
 
                 <div>
 
@@ -152,13 +126,16 @@ function Requirement4_4() {
 
                     <div>
 
+                        <div>
+
                         <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
+                            href="/documents/requirement4/4_4/4_4_modelo_fluxograma.xlsx"
+                            download
                         >
-                            Como elaborar um Fluxograma
+                            Download do Modelo
                         </a>
+
+                    </div>
 
                     </div>
 
