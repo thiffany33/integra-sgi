@@ -69,17 +69,6 @@ function Requirement5_3() {
 
             </Accordion>
 
-            <Accordion title="💡 Dica do Auditor">
-
-                <p>
-                    Um erro frequente é existir uma descrição de funções muito
-                    completa no papel, mas os colaboradores desconhecerem as suas
-                    responsabilidades na prática. Durante uma auditoria é comum
-                    confirmar estas informações através de entrevistas.
-                </p>
-
-            </Accordion>
-
             <Accordion title="Explicação do Requisito">
 
                 <div>
@@ -114,27 +103,6 @@ function Requirement5_3() {
 
                     </div>
 
-
-                </div>
-
-                <hr />
-
-                <div>
-
-                    <h3>
-                        Descrição de Funções
-                    </h3>
-
-                    <div>
-
-                        <a
-                            href="/documents/requirement5/5_3/5_3_modelo_descricao_funcoes.docx"
-                            download
-                        >
-                            Download do Modelo
-                        </a>
-
-                    </div>
 
                 </div>
 

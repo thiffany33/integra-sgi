@@ -103,7 +103,7 @@ function Requirement5() {
                 previousLabel="Requisito 4.4"
 
                 nextLink="/requirement5_1"
-                nextLabel="4.1 Liderança e Compromisso"
+                nextLabel="5.1 Liderança e Compromisso"
 
             /> 
 

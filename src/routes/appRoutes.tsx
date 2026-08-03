@@ -11,20 +11,34 @@ import Contact from "../pages/contact/contact";
 import NotFound from "../pages/notFound/notFound";
 import Layout from "../components/layout/layout";
 import Representative from "../pages/representative/representative";
+
+// Requisito 4
 import Requirement4 from "../pages/requirement4/requirement4";
 import Requirement4_1 from "../pages/requirement4_1/requirement4_1";
 import Requirement4_2 from "../pages/requirement4_2/requirement4_2";
 import Requirement4_3 from "../pages/requirement4_3/requirement4_3";
 import Requirement4_4 from "../pages/requirement4_4/requirement4_4";
+
+// Requisito 5
 import Requirement5 from "../pages/requirement5/requirement5";
 import Requirement5_1 from "../pages/requirement5_1/requirement5_1";
 import Requirement5_2 from "../pages/requirement5_2/requirement5_2";
 import Requirement5_3 from "../pages/requirement5_3/requirement5_3";
 import Requirement5_4 from "../pages/requirement5_4/requirement5_4";
 
+// Requisito 6
+import Requirement6 from "../pages/requirement6/requirement6";
+import Requirement6_1_Quality from "../pages/requirement6_1/requirement6_1_quality/requirement6_1_quality";
+import Requirement6_1_Environment from "../pages/requirement6_1/requirement6_1_environment/requirement6_1_environment";
+import Requirement6_1_Sst from "../pages/requirement6_1/requirement6_1_sst/requirement6_1_sst";
+import Requirement6_2 from "../pages/requirement6_2/requirement6_2";
+
 function AppRoutes() {
+
     return (
-       <BrowserRouter>
+
+        <BrowserRouter>
+
             <Routes>
 
                 <Route element={<Layout />}>
@@ -47,7 +61,9 @@ function AppRoutes() {
 
                     <Route path="/representative" element={<Representative />} />
 
-                    <Route 
+                    {/* Requisito 4 */}
+
+                    <Route
                         path="/requirement4"
                         element={<Requirement4 />}
                     />
@@ -72,9 +88,11 @@ function AppRoutes() {
                         element={<Requirement4_4 />}
                     />
 
+                    {/* Requisito 5 */}
+
                     <Route
-                    path="/requirement5"
-                    element={<Requirement5 />}
+                        path="/requirement5"
+                        element={<Requirement5 />}
                     />
 
                     <Route
@@ -97,13 +115,46 @@ function AppRoutes() {
                         element={<Requirement5_4 />}
                     />
 
+                    {/* Requisito 6 */}
+
+                    <Route
+                        path="/requirement6"
+                        element={<Requirement6 />}
+                    />
+
+                    <Route
+                        path="/requirement6_1_quality"
+                        element={<Requirement6_1_Quality />}
+                    />
+
+                    <Route
+                        path="/requirement6_1_environment"
+                        element={<Requirement6_1_Environment />}
+                    />
+
+                    <Route
+                        path="/requirement6_1_sst"
+                        element={<Requirement6_1_Sst />}
+                    />
+
+                    <Route
+                        path="/requirement6_2"
+                        element={<Requirement6_2 />}
+                    />
+
                 </Route>
-                <Route path="*" element={<NotFound />} />
+
+                <Route
+                    path="*"
+                    element={<NotFound />}
+                />
+
             </Routes>
 
-            
-            
         </BrowserRouter>
+
     );
-}   
+
+}
+
 export default AppRoutes;

@@ -61,17 +61,6 @@ function Requirement5_2() {
 
             </Accordion>
 
-            <Accordion title="💡 Dica do Auditor">
-
-                <p>
-                    Um dos erros mais frequentes é elaborar uma Política Integrada
-                    genérica, copiada de outras organizações. Durante a auditoria,
-                    espera-se que a política reflita a realidade da empresa, o seu
-                    contexto, os sistemas implementados e a sua direção estratégica.
-                </p>
-
-            </Accordion>
-
             <Accordion title="Explicação do Requisito">
 
                 <div>
@@ -132,7 +121,7 @@ function Requirement5_2() {
                 previousLink="/requirement5_1"
                 previousLabel="Requisito 5.1"
 
-                nextLink="/requirement5_2"
+                nextLink="/requirement5_3"
                 nextLabel="5.3 - Funções e Responsabilidades"
 
             /> 
