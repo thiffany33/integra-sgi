@@ -76,15 +76,29 @@ function Environment() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
-                <a
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Assistir vídeo explicativo
-                </a>
+                <p>
+                    Neste requisito, a organização deve analisar de que forma as suas
+                    atividades podem afetar o meio ambiente. Para isso, é necessário
+                    identificar os aspetos ambientais, ou seja, tudo aquilo que pode causar
+                    um impacto ambiental, como a produção de resíduos, o consumo de água,
+                    o consumo de energia ou a emissão de poluentes.
+                </p>
+
+                <p>
+                    Depois de identificar esses aspetos, a organização deve avaliar quais
+                    são os mais significativos, considerando a gravidade do impacto e a
+                    possibilidade de ocorrerem. Com base nessa avaliação, são definidas
+                    ações para prevenir, controlar ou reduzir os impactes ambientais.
+                </p>
+
+                <p>
+                    Além disso, também é importante conhecer os requisitos legais
+                    aplicáveis e identificar oportunidades de melhoria que contribuam para
+                    um melhor desempenho ambiental e para o cumprimento dos objetivos do
+                    Sistema de Gestão Ambiental.
+                </p>
 
             </Accordion>
 
@@ -107,18 +121,6 @@ function Environment() {
 
                     </div>
 
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
-
                 </div>
 
             </Accordion>
@@ -126,7 +128,17 @@ function Environment() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>

@@ -60,17 +60,15 @@ function Requirement4_4() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo do requisito 4.4
-                    </a>
+                    <p>
+                        O requisito 4.4 consiste em organizar o funcionamento do Sistema de Gestão através dos seus processos.
+                        Nesta etapa, a organização identifica as atividades necessárias para o seu funcionamento, define como cada processo é executado, quem é responsável por cada um, quais os recursos necessários e como será avaliado o seu desempenho.
+                        Um sistema baseado em processos facilita a organização das atividades, melhora o controlo, reduz falhas e contribui para a melhoria contínua da organização.
+                    </p>
 
                 </div>
 
@@ -94,7 +92,6 @@ function Requirement4_4() {
                         </a>
 
                     </div>
-
                 </div>
 
 
@@ -105,7 +102,6 @@ function Requirement4_4() {
                     </h3>
 
                     <div>
-
                         <a
                             href="/documents/requirement4/4_4/4_4_modelo_cadeia_de_valor.xlsx"
                             download

@@ -34,10 +34,12 @@ function Requirement4_2() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <p>
-                    LINK DO VÍDEO DO YOUTUBE
+                    O requisito 4.2 consiste em identificar quem são as partes interessadas da organização e compreender o que cada uma espera dela.
+                    Conhecer estas necessidades e expectativas ajuda a organização a tomar melhores decisões, cumprir requisitos legais e contratuais, reduzir riscos e melhorar o seu desempenho.
+                    Sempre que existirem alterações relevantes nas partes interessadas ou nas suas necessidades, esta análise deve ser revista para garantir que o Sistema de Gestão continua adequado à realidade da organização.
                 </p>
 
             </Accordion>
@@ -56,17 +58,6 @@ function Requirement4_2() {
                             download
                         >
                             Download do Modelo
-                        </a>
-
-                    </div>
-
-                    <div>
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo
                         </a>
 
                     </div>

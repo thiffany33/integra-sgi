@@ -27,17 +27,15 @@ function Requirement5() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo introdutório
-                    </a>
+                    <p>
+                        O requisito 5 consiste em assegurar o compromisso da liderança com o Sistema de Gestão Integrado e promover a participação das pessoas na sua implementação e melhoria.
+                        Nesta etapa, a organização estabelece a sua política, define papéis, responsabilidades e autoridades, disponibiliza os recursos necessários e incentiva a consulta e o envolvimento dos trabalhadores nos processos de gestão.
+                        Uma liderança ativa e uma participação eficaz contribuem para o cumprimento dos objetivos da qualidade, da proteção do ambiente e da segurança e saúde no trabalho, fortalecendo a cultura organizacional e promovendo a melhoria contínua do sistema.
+                    </p>
 
                 </div>
 

@@ -66,17 +66,23 @@ function Requirement5_4() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
+                    <p>
+                        O requisito 5.4 consiste em assegurar a consulta e a participação dos trabalhadores nas questões relacionadas com a Segurança e Saúde no Trabalho (SST).
+                        Nesta etapa, a organização promove o envolvimento ativo dos colaboradores, permitindo que apresentem sugestões, identifiquem perigos, comuniquem riscos
+                        e contribuam para a melhoria das condições de trabalho. A consulta e participação dos trabalhadores permitem obter informações importantes para a prevenção
+                        de acidentes e doenças profissionais, fortalecem a cultura de segurança e apoiam a melhoria contínua do Sistema de Gestão da Segurança e Saúde no Trabalho (SGSST).
+
+                    </p>
+
+                    <p>
+                        Nota: Este requisito é exclusivo da NP EN ISO 45001:2018 (Segurança e Saúde no Trabalho),
+                        não existindo um requisito equivalente nas normas ISO 9001 (Qualidade),
+                        ISO 14001 (Ambiente) ou ISO 22000 (Segurança Alimentar).
+                    </p>
 
                 </div>
 
@@ -85,7 +91,17 @@ function Requirement5_4() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>
@@ -96,7 +112,7 @@ function Requirement5_4() {
                 previousLabel="Requisito 5.3"
 
                 nextLink="/requirement6"
-                nextLabel="6 - Planeamento"
+                nextLabel="6 Planeamento"
             /> 
 
         </>

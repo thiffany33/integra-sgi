@@ -69,22 +69,31 @@ function Requirement6() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
-                <a
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Assistir vídeo introdutório
-                </a>
+                <p>
+                    O requisito 6 consiste em planear as ações necessárias para abordar os riscos e oportunidades que possam influenciar o desempenho do Sistema de Gestão Integrado (SGI). 
+                    Nesta etapa, a organização identifica os fatores que podem afetar a capacidade de alcançar os resultados pretendidos, prevenir efeitos indesejáveis, cumprir os requisitos
+                    aplicáveis e promover a melhoria contínua. O planeamento dos riscos e oportunidades permite uma atuação preventiva, apoia a tomada de decisões, 
+                    aumenta a eficácia dos processos e contribui para a melhoria do desempenho nas áreas da Qualidade, Ambiente, Segurança e Saúde no Trabalho e Segurança Alimentar.
+                </p>
 
             </Accordion>
 
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>

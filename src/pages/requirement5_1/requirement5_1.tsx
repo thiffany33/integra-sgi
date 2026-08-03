@@ -60,6 +60,25 @@ function Requirement5_1() {
 
             </Accordion>
 
+
+            <Accordion title="Explicação do Requisito">
+
+                <div>
+
+                    <p>
+                        O requisito 5.1 consiste em demonstrar a liderança e o compromisso da gestão de topo com o Sistema de Gestão Integrado.
+                        Nesta etapa, a direção assegura que o sistema esteja alinhado com a estratégia da organização, disponibiliza os recursos necessários,
+                        promove a melhoria contínua e incentiva uma cultura de qualidade, proteção ambiental e segurança e saúde no trabalho. 
+                        O envolvimento da liderança é essencial para garantir a eficácia do sistema e o cumprimento dos seus objetivos. Por se tratar de um requisito essencialmente comportamental,
+                        não existe um documento específico que comprove o seu cumprimento.
+                        Durante a auditoria, cabe ao auditor avaliar este requisito através das metodologias de auditoria que considerar mais adequadas,
+                        como entrevistas, observação das práticas da organização e análise de evidências que demonstrem o compromisso efetivo da gestão de topo.
+                    </p>
+
+                </div>
+
+            </Accordion>
+
             <Accordion title="Como o auditor avalia este requisito?">
 
                 <p>
@@ -76,27 +95,21 @@ function Requirement5_1() {
                 </p>
 
             </Accordion>
-
-            <Accordion title="Vídeo Explicativo">
-
-                <div>
-
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
-
-                </div>
-
-            </Accordion>
-
+            
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>

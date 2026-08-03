@@ -72,17 +72,15 @@ function Requirement5_2() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
+                    <p>
+                        O requisito 5.2 consiste em estabelecer a Política do Sistema de Gestão Integrado, que representa o compromisso da organização com a qualidade, a proteção do ambiente, a segurança e saúde no trabalho e a melhoria contínua.
+                        Nesta etapa, a gestão de topo define os princípios e compromissos que orientam o sistema de gestão, assegurando que a política seja adequada ao contexto da organização, comunicada, compreendida e disponibilizada às partes interessadas.
+                        A principal evidência deste requisito é a Política do Sistema de Gestão Integrado, aprovada pela gestão de topo e divulgada de forma a garantir o seu conhecimento e aplicação em toda a organização.
+                    </p>
 
                 </div>
 
@@ -107,18 +105,6 @@ function Requirement5_2() {
 
                     </div>
 
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
-
                 </div>
 
             </Accordion>
@@ -126,7 +112,17 @@ function Requirement5_2() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>

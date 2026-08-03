@@ -80,56 +80,22 @@ function Requirement5_3() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
+                    <p>
+                        O requisito 5.3 consiste em definir os papéis, responsabilidades e autoridades dentro do Sistema de Gestão Integrado.
+                        Nesta etapa, a organização estabelece quem é responsável por cada atividade, quais as suas funções e o nível de autoridade para tomar decisões
+                        e assegurar o cumprimento dos requisitos do sistema. A definição clara das responsabilidades contribui para uma melhor organização das atividades,
+                        facilita a comunicação entre os colaboradores e promove a eficácia e a melhoria contínua do Sistema de Gestão Integrado.
+                    </p>
 
                 </div>
 
             </Accordion>
 
             <Accordion title="Ferramentas de Apoio">
-
-                <div>
-
-                    <h3>
-                        Matriz de Competências
-                    </h3>
-
-                    <div>
-
-                        <a
-                            href="/documents/requirement5/5_3/5_3_modelo_matriz_competencias.xlsx"
-                            download
-                        >
-                            Download do Modelo
-                        </a>
-
-                    </div>
-
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
-
-                </div>
-
-                <hr />
 
                 <div>
 
@@ -148,17 +114,6 @@ function Requirement5_3() {
 
                     </div>
 
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
 
                 </div>
 
@@ -181,18 +136,6 @@ function Requirement5_3() {
 
                     </div>
 
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
-
                 </div>
 
             </Accordion>
@@ -200,7 +143,17 @@ function Requirement5_3() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+                    .
+
                 </p>
 
             </Accordion>

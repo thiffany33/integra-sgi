@@ -34,17 +34,16 @@ function Requirement4_1() {
                 </ul>
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
+                    <p>
+                        O requisito 4.1 consiste em analisar a realidade da organização. 
+                        Antes de implementar um Sistema de Gestão, é importante compreender os fatores internos (como recursos, estrutura e cultura organizacional)
+                        e os fatores externos (como legislação, mercado, concorrência e economia) que podem influenciar as suas atividades.
+                        Esta análise permite identificar riscos e oportunidades, apoiar a tomada de decisões e garantir que o Sistema de Gestão está adequado ao contexto em que a organização atua.
+                    </p>
 
                 </div>
 
@@ -65,18 +64,6 @@ function Requirement4_1() {
                             download
                             >
                             Download do Modelo
-                        </a>
-
-                    </div>
-
-                    <div>
-
-                         <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
                         </a>
 
                     </div>

@@ -8,7 +8,6 @@ function Quality() {
     );
 
     return (
-
         <>
 
             <h1>
@@ -18,10 +17,10 @@ function Quality() {
             <Accordion title="O que é?">
 
                 <p>
-                    A organização deve identificar riscos e oportunidades que
-                    possam afetar o Sistema de Gestão da Qualidade, planeando
-                    ações para prevenir efeitos indesejados e melhorar o
-                    desempenho do sistema.
+                    A organização deve identificar os riscos e oportunidades que
+                    possam afetar o Sistema de Gestão da Qualidade e planear
+                    ações para garantir que os resultados pretendidos sejam
+                    alcançados.
                 </p>
 
             </Accordion>
@@ -29,9 +28,10 @@ function Quality() {
             <Accordion title="Por que é importante?">
 
                 <p>
-                    A identificação dos riscos e oportunidades permite aumentar a
-                    confiança nos resultados do sistema de gestão, reduzir falhas
-                    e promover a melhoria contínua.
+                    A identificação dos riscos e oportunidades permite reduzir a
+                    probabilidade de falhas, aumentar a satisfação dos clientes
+                    e melhorar continuamente o desempenho do Sistema de Gestão
+                    da Qualidade.
                 </p>
 
             </Accordion>
@@ -64,15 +64,28 @@ function Quality() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
-                <a
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Assistir vídeo explicativo
-                </a>
+                <p>
+                    Este requisito tem como objetivo ajudar a organização a
+                    antecipar problemas antes que eles aconteçam e aproveitar
+                    oportunidades que possam melhorar os seus processos.
+                </p>
+
+                <p>
+                    Para isso, é necessário identificar os riscos que podem
+                    impedir o cumprimento dos objetivos da qualidade e definir
+                    ações para reduzir ou eliminar esses riscos.
+                </p>
+
+                <p>
+                    Da mesma forma, também devem ser identificadas oportunidades
+                    que contribuam para melhorar os produtos, os serviços, os
+                    processos ou a satisfação dos clientes. Todas essas ações
+                    devem ser integradas no Sistema de Gestão da Qualidade e
+                    acompanhadas para verificar se realmente produziram os
+                    resultados esperados.
+                </p>
 
             </Accordion>
 
@@ -95,18 +108,6 @@ function Quality() {
 
                     </div>
 
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
-                        </a>
-
-                    </div>
-
                 </div>
 
             </Accordion>
@@ -114,7 +115,19 @@ function Quality() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+
+                    Consulte a versão oficial da norma através do{" "}
+
+                    <a
+                        href="https://www.ipq.pt"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Instituto Português da Qualidade (IPQ)
+                    </a>
+
+                    .
+
                 </p>
 
             </Accordion>
@@ -143,9 +156,7 @@ function Quality() {
             />
 
         </>
-
     );
-
 }
 
 export default Quality;

@@ -53,17 +53,15 @@ function Requirement4_3() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo explicativo
-                    </a>
+                    <p>
+                       O requisito 4.3 consiste em definir os limites do Sistema de Gestão. Nesta etapa, a organização determina exatamente o que será abrangido pelo sistema, considerando as suas atividades, processos, produtos, serviços e locais de atuação.
+                       Para isso, devem ser analisados o contexto da organização, as necessidades das partes interessadas e os requisitos aplicáveis.
+                       Um âmbito bem definido ajuda a garantir que o Sistema de Gestão é implementado de forma clara, consistente e adequada à realidade da organização
+                    </p>
 
                 </div>
 
@@ -84,18 +82,6 @@ function Requirement4_3() {
                             download
                         >
                             Download do Modelo
-                        </a>
-
-                    </div>
-
-                    <div>
-
-                        <a
-                            href="https://youtube.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Vídeo Explicativo do Modelo
                         </a>
 
                     </div>

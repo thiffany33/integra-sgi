@@ -19,17 +19,21 @@ function Requirement4() {
 
             </Accordion>
 
-            <Accordion title="Vídeo Explicativo">
+            <Accordion title="Explicação do Requisito">
 
                 <div>
 
-                    <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Assistir vídeo introdutório
-                    </a>
+                    <p>
+                        O Requisito 4 é o ponto de partida do Sistema de Gestão. Antes de definir objetivos, procedimentos ou controlos, a organização precisa de conhecer a sua realidade: 
+                    </p>
+
+                    <p>
+                        compreender o contexto em que atua, identificar quem são as partes interessadas e quais são as suas necessidades,
+                        definir o âmbito do Sistema de Gestão e mapear os processos da organização. 
+                    </p>
+                    <p>
+                        Esta informação permite tomar decisões mais adequadas, identificar riscos e oportunidades e garantir que o sistema responde às necessidades da organização e dos seus stakeholders.
+                    </p>
 
                 </div>
 
