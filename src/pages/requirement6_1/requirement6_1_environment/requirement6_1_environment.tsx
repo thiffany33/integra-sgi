@@ -1,5 +1,5 @@
-import Accordion from "../../components/accordion/accordion";
-import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import Accordion from "../../../components/accordion/accordion";
+import RequirementNavigation from "../../../components/requirementNavigation/requirementNavigation";
 
 function Environment() {
 
