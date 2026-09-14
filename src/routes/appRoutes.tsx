@@ -33,128 +33,72 @@ import Requirement6_1_Environment from "../pages/requirement6_1/requirement6_1_e
 import Requirement6_1_Sst from "../pages/requirement6_1/requirement6_1_sst/requirement6_1_sst";
 import Requirement6_2 from "../pages/requirement6_2/requirement6_2";
 
+// Requisito 7
+import Requirement7 from "../pages/requirement7/requirement7";
+import Requirement7_1 from "../pages/requirement7_1/requirement7_1";
+import Requirement7_2 from "../pages/requirement7_2/requirement7_2";
+import Requirement7_3 from "../pages/requirement7_3/requirement7_3";
+import Requirement7_4 from "../pages/requirement7_4/requirement7_4";
+import Requirement7_5 from "../pages/requirement7_5/requirement7_5";
+
 function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/select-systems" element={<SelectSystems />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/requirement" element={<Requirement />} />
+          <Route path="/downloads" element={<Downloads />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/representative" element={<Representative />} />
 
-    return (
+          {/* Requisito 4 */}
+          <Route path="/requirement4" element={<Requirement4 />} />
+          <Route path="/requirement4_1" element={<Requirement4_1 />} />
+          <Route path="/requirement4_2" element={<Requirement4_2 />} />
+          <Route path="/requirement4_3" element={<Requirement4_3 />} />
+          <Route path="/requirement4_4" element={<Requirement4_4 />} />
 
-        <BrowserRouter>
+          {/* Requisito 5 */}
+          <Route path="/requirement5" element={<Requirement5 />} />
+          <Route path="/requirement5_1" element={<Requirement5_1 />} />
+          <Route path="/requirement5_2" element={<Requirement5_2 />} />
+          <Route path="/requirement5_3" element={<Requirement5_3 />} />
+          <Route path="/requirement5_4" element={<Requirement5_4 />} />
 
-            <Routes>
+          {/* Requisito 6 */}
+          <Route path="/requirement6" element={<Requirement6 />} />
+          <Route
+            path="/requirement6_1_quality"
+            element={<Requirement6_1_Quality />}
+          />
+          <Route
+            path="/requirement6_1_environment"
+            element={<Requirement6_1_Environment />}
+          />
+          <Route
+            path="/requirement6_1_sst"
+            element={<Requirement6_1_Sst />}
+          />
+          <Route path="/requirement6_2" element={<Requirement6_2 />} />
 
-                <Route element={<Layout />}>
+          {/* Requisito 7 */}
+          <Route path="/requirement7" element={<Requirement7 />} />
+          <Route path="/requirement7_1" element={<Requirement7_1 />} />
+          <Route path="/requirement7_2" element={<Requirement7_2 />} />
+          <Route path="/requirement7_3" element={<Requirement7_3 />} />
+          <Route path="/requirement7_4" element={<Requirement7_4 />} />
+          <Route path="/requirement7_5" element={<Requirement7_5 />} />
+        </Route>
 
-                    <Route path="/" element={<Home />} />
-
-                    <Route path="/login" element={<Login />} />
-
-                    <Route path="/register" element={<Register />} />
-
-                    <Route path="/select-systems" element={<SelectSystems />} />
-
-                    <Route path="/dashboard" element={<Dashboard />} />
-
-                    <Route path="/requirement" element={<Requirement />} />
-
-                    <Route path="/downloads" element={<Downloads />} />
-
-                    <Route path="/contact" element={<Contact />} />
-
-                    <Route path="/representative" element={<Representative />} />
-
-                    {/* Requisito 4 */}
-
-                    <Route
-                        path="/requirement4"
-                        element={<Requirement4 />}
-                    />
-
-                    <Route
-                        path="/requirement4_1"
-                        element={<Requirement4_1 />}
-                    />
-
-                    <Route
-                        path="/requirement4_2"
-                        element={<Requirement4_2 />}
-                    />
-
-                    <Route
-                        path="/requirement4_3"
-                        element={<Requirement4_3 />}
-                    />
-
-                    <Route
-                        path="/requirement4_4"
-                        element={<Requirement4_4 />}
-                    />
-
-                    {/* Requisito 5 */}
-
-                    <Route
-                        path="/requirement5"
-                        element={<Requirement5 />}
-                    />
-
-                    <Route
-                        path="/requirement5_1"
-                        element={<Requirement5_1 />}
-                    />
-
-                    <Route
-                        path="/requirement5_2"
-                        element={<Requirement5_2 />}
-                    />
-
-                    <Route
-                        path="/requirement5_3"
-                        element={<Requirement5_3 />}
-                    />
-
-                    <Route
-                        path="/requirement5_4"
-                        element={<Requirement5_4 />}
-                    />
-
-                    {/* Requisito 6 */}
-
-                    <Route
-                        path="/requirement6"
-                        element={<Requirement6 />}
-                    />
-
-                    <Route
-                        path="/requirement6_1_quality"
-                        element={<Requirement6_1_Quality />}
-                    />
-
-                    <Route
-                        path="/requirement6_1_environment"
-                        element={<Requirement6_1_Environment />}
-                    />
-
-                    <Route
-                        path="/requirement6_1_sst"
-                        element={<Requirement6_1_Sst />}
-                    />
-
-                    <Route
-                        path="/requirement6_2"
-                        element={<Requirement6_2 />}
-                    />
-
-                </Route>
-
-                <Route
-                    path="*"
-                    element={<NotFound />}
-                />
-
-            </Routes>
-
-        </BrowserRouter>
-
-    );
-
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default AppRoutes;

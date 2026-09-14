@@ -20,19 +20,19 @@ function Requirement() {
             <ul>
 
                 <li>
-                    <Link to="/requirement41">
+                    <Link to="/requirement4_1">
                         4.1 Compreender a organização e o seu contexto
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/requirement42">
+                    <Link to="/requirement4_2">
                         4.2 Partes interessadas
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/requirement43">
+                    <Link to="/requirement4_3">
                         4.3 Âmbito do sistema de gestão
                     </Link>
                 </li>
