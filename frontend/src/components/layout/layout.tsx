@@ -39,13 +39,13 @@ export default function Layout() {
           <aside className="min-w-0">
             <p className="mb-3 flex items-center gap-2 text-base font-semibold"><BookOpen className="size-5" aria-hidden="true" />{t('exploreGuide')}</p>
             <nav aria-label={t('chapters')} className="grid gap-2">
-              {chapters.map(item => <Button key={item.path} asChild variant={chapter?.path === item.path ? "secondary" : "ghost"} className="justify-start text-left"><Link to={item.path} aria-current={pathname === item.path ? "page" : undefined}>{item.title}</Link></Button>)}
+              {chapters.map(item => <Button key={item.path} asChild variant={chapter?.path === item.path ? "secondary" : "ghost"} className="justify-start text-left"><Link to={item.path} aria-current={pathname === item.path ? "page" : undefined}>{t(item.title)}</Link></Button>)}
             </nav>
             <p className="mt-5 text-base text-muted-foreground">{t('chapterHelp')}</p>
           </aside>
-          <article className="reading-content"><Suspense fallback={<p role="status">A carregar o conteúdo…</p>}><Outlet /></Suspense></article>
+          <article className="reading-content"><Suspense fallback={<p role="status">{t('loadingContent')}</p>}><Outlet /></Suspense></article>
         </div>
-      </> : <Suspense fallback={<p role="status">A carregar o conteúdo…</p>}><Outlet /></Suspense>}
+      </> : <Suspense fallback={<p role="status">{t('loadingContent')}</p>}><Outlet /></Suspense>}
     </main>
     <Footer />
   </div>;

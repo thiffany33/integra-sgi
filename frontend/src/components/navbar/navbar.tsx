@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, Sprout } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from 'radix-ui';
@@ -19,13 +19,20 @@ const localeFlags: Record<SupportedLocale, string> = {
 export default function Navbar() {
   const { t, i18n } = useTranslation(['common', 'navigation']);
   const auth = useAuth();
+  const navigate = useNavigate();
   const [languageError, setLanguageError] = useState('');
+  const [logoutError, setLogoutError] = useState('');
+  const signedIn = auth.status === 'authenticated';
   const links = [
     { to: '/', label: t('navigation:home') },
-    { to: '/dashboard', label: t('navigation:dashboard') },
+    ...(signedIn ? [{ to: '/dashboard', label: t('navigation:dashboard') }] : []),
     { to: '/requirement', label: t('navigation:guidance') },
-    { to: '/downloads', label: t('navigation:downloads') },
+    ...(signedIn ? [{ to: '/downloads', label: t('navigation:downloads') }] : []),
     { to: '/contact', label: t('navigation:help') },
+    ...(signedIn ? [{ to: '/profile', label: t('navigation:profile') }] : [
+      { to: '/login', label: t('navigation:login') },
+      { to: '/register', label: t('navigation:register') },
+    ]),
   ];
   const activeLocale = supportedLocales.find(locale => locale === i18n.resolvedLanguage) ?? 'pt-PT';
 
@@ -39,14 +46,25 @@ export default function Navbar() {
     }
   }
 
+  async function logout() {
+    setLogoutError('');
+    try {
+      navigate('/', { flushSync: true });
+      await auth.logout();
+    } catch {
+      setLogoutError(t('navigation:logoutError'));
+    }
+  }
+
   return <header className="border-b bg-card">
     <div className="page-shell flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
       <Link to="/" aria-label={t('navigation:brandHome')} className="flex min-h-12 items-center gap-3 rounded-md">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-white"><Sprout aria-hidden="true" className="size-6" /></span>
         <span className="text-2xl font-bold tracking-tight">integra<span className="ml-2 text-base font-medium text-muted-foreground">SGI</span></span>
       </Link>
-      <nav aria-label={t('navigation:label')} className="flex flex-wrap gap-1">
+      <nav aria-label={t('navigation:label')} className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap">
         {links.map(({ to, label }) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => cn("inline-flex min-h-12 items-center rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-accent", isActive ? "bg-secondary text-secondary-foreground underline decoration-2 underline-offset-8" : "text-foreground")}>{label}</NavLink>)}
+        {signedIn && <button type="button" onClick={() => void logout()} className="inline-flex min-h-12 items-center rounded-lg px-3 py-2 text-base font-medium text-foreground transition-colors hover:bg-accent">{t('navigation:logout')}</button>}
       </nav>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
@@ -84,6 +102,7 @@ export default function Navbar() {
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
       {languageError && <p role="status" className="text-sm text-destructive">{languageError}</p>}
+      {logoutError && <p role="alert" className="text-sm text-destructive">{logoutError}</p>}
     </div>
   </header>;
 }

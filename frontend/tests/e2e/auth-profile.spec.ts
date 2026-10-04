@@ -27,6 +27,15 @@ test('login recarrega perfil pelo servidor e regressa ao requisito pedido', asyn
   await expect(page.getByRole('heading', { name: 'Suas áreas de gestão' })).toBeVisible();
   await expect(page.getByRole('main').getByText('Gestão da Qualidade', { exact: true })).toBeVisible();
   await expect(page.getByRole('main').getByText('Gestão Ambiental', { exact: true })).toHaveCount(0);
+  const nav = page.getByRole('navigation', { name: 'Navegação principal' });
+  await expect(nav.getByRole('link', { name: 'Meu plano' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Modelos' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'O meu perfil' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
+  await page.route('**/api/v1/auth/logout', route => route.fulfill({ status: 204, body: '' }));
+  await nav.getByRole('button', { name: 'Sair' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(nav.getByRole('link', { name: 'Entrar' })).toBeVisible();
 });
 
 test('returnTo externo cai no painel e nunca redireciona para outro host', async ({ page }) => {

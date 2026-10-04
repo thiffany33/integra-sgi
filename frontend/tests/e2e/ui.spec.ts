@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
+async function signInForPrivatePages(page: import('@playwright/test').Page) {
+  const profile = { schemaVersion: 1, organization: { name: 'Cooperativa Exemplo', nif: '123456789', sector: 'Serviços', email: 'contato@example.pt' }, representative: { name: 'Maria Silva', email: '', phone: '' }, selectedSystems: ['sgq'] }
+  const user = { id: 'user-1', name: 'Maria Silva', email: 'contato@example.pt', locale: 'pt-PT', emailVerifiedAt: null }
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 200, json: { user, profile } }))
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ status: 200, json: { profile, revision: 1, updatedAt: new Date().toISOString() } }))
+}
+
 test('navegação por teclado permite pular para o conteúdo', async ({ page }) => {
   await page.goto('/')
   await page.keyboard.press('Tab')
@@ -68,13 +75,15 @@ test('seleção exige um sistema antes de permitir criar a conta', async ({ page
 })
 
 test('painel continua utilizável sem carregar ou gravar estado em armazenamento do navegador', async ({ page }) => {
+  await signInForPrivatePages(page)
   await page.goto('/dashboard')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Alterar escolha' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver o meu perfil' })).toBeVisible()
   expect(await page.evaluate(() => localStorage.length)).toBe(0)
 })
 
 test('leitura do requisito e download funcionam com teclado', async ({ page }) => {
+  await signInForPrivatePages(page)
   await page.goto('/requirement4_1')
   const trigger = page.getByRole('button', { name: 'Ferramentas de apoio', exact: true })
   await trigger.focus()
@@ -88,13 +97,14 @@ test('leitura do requisito e download funcionam com teclado', async ({ page }) =
 
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/login', '/nao-existe']) {
   test(`acessibilidade e leitura mobile em ${route}`, async ({ page }) => {
+    if (['/dashboard', '/requirement4_1', '/downloads'].includes(route)) await signInForPrivatePages(page)
     await page.setViewportSize({ width: 375, height: 812 })
     await page.goto(route)
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
     expect(results.violations).toEqual([])
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
     await page.evaluate(() => document.documentElement.style.fontSize = '200%')
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   })
 }

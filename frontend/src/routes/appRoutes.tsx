@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 
 import Home from "../pages/home/home";
 import Login from "../pages/login/login";
@@ -16,6 +16,7 @@ import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
+import { RequireAuth } from "../components/auth/require-auth";
 
 // Requisito 4
 const Requirement4 = lazy(
@@ -121,12 +122,13 @@ function AppRoutes() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/register" element={<Register />} />
             <Route path="/select-systems" element={<SelectSystems />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
             <Route path="/requirement" element={<Requirement />} />
-            <Route path="/downloads" element={<Downloads />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/representative" element={<Representative />} />
+            <Route element={<RequireAuth><Outlet /></RequireAuth>}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/downloads" element={<Downloads />} />
 
             {/* Requisito 4 */}
             <Route path="/requirement4" element={<Requirement4 />} />
@@ -172,6 +174,7 @@ function AppRoutes() {
             <Route path="/requirement7_3" element={<Requirement7_3 />} />
             <Route path="/requirement7_4" element={<Requirement7_4 />} />
             <Route path="/requirement7_5" element={<Requirement7_5 />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
