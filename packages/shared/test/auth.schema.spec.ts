@@ -33,8 +33,22 @@ describe('registerSchema', () => {
   });
 
   it('requires profile revisions and strong passwords for recovery', () => {
-    expect(updateCustomerProfileSchema.safeParse({ revision: 1, profile: validRegistration.profile }).success).toBe(true);
-    expect(updateCustomerProfileSchema.safeParse({ revision: 0, profile: validRegistration.profile }).success).toBe(false);
+    const { organization, representative } = validRegistration.profile;
+    const editableProfile = { organization, representative };
+    expect(updateCustomerProfileSchema.safeParse({ revision: 1, profile: editableProfile }).success).toBe(true);
+    expect(updateCustomerProfileSchema.safeParse({ revision: 0, profile: editableProfile }).success).toBe(false);
     expect(resetPasswordSchema.safeParse({ token: 'a'.repeat(64), password: 'a-short' }).success).toBe(false);
+  });
+
+  it('rejects selected systems and schema version in customer profile updates', () => {
+    const { organization, representative } = validRegistration.profile;
+    expect(updateCustomerProfileSchema.safeParse({
+      revision: 1,
+      profile: { organization, representative, selectedSystems: ['sgsst'] },
+    }).success).toBe(false);
+    expect(updateCustomerProfileSchema.safeParse({
+      revision: 1,
+      profile: { organization, representative, schemaVersion: 1 },
+    }).success).toBe(false);
   });
 });

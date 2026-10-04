@@ -28,9 +28,14 @@ export const loginSchema = z
   })
   .strict();
 
+const editableCustomerProfileSchema = z.object({
+  organization: customerProfileSchema.shape.organization,
+  representative: customerProfileSchema.shape.representative,
+}).strict();
+
 export const updateCustomerProfileSchema = z.object({
   revision: z.number().int().min(1),
-  profile: customerProfileSchema,
+  profile: editableCustomerProfileSchema,
 }).strict();
 export const updateLocaleSchema = z.object({ locale: localeSchema }).strict();
 

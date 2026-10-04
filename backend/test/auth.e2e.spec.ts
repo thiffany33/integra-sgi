@@ -146,24 +146,45 @@ describe('authentication HTTP flow', () => {
     await request(app.getHttpServer()).get('/api/v1/customers/me').expect(401);
     const freshLogin = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password }).expect(200);
     const cookie = (freshLogin.headers['set-cookie'] as string[])[0].split(';')[0];
-    const invalidProfile = { ...profile, unexpected: true };
+    const original = profile as {
+      organization: { name: string; nif: string; sector: string; email: string };
+      representative: { name: string; email: string; phone: string };
+    };
+    const invalidProfile = { organization: original.organization, representative: original.representative, unexpected: true };
     await request(app.getHttpServer()).put('/api/v1/customers/me').set('Cookie', cookie)
       .send({ revision: 1, profile: invalidProfile }).expect(400);
 
     const changedProfile = {
-      ...profile,
       organization: {
-        ...((profile as { organization: Record<string, unknown> }).organization),
+        ...original.organization,
         name: 'Integra Atualizada',
       },
+      representative: { ...original.representative, name: 'Beatriz Silva' },
     };
+    await request(app.getHttpServer()).put('/api/v1/customers/me')
+      .set('Cookie', cookie).send({ revision: 1, profile: { ...changedProfile, selectedSystems: ['sgsst'] } })
+      .expect(400)
+      .expect(({ body }) => expect(body.error.code).toBe('VALIDATION_ERROR'));
+    const beforeUpdate = await prisma.user.findUniqueOrThrow({
+      where: { email }, select: { customerProfile: { select: { data: true, revision: true } } },
+    });
+    expect(beforeUpdate.customerProfile?.data).toEqual(profile);
+    expect(beforeUpdate.customerProfile?.revision).toBe(1);
+
     const updated = await request(app.getHttpServer()).put('/api/v1/customers/me')
       .set('Cookie', cookie).send({ revision: 1, profile: changedProfile }).expect(200);
     expect(updated.body.revision).toBe(2);
     expect(updated.body.profile.organization.name).toBe('Integra Atualizada');
+    expect(updated.body.profile.representative.name).toBe('Beatriz Silva');
+    expect(updated.body.profile.selectedSystems).toEqual(['sgq', 'sga']);
+    const stored = await prisma.user.findUniqueOrThrow({
+      where: { email }, select: { customerProfile: { select: { data: true, revision: true } } },
+    });
+    expect(stored.customerProfile?.data).toEqual({ ...profile, ...changedProfile });
+    expect(stored.customerProfile?.revision).toBe(2);
 
     await request(app.getHttpServer()).put('/api/v1/customers/me')
-      .set('Cookie', cookie).send({ revision: 1, profile }).expect(409)
+      .set('Cookie', cookie).send({ revision: 1, profile: changedProfile }).expect(409)
       .expect(({ body }) => expect(body.error.code).toBe('PROFILE_REVISION_CONFLICT'));
   });
 
