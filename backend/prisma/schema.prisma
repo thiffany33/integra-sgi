@@ -26,6 +26,8 @@ model User {
   customerProfile      CustomerProfile?
   passwordResetTokens  PasswordResetToken[]
   verificationTokens   EmailVerificationToken[]
+  systemChangesMade    CustomerSystemsChange[] @relation("SystemChangeActor")
+  systemChangesReceived CustomerSystemsChange[] @relation("SystemChangeTarget")
 }
 
 model CustomerProfile {
@@ -36,6 +38,20 @@ model CustomerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CustomerSystemsChange {
+  id              String   @id @default(cuid())
+  actorUserId     String
+  targetUserId    String
+  previousSystems Json     @db.JsonB
+  newSystems      Json     @db.JsonB
+  createdAt       DateTime @default(now())
+  actor           User     @relation("SystemChangeActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  target          User     @relation("SystemChangeTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId])
+  @@index([targetUserId, createdAt])
 }
 
 model Session {

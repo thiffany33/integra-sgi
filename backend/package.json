@@ -15,7 +15,8 @@
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate:dev": "prisma migrate dev",
-    "db:migrate:deploy": "prisma migrate deploy"
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:promote-platform-admin": "node --import tsx prisma/promote-platform-admin.ts"
   },
   "dependencies": {
     "@integra/shared": "^0.0.0",
