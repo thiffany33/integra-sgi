@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -89,6 +90,30 @@ describe('authentication HTTP flow', () => {
     expect(storedUser?.customerProfile?.data).toEqual(profile);
     expect(session?.tokenHash).toBe(createHash('sha256').update(rawSessionToken).digest('hex'));
     expect(session?.tokenHash).not.toBe(rawSessionToken);
+  });
+
+  it('backfills the address of an outstanding legacy verification link', async () => {
+    const legacyEmail = `legacy-${randomUUID()}@example.pt`;
+    const legacyUser = await prisma.user.create({
+      data: { name: 'Legacy account', email: legacyEmail, passwordHash: 'unused', locale: 'pt-PT' },
+    });
+    const rawToken = randomUUID();
+    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+    try {
+      const legacyToken = await prisma.emailVerificationToken.create({
+        data: { userId: legacyUser.id, tokenHash, expiresAt: new Date(Date.now() + 60_000), email: null },
+      });
+      const migrationSql = readFileSync('prisma/migrations/20261004030000_backfill_verification_token_email/migration.sql', 'utf8');
+      await prisma.$executeRawUnsafe(migrationSql);
+      const backfilled = await prisma.emailVerificationToken.findUniqueOrThrow({ where: { id: legacyToken.id } });
+      expect(backfilled.email).toBe(legacyEmail);
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+        .send({ token: rawToken }).expect(200);
+      const verifiedUser = await prisma.user.findUniqueOrThrow({ where: { id: legacyUser.id } });
+      expect(verifiedUser.emailVerifiedAt).toBeInstanceOf(Date);
+    } finally {
+      await prisma.user.delete({ where: { id: legacyUser.id } });
+    }
   });
 
   it('loads the profile again through login and GET /auth/me', async () => {
