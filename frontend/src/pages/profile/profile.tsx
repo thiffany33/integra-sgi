@@ -37,13 +37,15 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
   const [newPassword, setNewPassword] = useState('');
   const [accountMessage, setAccountMessage] = useState<Message>(null);
   const [organizationMessage, setOrganizationMessage] = useState<Message>(null);
+  const [hasProfileConflict, setHasProfileConflict] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<Message>(null);
   const [busy, setBusy] = useState<'account' | 'organization' | 'password' | null>(null);
 
   async function saveAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy('account'); setAccountMessage(null);
     try {
-      await auth.updateAccount({ name: name.trim(), email: email.trim().toLowerCase() });
+      const savedUser = await auth.updateAccount({ name: name.trim(), email: email.trim().toLowerCase() });
+      setName(savedUser.name); setEmail(savedUser.email);
       setAccountMessage({ kind: 'success', text: t('accountSaved') });
     } catch (error) {
       setAccountMessage({ kind: 'error', text: t(errorCode(error) === 'EMAIL_ALREADY_EXISTS' ? 'emailInUse' : errorCode(error) === 'VALIDATION_ERROR' ? 'checkFields' : 'saveError') });
@@ -51,11 +53,13 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
   }
 
   async function saveOrganization(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy('organization'); setOrganizationMessage(null);
+    event.preventDefault(); setBusy('organization'); setOrganizationMessage(null); setHasProfileConflict(false);
     try {
-      await auth.updateOrganization({ organization, representative });
+      const saved = await auth.updateOrganization({ organization, representative });
+      setOrganization(saved.profile.organization); setRepresentative(saved.profile.representative);
       setOrganizationMessage({ kind: 'success', text: t('organizationSaved') });
     } catch (error) {
+      setHasProfileConflict(errorCode(error) === 'PROFILE_REVISION_CONFLICT');
       setOrganizationMessage({ kind: 'error', text: t(errorCode(error) === 'PROFILE_REVISION_CONFLICT' ? 'profileConflict' : errorCode(error) === 'VALIDATION_ERROR' ? 'checkFields' : 'saveError') });
     } finally { setBusy(null); }
   }
@@ -96,6 +100,7 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
       </div>
       <p className="text-base text-muted-foreground">{t('systemsManagedByAdmin')}</p>
       <Feedback message={organizationMessage} />
+      {hasProfileConflict && <Button type="button" variant="outline" onClick={() => window.location.reload()}>{t('reloadProfile')}</Button>}
       <Button type="submit" disabled={busy !== null}>{busy === 'organization' ? t('saving') : t('saveOrganization')}</Button>
     </form></CardContent></Card>
 

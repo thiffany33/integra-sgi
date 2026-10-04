@@ -18,8 +18,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : { status: 'loading', user: null, profile: null, error: null });
     try {
       const result = await authApi.me();
+      const saved = await customersApi.me();
       void i18n.changeLanguage(result.user.locale);
-      setState({ status: 'authenticated', ...result, revision: (await customersApi.me()).revision, error: null });
+      setState({ status: 'authenticated', ...result, profile: saved.profile, revision: saved.revision, error: null });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         setState({ status: 'anonymous', user: null, profile: null, error: null });
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const accept = useCallback(async (result: { user: AuthUser; profile: CustomerProfileInput }) => {
     const saved = await customersApi.me();
     void i18n.changeLanguage(result.user.locale);
-    setState({ status: 'authenticated', ...result, revision: saved.revision, error: null });
+    setState({ status: 'authenticated', ...result, profile: saved.profile, revision: saved.revision, error: null });
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -60,12 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (state.status !== 'authenticated') throw new Error('Sign in to update your account.');
     const user = await profileApi.updateAccount(input);
     setState(current => current.status === 'authenticated' ? { ...current, user } : current);
+    return user;
   }, [state.status]);
 
   const updateOrganization = useCallback(async (profile: UpdateCustomerProfileInput['profile']) => {
     if (state.status !== 'authenticated') throw new Error('Sign in to update your organization.');
     const saved = await profileApi.updateOrganization(profile, state.revision);
     setState(current => current.status === 'authenticated' ? { ...current, profile: saved.profile, revision: saved.revision } : current);
+    return saved;
   }, [state]);
 
   const changePassword = useCallback(async (input: ChangePasswordInput) => {
