@@ -9,6 +9,8 @@ import { EMAIL_SERVICE, createAuthEmail, type EmailService } from '../email/emai
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
+export type PreparedVerification = { token: string; tokenHash: string; expiresAt: Date };
+
 @Injectable()
 export class AuthEmailService {
   private readonly appUrl: string;
@@ -22,8 +24,17 @@ export class AuthEmailService {
   }
 
   async sendVerification(userId: string, email: string, locale: string): Promise<void> {
+    const prepared = this.prepareVerification();
+    if (!(await this.repository.createVerificationToken(userId, email, prepared.tokenHash, prepared.expiresAt))) return;
+    await this.sendPreparedVerification(email, locale, prepared.token);
+  }
+
+  prepareVerification(): PreparedVerification {
     const token = randomBytes(32).toString('base64url');
-    await this.repository.createVerificationToken(userId, this.hashToken(token), new Date(Date.now() + VERIFY_TOKEN_TTL_MS));
+    return { token, tokenHash: this.hashToken(token), expiresAt: new Date(Date.now() + VERIFY_TOKEN_TTL_MS) };
+  }
+
+  async sendPreparedVerification(email: string, locale: string, token: string): Promise<void> {
     const url = new URL('/verify-email', this.appUrl);
     url.searchParams.set('token', token);
     await this.sendBestEffort(email, locale, 'verify', url.toString());

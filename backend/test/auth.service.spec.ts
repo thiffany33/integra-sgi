@@ -41,6 +41,8 @@ function makeService() {
   const rateLimit = { consume: vi.fn().mockResolvedValue(undefined) };
   const authEmail = {
     sendVerification: vi.fn().mockResolvedValue(undefined),
+    prepareVerification: vi.fn().mockReturnValue({ token: 'prepared-token', tokenHash: 'prepared-hash', expiresAt: new Date('2030-01-01') }),
+    sendPreparedVerification: vi.fn().mockResolvedValue(undefined),
     requestPasswordReset: vi.fn().mockResolvedValue(undefined),
     verifyEmail: vi.fn().mockResolvedValue(true),
   };
@@ -100,12 +102,14 @@ describe('AuthService', () => {
 
     const result = await service.updateAccount('user-1', { name: ' Ana Maria ', email: ' NEW@EXAMPLE.PT ' });
 
-    expect(repository.updateAccount).toHaveBeenCalledWith('user-1', { name: 'Ana Maria', email: 'new@example.pt' });
+    expect(repository.updateAccount).toHaveBeenCalledWith('user-1', { name: 'Ana Maria', email: 'new@example.pt' }, {
+      tokenHash: 'prepared-hash', expiresAt: new Date('2030-01-01'),
+    });
     expect(result.user).toEqual({ ...publicUser, name: 'Ana Maria', email: 'new@example.pt', emailVerifiedAt: null });
-    expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'new@example.pt', 'pt-PT');
+    expect(authEmail.sendPreparedVerification).toHaveBeenCalledWith('new@example.pt', 'pt-PT', 'prepared-token');
     repository.updateAccount.mockResolvedValue({ user: publicUser, emailChanged: false });
     await service.updateAccount('user-1', { name: 'Ana Silva', email: 'ana@example.pt' });
-    expect(authEmail.sendVerification).toHaveBeenCalledTimes(1);
+    expect(authEmail.sendPreparedVerification).toHaveBeenCalledTimes(1);
   });
 
   it('returns a conflict when an account email is already in use', async () => {

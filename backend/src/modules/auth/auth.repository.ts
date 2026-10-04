@@ -20,6 +20,8 @@ export type PublicUserRecord = {
   emailVerifiedAt: Date | null;
 };
 
+class VerificationTokenRace extends Error {}
+
 @Injectable()
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -152,9 +154,15 @@ export class AuthRepository {
     return user;
   }
 
-  async updateAccount(userId: string, input: UpdateAccountInput): Promise<{ user: PublicUserRecord; emailChanged: boolean } | null> {
+  async updateAccount(
+    userId: string,
+    input: UpdateAccountInput,
+    verification: { tokenHash: string; expiresAt: Date },
+  ): Promise<{ user: PublicUserRecord; emailChanged: boolean } | null> {
     return this.prisma.$transaction(async (transaction) => {
-      const previous = await transaction.user.findUnique({ where: { id: userId }, select: { email: true } });
+      const [previous] = await transaction.$queryRaw<Array<{ email: string }>>`
+        SELECT "email" FROM "User" WHERE "id" = ${userId} FOR UPDATE
+      `;
       if (!previous) return null;
       const emailChanged = previous.email !== input.email;
       const user = await transaction.user.update({
@@ -165,6 +173,9 @@ export class AuthRepository {
       if (emailChanged) {
         await transaction.emailVerificationToken.updateMany({
           where: { userId, usedAt: null }, data: { usedAt: new Date() },
+        });
+        await transaction.emailVerificationToken.create({
+          data: { userId, email: input.email, tokenHash: verification.tokenHash, expiresAt: verification.expiresAt },
         });
       }
       return { user, emailChanged };
@@ -226,23 +237,41 @@ export class AuthRepository {
     });
   }
 
-  async createVerificationToken(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {
-    await this.prisma.$transaction([
-      this.prisma.emailVerificationToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: new Date() } }),
-      this.prisma.emailVerificationToken.create({ data: { userId, tokenHash, expiresAt } }),
-    ]);
+  async createVerificationToken(userId: string, email: string, tokenHash: string, expiresAt: Date): Promise<boolean> {
+    return this.prisma.$transaction(async (transaction) => {
+      const current = await transaction.user.updateMany({
+        where: { id: userId, email }, data: { email },
+      });
+      if (current.count !== 1) return false;
+      await transaction.emailVerificationToken.updateMany({
+        where: { userId, usedAt: null }, data: { usedAt: new Date() },
+      });
+      await transaction.emailVerificationToken.create({ data: { userId, email, tokenHash, expiresAt } });
+      return true;
+    });
   }
 
   async verifyEmail(tokenHash: string, now: Date): Promise<boolean> {
-    return this.prisma.$transaction(async (transaction) => {
-      const token = await transaction.emailVerificationToken.findUnique({ where: { tokenHash }, select: { id: true, userId: true } });
-      if (!token) return false;
-      const consumed = await transaction.emailVerificationToken.updateMany({
-        where: { id: token.id, usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now },
+    try {
+      return await this.prisma.$transaction(async (transaction) => {
+        const token = await transaction.emailVerificationToken.findUnique({
+          where: { tokenHash }, select: { id: true, userId: true, email: true, usedAt: true, expiresAt: true },
+        });
+        if (!token?.email || token.usedAt || token.expiresAt <= now) return false;
+        const verified = await transaction.user.updateMany({
+          where: { id: token.userId, email: token.email, emailVerifiedAt: null },
+          data: { emailVerifiedAt: now },
+        });
+        if (verified.count !== 1) return false;
+        const consumed = await transaction.emailVerificationToken.updateMany({
+          where: { id: token.id, usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now },
+        });
+        if (consumed.count !== 1) throw new VerificationTokenRace();
+        return true;
       });
-      if (consumed.count !== 1) return false;
-      await transaction.user.updateMany({ where: { id: token.userId, emailVerifiedAt: null }, data: { emailVerifiedAt: now } });
-      return true;
-    });
+    } catch (error) {
+      if (error instanceof VerificationTokenRace) return false;
+      throw error;
+    }
   }
 }

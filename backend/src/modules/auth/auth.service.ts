@@ -167,13 +167,17 @@ export class AuthService {
 
   async updateAccount(userId: string, input: UpdateAccountInput): Promise<{ user: PublicAuthUser }> {
     const details = updateAccountSchema.parse(input);
+    const verification = this.authEmail.prepareVerification();
     try {
-      const updated = await this.repository.updateAccount(userId, details);
+      const updated = await this.repository.updateAccount(userId, details, {
+        tokenHash: verification.tokenHash,
+        expiresAt: verification.expiresAt,
+      });
       if (!updated) {
         throw new ApiException(HttpStatus.NOT_FOUND, { code: 'USER_NOT_FOUND', message: 'User account not found.' });
       }
       if (updated.emailChanged) {
-        await this.authEmail.sendVerification(updated.user.id, updated.user.email, updated.user.locale);
+        await this.authEmail.sendPreparedVerification(updated.user.email, updated.user.locale, verification.token);
       }
       return { user: this.publicUser(updated.user) };
     } catch (error) {

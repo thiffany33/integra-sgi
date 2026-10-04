@@ -6,6 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { EMAIL_SERVICE } from '../src/modules/email/email.service';
 import { configureApp } from '../src/configure-app';
 import { PrismaService } from '../src/infra/prisma/prisma.service';
+import { AuthRepository } from '../src/modules/auth/auth.repository';
+import { AuthEmailService } from '../src/modules/auth/auth-email.service';
 
 const databaseUrl = 'postgresql://postgres:postgres@localhost:5432/integra_sgi';
 const sessionSecret = 'test-session-secret-with-at-least-thirty-two-characters';
@@ -19,6 +21,8 @@ describe('authentication HTTP flow', () => {
   let registrationResponse: request.Response;
   let sessionCookie: string;
   let rawSessionToken: string;
+  let registrationUserId: string;
+  let accountCookie: string;
   const sentEmails: Array<{ to: string; subject: string; html: string; text: string }> = [];
 
   beforeAll(async () => {
@@ -51,6 +55,7 @@ describe('authentication HTTP flow', () => {
     registrationResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
       .send({ name: 'Ana Silva', email: email.toUpperCase(), password, locale: 'pt-PT', profile });
+    registrationUserId = registrationResponse.body.user.id as string;
 
     const setCookie = registrationResponse.headers['set-cookie'] as string[] | undefined;
     sessionCookie = setCookie?.[0]?.split(';')[0] ?? '';
@@ -58,7 +63,7 @@ describe('authentication HTTP flow', () => {
   }, 30_000);
 
   afterAll(async () => {
-    if (prisma && email) await prisma.user.deleteMany({ where: { email: { in: [email, `changed-${email}`] } } });
+    if (prisma && registrationUserId) await prisma.user.deleteMany({ where: { id: registrationUserId } });
     if (app) await app.close();
   });
 
@@ -277,6 +282,7 @@ describe('authentication HTTP flow', () => {
     const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
       .send({ email, password: 'new-correct-horse-battery' }).expect(200);
     const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+    accountCookie = cookie;
     const duplicateEmail = `duplicate-${email}`;
     const duplicate = await prisma.user.create({ data: {
       name: 'Duplicate', email: duplicateEmail, passwordHash: 'unused', locale: 'pt-PT',
@@ -303,6 +309,77 @@ describe('authentication HTTP flow', () => {
     await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200)
       .expect(({ body }) => expect(body.user.email).toBe(newEmail));
     email = newEmail;
+  });
+
+  it('rejects a stale verification token even when its email is sent after a newer account update', async () => {
+    const intermediateEmail = `intermediate-${email}`;
+    const finalEmail = `final-${email}`;
+    let signalStarted!: () => void;
+    const started = new Promise<void>((resolve) => { signalStarted = resolve; });
+    let releaseSend!: () => void;
+    const waitForRelease = new Promise<void>((resolve) => { releaseSend = resolve; });
+    const emailService = app.get(AuthEmailService);
+    const originalSend = emailService.sendVerification.bind(emailService);
+    const preparedEmailService = emailService as AuthEmailService & {
+      sendPreparedVerification?: (address: string, locale: string, token: string) => Promise<void>;
+    };
+    const originalPreparedSend = preparedEmailService.sendPreparedVerification?.bind(emailService);
+    const waitIfIntermediate = async (address: string) => {
+      if (address === intermediateEmail) {
+        signalStarted();
+        await waitForRelease;
+      }
+    };
+    emailService.sendVerification = async (userId, address, locale) => {
+      await waitIfIntermediate(address);
+      return originalSend(userId, address, locale);
+    };
+    if (originalPreparedSend) {
+      preparedEmailService.sendPreparedVerification = async (address, locale, token) => {
+        await waitIfIntermediate(address);
+        return originalPreparedSend(address, locale, token);
+      };
+    }
+    const firstRequest = request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', accountCookie)
+      .send({ name: 'Ana Maria', email: intermediateEmail }).then((response) => response);
+    await started;
+    let secondResponse: request.Response;
+    try {
+      secondResponse = await request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', accountCookie)
+        .send({ name: 'Ana Maria', email: finalEmail });
+    } finally {
+      releaseSend();
+      emailService.sendVerification = originalSend;
+      if (originalPreparedSend) preparedEmailService.sendPreparedVerification = originalPreparedSend;
+    }
+    expect(secondResponse!.status).toBe(200);
+    expect((await firstRequest).status).toBe(200);
+    const intermediateMessage = sentEmails.findLast((message) => message.to === intermediateEmail)!;
+    const finalMessage = sentEmails.findLast((message) => message.to === finalEmail)!;
+    const intermediateToken = new URL(intermediateMessage.html.match(/href="([^"]+)"/)![1]).searchParams.get('token');
+    const finalToken = new URL(finalMessage.html.match(/href="([^"]+)"/)![1]).searchParams.get('token');
+    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+      .send({ token: intermediateToken }).expect(400);
+    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+      .send({ token: finalToken }).expect(200);
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: finalEmail } });
+    expect(user.emailVerifiedAt).toBeInstanceOf(Date);
+    email = finalEmail;
+  });
+
+  it('rolls back the email update if the verification token cannot be stored', async () => {
+    const account = await prisma.user.findUniqueOrThrow({ where: { id: registrationUserId } });
+    const existingToken = await prisma.emailVerificationToken.findFirstOrThrow({ where: { userId: account.id } });
+    const attemptedEmail = `uncommitted-${account.email}`;
+    const repository = app.get(AuthRepository);
+    await expect(repository.updateAccount(account.id, { name: 'Changed Name', email: attemptedEmail }, {
+      tokenHash: existingToken.tokenHash,
+      expiresAt: new Date(Date.now() + 60_000),
+    })).rejects.toMatchObject({ code: 'P2002' });
+    expect(await prisma.user.findUnique({ where: { email: attemptedEmail } })).toBeNull();
+    const current = await prisma.user.findUniqueOrThrow({ where: { id: account.id } });
+    expect(current.email).toBe(account.email);
+    expect(current.name).toBe(account.name);
   });
 
   it('confirms the current password, revokes all old sessions, and rotates the HTTP-only cookie', async () => {
