@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { RegisterInput, SupportedLocale } from '@integra/shared/auth';
-import { loginSchema, registerSchema, supportedLocales } from '@integra/shared/auth';
+import type { ChangePasswordInput, RegisterInput, SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
+import { changePasswordSchema, loginSchema, registerSchema, supportedLocales, updateAccountSchema } from '@integra/shared/auth';
 import { ApiException } from '../../utils/api-exception';
 import { AuthRateLimitService } from './auth-rate-limit.service';
 import { AuthRepository, type PublicUserRecord } from './auth.repository';
@@ -163,6 +163,54 @@ export class AuthService {
       throw new ApiException(HttpStatus.NOT_FOUND, { code: 'USER_NOT_FOUND', message: 'User account not found.' });
     }
     return { user: this.publicUser(user) };
+  }
+
+  async updateAccount(userId: string, input: UpdateAccountInput): Promise<{ user: PublicAuthUser }> {
+    const details = updateAccountSchema.parse(input);
+    try {
+      const updated = await this.repository.updateAccount(userId, details);
+      if (!updated) {
+        throw new ApiException(HttpStatus.NOT_FOUND, { code: 'USER_NOT_FOUND', message: 'User account not found.' });
+      }
+      if (updated.emailChanged) {
+        await this.authEmail.sendVerification(updated.user.id, updated.user.email, updated.user.locale);
+      }
+      return { user: this.publicUser(updated.user) };
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        throw new ApiException(HttpStatus.CONFLICT, {
+          code: 'EMAIL_ALREADY_EXISTS', message: 'An account with this email already exists.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async changePassword(userId: string, currentSessionToken: string, input: ChangePasswordInput): Promise<{ user: PublicAuthUser; sessionToken: string }> {
+    const passwords = changePasswordSchema.parse(input);
+    const current = await this.repository.findUserPassword(userId);
+    if (!current || !(await this.passwords.verify(current.passwordHash, passwords.currentPassword))) {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, {
+        code: 'INVALID_CURRENT_PASSWORD', message: 'Current password is incorrect.',
+      });
+    }
+    const sessionToken = randomBytes(32).toString('base64url');
+    const now = new Date();
+    const updated = await this.repository.rotatePasswordAndSession({
+      userId,
+      previousPasswordHash: current.passwordHash,
+      passwordHash: await this.passwords.hash(passwords.newPassword),
+      currentTokenHash: this.hashSessionToken(currentSessionToken),
+      newTokenHash: this.hashSessionToken(sessionToken),
+      expiresAt: new Date(now.getTime() + SESSION_TTL_SECONDS * 1000),
+      now,
+    });
+    if (!updated) {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, {
+        code: 'UNAUTHENTICATED', message: 'Please sign in to continue.',
+      });
+    }
+    return { user: this.publicUser(updated), sessionToken };
   }
 
   private hashSessionToken(sessionToken: string): string {

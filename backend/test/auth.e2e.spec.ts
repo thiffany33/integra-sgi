@@ -58,7 +58,7 @@ describe('authentication HTTP flow', () => {
   }, 30_000);
 
   afterAll(async () => {
-    if (prisma && email) await prisma.user.deleteMany({ where: { email } });
+    if (prisma && email) await prisma.user.deleteMany({ where: { email: { in: [email, `changed-${email}`] } } });
     if (app) await app.close();
   });
 
@@ -223,7 +223,7 @@ describe('authentication HTTP flow', () => {
       .send({ token, password: 'new-correct-horse-battery' }).expect(200);
     await request(app.getHttpServer()).post('/api/v1/auth/reset-password')
       .send({ token, password: 'another-correct-horse' }).expect(400);
-    const expiredRawToken = 'y'.repeat(64);
+    const expiredRawToken = randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '');
     const user = await prisma.user.findUniqueOrThrow({ where: { email }, select: { id: true } });
     await prisma.passwordResetToken.create({ data: {
       userId: user.id,
@@ -246,8 +246,9 @@ describe('authentication HTTP flow', () => {
     expect(await prisma.emailVerificationToken.findUnique({ where: { tokenHash } })).toMatchObject({ tokenHash });
     await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(200);
     await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(400);
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token: 'z'.repeat(64) }).expect(400);
-    const expiredRawToken = 'w'.repeat(64);
+    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+      .send({ token: randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '') }).expect(400);
+    const expiredRawToken = randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '');
     const user = await prisma.user.findUniqueOrThrow({ where: { email }, select: { id: true } });
     await prisma.emailVerificationToken.create({ data: {
       userId: user.id,
@@ -270,5 +271,76 @@ describe('authentication HTTP flow', () => {
       .expect(({ body }) => expect(body.user.locale).toBe('de'));
     await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200)
       .expect(({ body }) => expect(body.user.locale).toBe('de'));
+  });
+
+  it('updates account details, rejects duplicate emails, and sends fresh verification to the new address', async () => {
+    const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'new-correct-horse-battery' }).expect(200);
+    const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+    const duplicateEmail = `duplicate-${email}`;
+    const duplicate = await prisma.user.create({ data: {
+      name: 'Duplicate', email: duplicateEmail, passwordHash: 'unused', locale: 'pt-PT',
+    } });
+    try {
+      await request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', cookie)
+        .send({ name: 'Ana Maria', email: duplicateEmail.toUpperCase() }).expect(409)
+        .expect(({ body }) => expect(body.error.code).toBe('EMAIL_ALREADY_EXISTS'));
+      await request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', cookie)
+        .send({ name: 'Ana Maria', email, role: 'admin' }).expect(400);
+    } finally {
+      await prisma.user.delete({ where: { id: duplicate.id } });
+    }
+
+    const newEmail = `changed-${email}`;
+    const response = await request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', cookie)
+      .send({ name: ' Ana Maria ', email: newEmail.toUpperCase() }).expect(200);
+    expect(response.body).toEqual({ user: expect.objectContaining({ name: 'Ana Maria', email: newEmail, emailVerifiedAt: null }) });
+    expect(response.body.user).not.toHaveProperty('passwordHash');
+    const stored = await prisma.user.findUniqueOrThrow({ where: { email: newEmail } });
+    expect(stored.emailVerifiedAt).toBeNull();
+    const verification = sentEmails.findLast((message) => message.to === newEmail && message.html.includes('/verify-email?token='));
+    expect(verification).toBeDefined();
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200)
+      .expect(({ body }) => expect(body.user.email).toBe(newEmail));
+    email = newEmail;
+  });
+
+  it('confirms the current password, revokes all old sessions, and rotates the HTTP-only cookie', async () => {
+    const first = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'new-correct-horse-battery' }).expect(200);
+    const second = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'new-correct-horse-battery' }).expect(200);
+    const firstCookie = (first.headers['set-cookie'] as string[])[0].split(';')[0];
+    const secondCookie = (second.headers['set-cookie'] as string[])[0].split(';')[0];
+    await request(app.getHttpServer()).post('/api/v1/auth/me/password').set('Cookie', firstCookie)
+      .send({ currentPassword: 'wrong-password', newPassword: 'next-correct-horse-battery' }).expect(401)
+      .expect(({ body }) => expect(body.error.code).toBe('INVALID_CURRENT_PASSWORD'));
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', firstCookie).expect(200);
+    await request(app.getHttpServer()).post('/api/v1/auth/me/password').set('Cookie', firstCookie)
+      .send({ currentPassword: 'new-correct-horse-battery', newPassword: 'short' }).expect(400);
+
+    const changed = await request(app.getHttpServer()).post('/api/v1/auth/me/password').set('Cookie', firstCookie)
+      .send({ currentPassword: 'new-correct-horse-battery', newPassword: 'next-correct-horse-battery' }).expect(200);
+    expect(changed.body).toEqual({ user: expect.objectContaining({ email }) });
+    expect(changed.body).not.toHaveProperty('sessionToken');
+    expect(changed.body.user).not.toHaveProperty('passwordHash');
+    const cookieHeader = (changed.headers['set-cookie'] as string[])[0];
+    expect(cookieHeader).toContain('HttpOnly');
+    expect(cookieHeader).toContain('SameSite=Lax');
+    const newCookie = cookieHeader.split(';')[0];
+    expect(newCookie).not.toBe(firstCookie);
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+    expect(user.passwordHash).toContain('$argon2');
+    expect(user.passwordHash).not.toBe('next-correct-horse-battery');
+    const active = await prisma.session.findMany({ where: { userId: user.id, revokedAt: null } });
+    expect(active).toHaveLength(1);
+    expect(active[0].tokenHash).toBe(createHash('sha256').update(newCookie.split('=')[1]).digest('hex'));
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', firstCookie).expect(401);
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', secondCookie).expect(401);
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', newCookie).expect(200);
+    await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'new-correct-horse-battery' }).expect(401);
+    await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'next-correct-horse-battery' }).expect(200);
   });
 });

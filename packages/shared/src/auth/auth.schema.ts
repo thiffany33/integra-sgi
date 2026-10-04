@@ -38,6 +38,14 @@ export const updateCustomerProfileSchema = z.object({
   profile: editableCustomerProfileSchema,
 }).strict();
 export const updateLocaleSchema = z.object({ locale: localeSchema }).strict();
+export const updateAccountSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  email: accountEmailSchema,
+}).strict();
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(12).max(128),
+}).strict();
 
 export const forgotPasswordSchema = z.object({ email: accountEmailSchema }).strict();
 export const resetPasswordSchema = z.object({
@@ -50,3 +58,5 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileSchema>;
 export type SupportedLocale = z.infer<typeof localeSchema>;
+export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

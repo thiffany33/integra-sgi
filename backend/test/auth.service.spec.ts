@@ -30,6 +30,9 @@ function makeService() {
     findSessionByTokenHash: vi.fn(),
     revokeSession: vi.fn(),
     getUserProfile: vi.fn(),
+    updateAccount: vi.fn(),
+    findUserPassword: vi.fn(),
+    rotatePasswordAndSession: vi.fn(),
   };
   const passwords = {
     hash: vi.fn().mockResolvedValue('$argon2id$hashed-value'),
@@ -89,5 +92,54 @@ describe('AuthService', () => {
         response: { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } },
       });
     expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('normalizes account details and resends verification only when the email changes', async () => {
+    const { service, repository, authEmail } = makeService();
+    repository.updateAccount.mockResolvedValue({ user: { ...publicUser, name: 'Ana Maria', email: 'new@example.pt', emailVerifiedAt: null }, emailChanged: true });
+
+    const result = await service.updateAccount('user-1', { name: ' Ana Maria ', email: ' NEW@EXAMPLE.PT ' });
+
+    expect(repository.updateAccount).toHaveBeenCalledWith('user-1', { name: 'Ana Maria', email: 'new@example.pt' });
+    expect(result.user).toEqual({ ...publicUser, name: 'Ana Maria', email: 'new@example.pt', emailVerifiedAt: null });
+    expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'new@example.pt', 'pt-PT');
+    repository.updateAccount.mockResolvedValue({ user: publicUser, emailChanged: false });
+    await service.updateAccount('user-1', { name: 'Ana Silva', email: 'ana@example.pt' });
+    expect(authEmail.sendVerification).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a conflict when an account email is already in use', async () => {
+    const { service, repository } = makeService();
+    repository.updateAccount.mockRejectedValue({ code: 'P2002' });
+    await expect(service.updateAccount('user-1', { name: 'Ana', email: 'taken@example.pt' }))
+      .rejects.toMatchObject({ response: { error: { code: 'EMAIL_ALREADY_EXISTS' } } });
+  });
+
+  it('rejects a wrong current password without rotating sessions', async () => {
+    const { service, repository, passwords } = makeService();
+    repository.findUserPassword.mockResolvedValue({ ...publicUser, passwordHash: '$argon2id$stored-hash' });
+    passwords.verify.mockResolvedValue(false);
+    await expect(service.changePassword('user-1', 'current-token', {
+      currentPassword: 'wrong-password', newPassword: 'correct-horse-battery',
+    })).rejects.toMatchObject({ response: { error: { code: 'INVALID_CURRENT_PASSWORD' } } });
+    expect(repository.rotatePasswordAndSession).not.toHaveBeenCalled();
+  });
+
+  it('hashes the new password and returns a new raw session token only to the controller', async () => {
+    const { service, repository, passwords } = makeService();
+    repository.findUserPassword.mockResolvedValue({ ...publicUser, passwordHash: '$argon2id$stored-hash' });
+    repository.rotatePasswordAndSession.mockResolvedValue(publicUser);
+    const result = await service.changePassword('user-1', 'current-token', {
+      currentPassword: 'old-password', newPassword: 'correct-horse-battery',
+    });
+    const [input] = repository.rotatePasswordAndSession.mock.calls[0] as [Record<string, unknown>];
+    expect(passwords.verify).toHaveBeenCalledWith('$argon2id$stored-hash', 'old-password');
+    expect(passwords.hash).toHaveBeenCalledWith('correct-horse-battery');
+    expect(input.passwordHash).toBe('$argon2id$hashed-value');
+    expect(input.currentTokenHash).toBe(createHash('sha256').update('current-token').digest('hex'));
+    expect(input.newTokenHash).toBe(createHash('sha256').update(result.sessionToken).digest('hex'));
+    expect(result.sessionToken).not.toBe('current-token');
+    expect(result.user).toEqual(publicUser);
+    expect(result.user).not.toHaveProperty('passwordHash');
   });
 });

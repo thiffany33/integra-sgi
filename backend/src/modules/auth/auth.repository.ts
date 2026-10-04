@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale } from '@integra/shared/auth';
+import type { SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
@@ -150,6 +150,59 @@ export class AuthRepository {
       throw error;
     });
     return user;
+  }
+
+  async updateAccount(userId: string, input: UpdateAccountInput): Promise<{ user: PublicUserRecord; emailChanged: boolean } | null> {
+    return this.prisma.$transaction(async (transaction) => {
+      const previous = await transaction.user.findUnique({ where: { id: userId }, select: { email: true } });
+      if (!previous) return null;
+      const emailChanged = previous.email !== input.email;
+      const user = await transaction.user.update({
+        where: { id: userId },
+        data: { name: input.name, email: input.email, ...(emailChanged ? { emailVerifiedAt: null } : {}) },
+        select: publicUserSelect,
+      });
+      if (emailChanged) {
+        await transaction.emailVerificationToken.updateMany({
+          where: { userId, usedAt: null }, data: { usedAt: new Date() },
+        });
+      }
+      return { user, emailChanged };
+    });
+  }
+
+  async findUserPassword(userId: string): Promise<(PublicUserRecord & { passwordHash: string }) | null> {
+    return this.prisma.user.findUnique({ where: { id: userId }, select: { ...publicUserSelect, passwordHash: true } });
+  }
+
+  async rotatePasswordAndSession(input: {
+    userId: string;
+    previousPasswordHash: string;
+    passwordHash: string;
+    currentTokenHash: string;
+    newTokenHash: string;
+    expiresAt: Date;
+    now: Date;
+  }): Promise<PublicUserRecord | null> {
+    return this.prisma.$transaction(async (transaction) => {
+      const currentSession = await transaction.session.findUnique({
+        where: { tokenHash: input.currentTokenHash },
+        select: { userId: true, revokedAt: true, expiresAt: true },
+      });
+      if (!currentSession || currentSession.userId !== input.userId || currentSession.revokedAt || currentSession.expiresAt <= input.now) return null;
+      const updated = await transaction.user.updateMany({
+        where: { id: input.userId, passwordHash: input.previousPasswordHash },
+        data: { passwordHash: input.passwordHash },
+      });
+      if (updated.count !== 1) return null;
+      await transaction.session.updateMany({
+        where: { userId: input.userId, revokedAt: null }, data: { revokedAt: input.now },
+      });
+      await transaction.session.create({
+        data: { userId: input.userId, tokenHash: input.newTokenHash, expiresAt: input.expiresAt },
+      });
+      return transaction.user.findUniqueOrThrow({ where: { id: input.userId }, select: publicUserSelect });
+    });
   }
 
   async createPasswordResetToken(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {

@@ -11,11 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { LoginInput, RegisterInput } from '@integra/shared/auth';
+import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateAccountInput } from '@integra/shared/auth';
 import type { Request, Response } from 'express';
 import type { Environment } from '../../config/env.schema';
 import { ZodValidationPipe } from '../../middlewares/zod-validation.pipe';
-import { loginSchema, registerSchema, updateLocaleSchema } from '@integra/shared/auth';
+import { changePasswordSchema, loginSchema, registerSchema, updateAccountSchema, updateLocaleSchema } from '@integra/shared/auth';
 import { forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema } from './password-reset.schema';
 import { AuthService } from './auth.service';
 import { SessionGuard } from './session.guard';
@@ -110,5 +110,27 @@ export class AuthController {
     @Body(new ZodValidationPipe(updateLocaleSchema)) body: { locale: import('@integra/shared/auth').SupportedLocale },
   ) {
     return this.authService.updateLocale(request.userId!, body.locale);
+  }
+
+  @Patch('me')
+  @UseGuards(SessionGuard)
+  updateAccount(
+    @Req() request: Request,
+    @Body(new ZodValidationPipe(updateAccountSchema)) body: UpdateAccountInput,
+  ) {
+    return this.authService.updateAccount(request.userId!, body);
+  }
+
+  @Post('me/password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionGuard)
+  async changePassword(
+    @Req() request: Request,
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.changePassword(request.userId!, request.cookies[SESSION_COOKIE_NAME], body);
+    response.cookie(SESSION_COOKIE_NAME, result.sessionToken, sessionCookieOptions(this.appEnv));
+    return { user: result.user };
   }
 }

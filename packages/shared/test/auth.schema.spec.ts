@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { registerSchema, resetPasswordSchema, updateCustomerProfileSchema } from '../src/auth/auth.schema';
+import { changePasswordSchema, registerSchema, resetPasswordSchema, updateAccountSchema, updateCustomerProfileSchema } from '../src/auth/auth.schema';
 
 const validRegistration = {
   name: 'Ana Silva',
@@ -50,5 +50,25 @@ describe('registerSchema', () => {
       revision: 1,
       profile: { organization, representative, schemaVersion: 1 },
     }).success).toBe(false);
+  });
+});
+
+describe('account settings schemas', () => {
+  it('trims the name and normalizes the email', () => {
+    expect(updateAccountSchema.parse({ name: ' Ana Silva ', email: ' ANA@EXAMPLE.PT ' }))
+      .toEqual({ name: 'Ana Silva', email: 'ana@example.pt' });
+  });
+
+  it('rejects role fields, empty names, and invalid email addresses', () => {
+    expect(updateAccountSchema.safeParse({ name: 'Ana', email: 'ana@example.pt', role: 'admin' }).success).toBe(false);
+    expect(updateAccountSchema.safeParse({ name: ' ', email: 'ana@example.pt' }).success).toBe(false);
+    expect(updateAccountSchema.safeParse({ name: 'Ana', email: 'invalid' }).success).toBe(false);
+  });
+
+  it('requires the current password and a strong new password without extra fields', () => {
+    expect(changePasswordSchema.safeParse({ currentPassword: '', newPassword: 'correct-horse-battery' }).success).toBe(false);
+    expect(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: 'short' }).success).toBe(false);
+    expect(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: 'correct-horse-battery', role: 'admin' }).success).toBe(false);
+    expect(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: 'correct-horse-battery' }).success).toBe(true);
   });
 });
