@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { ChangePasswordInput, RegisterInput, SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
+import type { ChangePasswordInput, RegisterInput, SupportedLocale, UpdateAccountInput, UserRole } from '@integra/shared/auth';
 import { changePasswordSchema, loginSchema, registerSchema, supportedLocales, updateAccountSchema } from '@integra/shared/auth';
 import { ApiException } from '../../utils/api-exception';
 import { AuthRateLimitService } from './auth-rate-limit.service';
@@ -16,6 +16,7 @@ export type PublicAuthUser = {
   email: string;
   locale: SupportedLocale;
   emailVerifiedAt: Date | null;
+  role: UserRole;
 };
 
 export type AuthResult = {
@@ -107,10 +108,10 @@ export class AuthService {
     await this.repository.revokeSession(this.hashSessionToken(sessionToken), new Date());
   }
 
-  async validateSession(sessionToken: string): Promise<string | null> {
+  async validateSession(sessionToken: string): Promise<{ userId: string; role: UserRole } | null> {
     const session = await this.repository.findSessionByTokenHash(this.hashSessionToken(sessionToken));
     if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now()) return null;
-    return session.userId;
+    return { userId: session.userId, role: session.role };
   }
 
   async getMe(userId: string): Promise<{ user: PublicAuthUser; profile: CustomerProfileInput }> {
@@ -231,6 +232,7 @@ export class AuthService {
       email: user.email,
       locale,
       emailVerifiedAt: user.emailVerifiedAt,
+      role: user.role,
     };
   }
 

@@ -3,6 +3,7 @@ import { customerProfileSchema } from '../profile/profile.schema';
 
 export const supportedLocales = ['pt-PT', 'en', 'fr', 'de'] as const;
 export const localeSchema = z.enum(supportedLocales);
+export const userRoleSchema = z.enum(['CUSTOMER', 'PLATFORM_ADMIN']);
 
 const accountEmailSchema = z
   .string()
@@ -58,5 +59,6 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileSchema>;
 export type SupportedLocale = z.infer<typeof localeSchema>;
+export type UserRole = z.infer<typeof userRoleSchema>;
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

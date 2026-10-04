@@ -13,10 +13,11 @@ export class SessionGuard implements CanActivate {
     const sessionToken = request.cookies?.[SESSION_COOKIE_NAME];
     if (!sessionToken) throw this.unauthenticated();
 
-    const userId = await this.authService.validateSession(sessionToken);
-    if (!userId) throw this.unauthenticated();
+    const session = await this.authService.validateSession(sessionToken);
+    if (!session) throw this.unauthenticated();
 
-    request.userId = userId;
+    request.userId = session.userId;
+    request.userRole = session.role;
     return true;
   }
 

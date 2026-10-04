@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
+import type { SupportedLocale, UpdateAccountInput, UserRole } from '@integra/shared/auth';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
@@ -10,6 +10,7 @@ const publicUserSelect = {
   email: true,
   locale: true,
   emailVerifiedAt: true,
+  role: true,
 } as const;
 
 export type PublicUserRecord = {
@@ -18,6 +19,7 @@ export type PublicUserRecord = {
   email: string;
   locale: string;
   emailVerifiedAt: Date | null;
+  role: UserRole;
 };
 
 class VerificationTokenRace extends Error {}
@@ -91,6 +93,7 @@ export class AuthRepository {
         email: user.email,
         locale: user.locale,
         emailVerifiedAt: user.emailVerifiedAt,
+        role: user.role,
       },
       passwordHash: user.passwordHash,
       profile: user.customerProfile?.data ?? null,
@@ -103,13 +106,16 @@ export class AuthRepository {
 
   async findSessionByTokenHash(tokenHash: string): Promise<{
     userId: string;
+    role: UserRole;
     expiresAt: Date;
     revokedAt: Date | null;
   } | null> {
-    return this.prisma.session.findUnique({
+    const session = await this.prisma.session.findUnique({
       where: { tokenHash },
-      select: { userId: true, expiresAt: true, revokedAt: true },
+      select: { userId: true, expiresAt: true, revokedAt: true, user: { select: { role: true } } },
     });
+    if (!session) return null;
+    return { userId: session.userId, role: session.user.role, expiresAt: session.expiresAt, revokedAt: session.revokedAt };
   }
 
   async revokeSession(tokenHash: string, revokedAt: Date): Promise<void> {
@@ -135,6 +141,7 @@ export class AuthRepository {
         email: user.email,
         locale: user.locale,
         emailVerifiedAt: user.emailVerifiedAt,
+        role: user.role,
       },
       profile: user.customerProfile.data,
     };

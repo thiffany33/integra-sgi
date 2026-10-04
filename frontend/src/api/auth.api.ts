@@ -1,5 +1,5 @@
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale } from '@integra/shared/auth';
+import type { SupportedLocale, UserRole } from '@integra/shared/auth';
 import { api } from '../lib/api';
 
 export type AuthUser = {
@@ -8,6 +8,7 @@ export type AuthUser = {
   email: string;
   locale: SupportedLocale;
   emailVerifiedAt: string | null;
+  role: UserRole;
 };
 
 export type AuthPayload = { user: AuthUser; profile: CustomerProfileInput };

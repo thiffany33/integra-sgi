@@ -7,12 +7,18 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  CUSTOMER
+  PLATFORM_ADMIN
+}
+
 model User {
   id                   String                     @id @default(cuid())
   name                 String                     @db.VarChar(160)
   email                String                     @unique @db.VarChar(254)
   passwordHash         String                     @db.VarChar(255)
   emailVerifiedAt      DateTime?
+  role                 UserRole                   @default(CUSTOMER)
   locale               String                     @default("pt-PT") @db.VarChar(5)
   createdAt            DateTime                   @default(now())
   updatedAt            DateTime                   @updatedAt

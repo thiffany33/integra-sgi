@@ -71,6 +71,7 @@ describe('authentication HTTP flow', () => {
   it('registers an account and returns no password hash', () => {
     expect(registrationResponse.status).toBe(201);
     expect(registrationResponse.body.user.email).toBe(email);
+    expect(registrationResponse.body.user.role).toBe('CUSTOMER');
     expect(registrationResponse.body).not.toHaveProperty('user.passwordHash');
     expect(registrationResponse.body.profile).toEqual(profile);
   });
@@ -79,7 +80,7 @@ describe('authentication HTTP flow', () => {
     const cookieHeader = registrationResponse.headers['set-cookie']?.[0] as string;
     const storedUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true, customerProfile: { select: { data: true } } },
+      select: { id: true, role: true, passwordHash: true, customerProfile: { select: { data: true } } },
     });
     const session = await prisma.session.findFirst({ where: { userId: storedUser!.id } });
 
@@ -87,6 +88,7 @@ describe('authentication HTTP flow', () => {
     expect(cookieHeader).toContain('SameSite=Lax');
     expect(cookieHeader).not.toContain('Secure');
     expect(storedUser?.passwordHash).not.toBe(password);
+    expect(storedUser?.role).toBe('CUSTOMER');
     expect(storedUser?.customerProfile?.data).toEqual(profile);
     expect(session?.tokenHash).toBe(createHash('sha256').update(rawSessionToken).digest('hex'));
     expect(session?.tokenHash).not.toBe(rawSessionToken);
@@ -122,6 +124,7 @@ describe('authentication HTTP flow', () => {
       .send({ email: email.toUpperCase(), password })
       .expect(200);
     expect(loginResponse.body.user.email).toBe(email);
+    expect(loginResponse.body.user.role).toBe('CUSTOMER');
     expect(loginResponse.body.profile).toEqual(profile);
     expect(loginResponse.body.user).not.toHaveProperty('passwordHash');
 
@@ -130,7 +133,23 @@ describe('authentication HTTP flow', () => {
       .get('/api/v1/auth/me')
       .set('Cookie', loginCookie)
       .expect(200)
-      .expect(({ body }) => expect(body.profile).toEqual(profile));
+      .expect(({ body }) => {
+        expect(body.profile).toEqual(profile);
+        expect(body.user.role).toBe('CUSTOMER');
+      });
+  });
+
+  it('resolves the current role for an existing session', async () => {
+    const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password }).expect(200);
+    const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+    await prisma.user.update({ where: { id: registrationUserId }, data: { role: 'PLATFORM_ADMIN' } });
+    try {
+      const me = await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200);
+      expect(me.body.user.role).toBe('PLATFORM_ADMIN');
+    } finally {
+      await prisma.user.update({ where: { id: registrationUserId }, data: { role: 'CUSTOMER' } });
+    }
   });
 
   it('uses one generic error for invalid credentials and rejects expired sessions', async () => {

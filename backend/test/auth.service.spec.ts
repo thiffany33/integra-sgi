@@ -19,6 +19,7 @@ const publicUser = {
   email: 'ana@example.pt',
   locale: 'pt-PT',
   emailVerifiedAt: null,
+  role: 'CUSTOMER' as const,
 };
 
 function makeService() {
@@ -76,6 +77,7 @@ describe('AuthService', () => {
     expect(created.passwordHash).not.toBe('correct-horse-battery-staple');
     expect(created.tokenHash).toBe(createHash('sha256').update(result.sessionToken).digest('hex'));
     expect(result.user).not.toHaveProperty('passwordHash');
+    expect(result.user.role).toBe('CUSTOMER');
     expect(result).toHaveProperty('profile', profile);
     expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'ana@example.pt', 'pt-PT');
   });
@@ -94,6 +96,15 @@ describe('AuthService', () => {
         response: { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } },
       });
     expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('returns the current persisted role on login and session validation', async () => {
+    const { service, repository } = makeService();
+    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, role: 'PLATFORM_ADMIN' }, passwordHash: 'stored', profile });
+    repository.findSessionByTokenHash.mockResolvedValue({ userId: 'user-1', role: 'PLATFORM_ADMIN', expiresAt: new Date(Date.now() + 60_000), revokedAt: null });
+    const login = await service.login({ email: 'ana@example.pt', password: 'valid-password' });
+    expect(login.user.role).toBe('PLATFORM_ADMIN');
+    expect(await service.validateSession(login.sessionToken)).toEqual({ userId: 'user-1', role: 'PLATFORM_ADMIN' });
   });
 
   it('normalizes account details and resends verification only when the email changes', async () => {
