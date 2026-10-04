@@ -15,6 +15,7 @@ import Representative from "../pages/representative/representative";
 import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
+import Profile from "../pages/profile/profile";
 
 // Requisito 4
 const Requirement4 = lazy(
@@ -121,6 +122,7 @@ function AppRoutes() {
             <Route path="/register" element={<Register />} />
             <Route path="/select-systems" element={<SelectSystems />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/requirement" element={<Requirement />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/contact" element={<Contact />} />
