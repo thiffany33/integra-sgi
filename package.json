@@ -3,34 +3,32 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+  "workspaces": [
+    "packages/shared",
+    "frontend",
+    "backend"
+  ],
+  "engines": {
+    "node": ">=22.14.0"
   },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.1",
-    "axios": "^1.17.0",
-    "firebase": "^12.14.0",
-    "lucide-react": "^1.18.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.17.0",
-    "tailwindcss": "^4.3.1"
+  "scripts": {
+    "dev": "concurrently --names web,api \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "npm run dev --workspace @integra/web",
+    "dev:api": "npm run dev --workspace @integra/api",
+    "build:shared": "npm run build --workspace @integra/shared",
+    "build:api": "npm run build --workspace @integra/api",
+    "lint:api": "npm run lint --workspace @integra/api",
+    "db:migrate:dev": "npm run db:migrate:dev --workspace @integra/api",
+    "db:migrate:deploy": "npm run db:migrate:deploy --workspace @integra/api",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "preview": "npm run preview --workspace @integra/web"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.6.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.5.0",
+    "concurrently": "^10.0.5"
   }
 }
