@@ -58,12 +58,14 @@ export default function AdminCustomers() {
 
   function searchCustomers(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     const query = search.trim();
     setActiveSearch(query);
     void load(query);
   }
 
   function beginEdit(customer: AdminCustomer) {
+    if (saving) return;
     setMessage(null);
     setEditingId(customer.userId);
     setSelectedSystems([...customer.selectedSystems]);
@@ -77,7 +79,11 @@ export default function AdminCustomers() {
 
   async function saveSystems(event: FormEvent<HTMLFormElement>, customer: AdminCustomer) {
     event.preventDefault();
+    if (saving) return;
     if (selectedSystems.length === 0) { setMessage({ kind: 'error', text: t('admin:chooseSystem') }); return; }
+    // A list request started earlier must not replace the row returned by this mutation.
+    requestId.current += 1;
+    setLoading(false);
     setSaving(true); setMessage(null);
     try {
       const saved = await adminApi.updateCustomerSystems(customer.userId, selectedSystems, customer.revision);
@@ -92,9 +98,9 @@ export default function AdminCustomers() {
   return <div className="mx-auto max-w-6xl space-y-6 pb-8">
     <PageHeading title={t('admin:title')} description={t('admin:description')} />
     <Card className="shadow-none"><CardContent><form className="flex flex-col gap-4 sm:flex-row sm:items-end" onSubmit={searchCustomers}>
-      <div className="field flex-1"><Label htmlFor="admin-customer-search">{t('admin:searchLabel')}</Label><Input id="admin-customer-search" value={search} onChange={event => setSearch(event.target.value)} maxLength={160} /></div>
-      <Button type="submit" disabled={loading}>{t('admin:search')}</Button>
-      <Button type="button" variant="outline" disabled={loading} onClick={() => void load(activeSearch)}>{message?.kind === 'error' && customers.length === 0 ? t('admin:tryAgain') : t('admin:refresh')}</Button>
+      <div className="field flex-1"><Label htmlFor="admin-customer-search">{t('admin:searchLabel')}</Label><Input id="admin-customer-search" value={search} onChange={event => setSearch(event.target.value)} maxLength={160} disabled={saving} /></div>
+      <Button type="submit" disabled={loading || saving}>{t('admin:search')}</Button>
+      <Button type="button" variant="outline" disabled={loading || saving} onClick={() => void load(activeSearch)}>{message?.kind === 'error' && customers.length === 0 ? t('admin:tryAgain') : t('admin:refresh')}</Button>
     </form></CardContent></Card>
 
     {message && <p role={message.kind === 'error' ? 'alert' : 'status'} className={`rounded-lg border p-4 text-base ${message.kind === 'error' ? 'border-destructive/40 text-destructive' : 'border-primary/40 bg-secondary/40'}`}>{message.text}</p>}
@@ -109,15 +115,15 @@ export default function AdminCustomers() {
           {editingId === customer.userId ? <form className="space-y-4 border-t pt-5" onSubmit={event => void saveSystems(event, customer)}>
             <fieldset className="space-y-3"><legend className="mb-3 text-lg font-semibold">{t('admin:editFor', { organization: customer.organizationName, email: customer.email })}</legend>
               {systems.map(option => <label key={option.value} className="flex min-h-12 items-center gap-3 rounded-lg border px-4 py-2 text-base">
-                <input type="checkbox" className="size-5 accent-primary" checked={selectedSystems.includes(option.value)} onChange={() => toggleSystem(option.value)} />
+                <input type="checkbox" className="size-5 accent-primary" checked={selectedSystems.includes(option.value)} onChange={() => toggleSystem(option.value)} disabled={saving} />
                 <span>{t(`onboarding:${option.nameKey}`)} — {option.iso}</span>
               </label>)}
             </fieldset>
             <div className="flex flex-wrap gap-3"><Button type="submit" disabled={saving || selectedSystems.length === 0}>{saving ? t('admin:saving') : t('admin:saveSystems')}</Button><Button type="button" variant="outline" disabled={saving} onClick={() => { setEditingId(null); setMessage(null); }}>{t('admin:cancel')}</Button></div>
-          </form> : <Button type="button" variant="outline" onClick={() => beginEdit(customer)}>{t('admin:editSystems', { organization: customer.organizationName })}</Button>}
+          </form> : <Button type="button" variant="outline" disabled={saving} onClick={() => beginEdit(customer)}>{t('admin:editSystems', { organization: customer.organizationName })}</Button>}
         </CardContent>
       </Card>)}
     </section>
-    {nextCursor && <Button type="button" variant="outline" disabled={loading} onClick={() => void load(activeSearch, nextCursor)}>{t('admin:loadMore')}</Button>}
+    {nextCursor && <Button type="button" variant="outline" disabled={loading || saving} onClick={() => void load(activeSearch, nextCursor)}>{t('admin:loadMore')}</Button>}
   </div>;
 }

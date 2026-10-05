@@ -87,3 +87,63 @@ test('admin sees a useful list error and can retry', async ({ page }) => {
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo' })).toBeVisible();
 });
+
+test('pending save keeps account and search controls stable', async ({ page }) => {
+  await signInAs(page, 'PLATFORM_ADMIN');
+  const second = { ...customer, userId: 'customer-2', organizationName: 'Outra Empresa', email: 'outra@example.pt' };
+  let releaseSave!: () => void;
+  const savePending = new Promise<void>(resolve => { releaseSave = resolve; });
+  await page.route('**/api/v1/admin/customers**', async route => {
+    if (route.request().method() === 'PATCH') {
+      await savePending;
+      await route.fulfill({ json: { ...customer, selectedSystems: ['sgq', 'sga'], revision: 2 } });
+      return;
+    }
+    await route.fulfill({ json: { items: [customer, second], nextCursor: 'next-page' } });
+  });
+  await page.goto('/admin/customers');
+  await page.getByRole('button', { name: 'Editar sistemas de Cooperativa Exemplo' }).click();
+  await page.getByRole('checkbox', { name: /ISO 14001/ }).check();
+  await page.getByRole('button', { name: 'Guardar sistemas' }).click();
+  await expect(page.getByRole('button', { name: 'A guardar…' })).toBeDisabled();
+  await expect(page.getByLabel('Procurar por nome ou email')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Procurar' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Atualizar lista' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Ver mais empresas' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Editar sistemas de Outra Empresa' })).toBeDisabled();
+  releaseSave();
+  await expect(page.getByRole('status')).toContainText('Sistemas guardados');
+});
+
+test('a list response started before a save cannot replace the saved revision', async ({ page }) => {
+  await signInAs(page, 'PLATFORM_ADMIN');
+  let listCalls = 0;
+  let patchCalls = 0;
+  let releaseList!: () => void;
+  const listPending = new Promise<void>(resolve => { releaseList = resolve; });
+  await page.route('**/api/v1/admin/customers**', async route => {
+    if (route.request().method() === 'PATCH') {
+      patchCalls += 1;
+      expect(route.request().postDataJSON().revision).toBe(patchCalls);
+      await route.fulfill({ json: { ...customer, selectedSystems: ['sgq', 'sga'], revision: 2 } });
+      return;
+    }
+    listCalls += 1;
+    if (listCalls === 2) await listPending;
+    await route.fulfill({ json: { items: [customer], nextCursor: null } });
+  });
+  await page.goto('/admin/customers');
+  await page.getByRole('button', { name: 'Editar sistemas de Cooperativa Exemplo' }).click();
+  await page.getByRole('button', { name: 'Atualizar lista' }).click();
+  await page.getByRole('checkbox', { name: /ISO 14001/ }).check();
+  await page.getByRole('button', { name: 'Guardar sistemas' }).click();
+  await expect(page.getByRole('status')).toContainText('Sistemas guardados');
+  const staleResponse = page.waitForResponse(response => response.request().method() === 'GET' && response.url().includes('/admin/customers'));
+  releaseList();
+  await staleResponse;
+  await expect(page.getByText('ISO 9001, ISO 14001')).toBeVisible();
+  await page.getByRole('button', { name: 'Editar sistemas de Cooperativa Exemplo' }).click();
+  await page.getByRole('checkbox', { name: /ISO 14001/ }).uncheck();
+  await page.getByRole('button', { name: 'Guardar sistemas' }).click();
+  await expect.poll(() => patchCalls).toBe(2);
+});
