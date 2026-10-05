@@ -19,6 +19,8 @@
     "db:promote-platform-admin": "node --import tsx prisma/promote-platform-admin.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1146.0",
+    "@aws-sdk/s3-request-presigner": "^3.1146.0",
     "@integra/shared": "^0.0.0",
     "@nestjs/common": "^11.2.7",
     "@nestjs/config": "^4.0.4",

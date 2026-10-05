@@ -12,6 +12,24 @@ const originUrl = z.string().url().refine((value) => {
   return parsed.pathname === '/' && !parsed.search && !parsed.hash;
 }, 'Must be an origin URL without a path.');
 
+const storageValue = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().min(1).optional(),
+);
+
+const storageEndpoint = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.url().refine((value) => {
+    try {
+      const parsed = new URL(value);
+      return (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+        && !parsed.username && !parsed.password && !parsed.search && !parsed.hash;
+    } catch {
+      return false;
+    }
+  }, 'Must be an HTTP(S) storage endpoint without credentials, query, or fragment.').optional(),
+);
+
 export const envSchema = z
   .object({
     APP_ENV: z.enum(['development', 'test', 'homolog', 'production']).default('development'),
@@ -28,6 +46,10 @@ export const envSchema = z
       z.string().min(1).optional(),
     ),
     EMAIL_FROM: z.string().min(3).optional(),
+    AWS_ACCESS_KEY_ID: storageValue,
+    AWS_SECRET_ACCESS_KEY: storageValue,
+    AWS_ENDPOINT_URL_S3: storageEndpoint,
+    AWS_REGION: storageValue,
   })
   .passthrough()
   .superRefine((environment, context) => {
@@ -39,7 +61,21 @@ export const envSchema = z
       ['SESSION_SECRET', environment.APP_ENV !== 'test'],
       ['RESEND_API_KEY', deployed],
       ['EMAIL_FROM', deployed],
+      ['AWS_ACCESS_KEY_ID', deployed],
+      ['AWS_SECRET_ACCESS_KEY', deployed],
+      ['AWS_ENDPOINT_URL_S3', deployed],
+      ['AWS_REGION', deployed],
     ];
+
+    const storageKeys = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'] as const;
+    const hasPartialStorage = storageKeys.some((key) => Boolean(environment[key]));
+    if (hasPartialStorage) {
+      for (const key of storageKeys) {
+        if (!environment[key]) {
+          context.addIssue({ code: 'custom', path: [key], message: `${key} is required when storage is configured.` });
+        }
+      }
+    }
 
     for (const [key, required] of requiredValues) {
       if (required && !environment[key]) {
