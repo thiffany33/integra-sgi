@@ -33,6 +33,8 @@ export default function Navbar() {
       { to: '/login', label: t('navigation:login') },
       { to: '/register', label: t('navigation:register') },
     ]),
+    ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
+      ? [{ to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
   ];
   const activeLocale = supportedLocales.find(locale => locale === i18n.resolvedLanguage) ?? 'pt-PT';
 

@@ -17,6 +17,8 @@ import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
 import { RequireAuth } from "../components/auth/require-auth";
+import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
+import AdminCustomers from "../pages/admin/customers";
 
 // Requisito 4
 const Requirement4 = lazy(
@@ -125,6 +127,7 @@ function AppRoutes() {
             <Route path="/requirement" element={<Requirement />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/representative" element={<Representative />} />
+            <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
             <Route element={<RequireAuth><Outlet /></RequireAuth>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />

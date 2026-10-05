@@ -8,6 +8,7 @@ import ptAuth from './locales/pt-PT/auth.json';
 import ptOnboarding from './locales/pt-PT/onboarding.json';
 import ptHome from './locales/pt-PT/home.json';
 import ptProfile from './locales/pt-PT/profile.json';
+import ptAdmin from './locales/pt-PT/admin.json';
 import ptRequirements from './locales/pt-PT/requirements.json';
 import ptDownloads from './locales/pt-PT/downloads.json';
 import ptHelp from './locales/pt-PT/help.json';
@@ -17,6 +18,7 @@ import enAuth from './locales/en/auth.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enHome from './locales/en/home.json';
 import enProfile from './locales/en/profile.json';
+import enAdmin from './locales/en/admin.json';
 import enRequirements from './locales/en/requirements.json';
 import enDownloads from './locales/en/downloads.json';
 import enHelp from './locales/en/help.json';
@@ -26,6 +28,7 @@ import frAuth from './locales/fr/auth.json';
 import frOnboarding from './locales/fr/onboarding.json';
 import frHome from './locales/fr/home.json';
 import frProfile from './locales/fr/profile.json';
+import frAdmin from './locales/fr/admin.json';
 import frRequirements from './locales/fr/requirements.json';
 import frDownloads from './locales/fr/downloads.json';
 import frHelp from './locales/fr/help.json';
@@ -35,15 +38,16 @@ import deAuth from './locales/de/auth.json';
 import deOnboarding from './locales/de/onboarding.json';
 import deHome from './locales/de/home.json';
 import deProfile from './locales/de/profile.json';
+import deAdmin from './locales/de/admin.json';
 import deRequirements from './locales/de/requirements.json';
 import deDownloads from './locales/de/downloads.json';
 import deHelp from './locales/de/help.json';
 
 export const localeResources = {
-  'pt-PT': { common: ptCommon, navigation: ptNavigation, auth: ptAuth, onboarding: ptOnboarding, home: ptHome, profile: ptProfile, requirements: ptRequirements, downloads: ptDownloads, help: ptHelp },
-  en: { common: enCommon, navigation: enNavigation, auth: enAuth, onboarding: enOnboarding, home: enHome, profile: enProfile, requirements: enRequirements, downloads: enDownloads, help: enHelp },
-  fr: { common: frCommon, navigation: frNavigation, auth: frAuth, onboarding: frOnboarding, home: frHome, profile: frProfile, requirements: frRequirements, downloads: frDownloads, help: frHelp },
-  de: { common: deCommon, navigation: deNavigation, auth: deAuth, onboarding: deOnboarding, home: deHome, profile: deProfile, requirements: deRequirements, downloads: deDownloads, help: deHelp },
+  'pt-PT': { common: ptCommon, navigation: ptNavigation, auth: ptAuth, onboarding: ptOnboarding, home: ptHome, profile: ptProfile, admin: ptAdmin, requirements: ptRequirements, downloads: ptDownloads, help: ptHelp },
+  en: { common: enCommon, navigation: enNavigation, auth: enAuth, onboarding: enOnboarding, home: enHome, profile: enProfile, admin: enAdmin, requirements: enRequirements, downloads: enDownloads, help: enHelp },
+  fr: { common: frCommon, navigation: frNavigation, auth: frAuth, onboarding: frOnboarding, home: frHome, profile: frProfile, admin: frAdmin, requirements: frRequirements, downloads: frDownloads, help: frHelp },
+  de: { common: deCommon, navigation: deNavigation, auth: deAuth, onboarding: deOnboarding, home: deHome, profile: deProfile, admin: deAdmin, requirements: deRequirements, downloads: deDownloads, help: deHelp },
 };
 
 export const supportedLocales = ['pt-PT', 'en', 'fr', 'de'] as const;
@@ -64,7 +68,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: 'pt-PT',
   supportedLngs: [...supportedLocales],
   defaultNS: 'common',
-  ns: ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'requirements', 'downloads', 'help'],
+  ns: ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'admin', 'requirements', 'downloads', 'help'],
   interpolation: { escapeValue: false },
   returnEmptyString: false,
 });
