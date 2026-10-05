@@ -118,4 +118,47 @@ describe('platform administrator HTTP flow', () => {
     await request(app.getHttpServer()).patch('/api/v1/admin/customers/missing/systems').set('Cookie', adminCookie)
       .send({ selectedSystems: ['sgsst'], revision: 1 }).expect(404);
   });
+
+  it('accepts exactly one of two simultaneous administrators and audits only the winning change', async () => {
+    const secondAdmin = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Second administrator', email: `second-admin-${marker}@example.pt`, password: 'correct-horse-battery', profile,
+    }).expect(201);
+    const secondAdminId = secondAdmin.body.user.id as string;
+    const secondAdminCookie = (secondAdmin.headers['set-cookie'] as string[])[0].split(';')[0];
+    await prisma.user.update({ where: { id: secondAdminId }, data: { role: 'PLATFORM_ADMIN' } });
+
+    try {
+      const before = await prisma.customerProfile.findUniqueOrThrow({ where: { userId: customerId } });
+      const auditsBefore = await prisma.customerSystemsChange.findMany({
+        where: { targetUserId: customerId }, select: { id: true },
+      });
+      const path = `/api/v1/admin/customers/${customerId}/systems`;
+      const [first, second] = await Promise.all([
+        request(app.getHttpServer()).patch(path).set('Cookie', adminCookie)
+          .send({ selectedSystems: ['sgq'], revision: before.revision }),
+        request(app.getHttpServer()).patch(path).set('Cookie', secondAdminCookie)
+          .send({ selectedSystems: ['sgsst'], revision: before.revision }),
+      ]);
+
+      expect([first.status, second.status].sort()).toEqual([200, 409]);
+      expect((first.status === 409 ? first : second).body.error.code).toBe('PROFILE_REVISION_CONFLICT');
+      const winner = first.status === 200
+        ? { actorUserId: adminId, selectedSystems: ['sgq'] }
+        : { actorUserId: secondAdminId, selectedSystems: ['sgsst'] };
+      const saved = await prisma.customerProfile.findUniqueOrThrow({ where: { userId: customerId } });
+      const audits = await prisma.customerSystemsChange.findMany({
+        where: { targetUserId: customerId, id: { notIn: auditsBefore.map(audit => audit.id) } },
+      });
+      expect(saved.revision).toBe(before.revision + 1);
+      expect((saved.data as { selectedSystems: string[] }).selectedSystems).toEqual(winner.selectedSystems);
+      expect(audits).toHaveLength(1);
+      expect(audits[0]).toMatchObject({
+        actorUserId: winner.actorUserId,
+        previousSystems: (before.data as { selectedSystems: string[] }).selectedSystems,
+        newSystems: winner.selectedSystems,
+      });
+    } finally {
+      await prisma.user.delete({ where: { id: secondAdminId } });
+    }
+  });
 });

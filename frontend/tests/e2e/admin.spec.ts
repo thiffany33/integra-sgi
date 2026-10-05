@@ -88,6 +88,30 @@ test('admin sees a useful list error and can retry', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo' })).toBeVisible();
 });
 
+test('retry after a failed new search uses the failed query and replaces the displayed list', async ({ page }) => {
+  await signInAs(page, 'PLATFORM_ADMIN');
+  const queries: string[] = [];
+  const matched = { ...customer, userId: 'customer-2', name: 'Ana Costa', organizationName: 'Cooperativa Nova' };
+  await page.route('**/api/v1/admin/customers**', async route => {
+    const query = new URL(route.request().url()).searchParams.get('search') ?? '';
+    queries.push(query);
+    if (query === 'Ana' && queries.filter(value => value === 'Ana').length === 1) {
+      await route.fulfill({ status: 500, json: { error: { code: 'INTERNAL_ERROR', message: 'Error' } } });
+      return;
+    }
+    await route.fulfill({ json: { items: query === 'Ana' ? [matched] : [customer], nextCursor: null } });
+  });
+  await page.goto('/admin/customers');
+  await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo' })).toBeVisible();
+  await page.getByLabel('Procurar por nome ou email').fill('Ana');
+  await page.getByRole('button', { name: 'Procurar' }).click();
+  await expect(page.getByRole('alert')).toContainText('Não foi possível carregar');
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.getByRole('heading', { name: 'Cooperativa Nova' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo' })).toHaveCount(0);
+  expect(queries).toEqual(['', 'Ana', 'Ana']);
+});
+
 test('pending save keeps account and search controls stable', async ({ page }) => {
   await signInAs(page, 'PLATFORM_ADMIN');
   const second = { ...customer, userId: 'customer-2', organizationName: 'Outra Empresa', email: 'outra@example.pt' };

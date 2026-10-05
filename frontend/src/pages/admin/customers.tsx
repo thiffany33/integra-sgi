@@ -23,6 +23,7 @@ export default function AdminCustomers() {
   const { t, i18n } = useTranslation(['admin', 'onboarding']);
   const [search, setSearch] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
+  const [failedSearch, setFailedSearch] = useState<string | null>(null);
   const [customers, setCustomers] = useState<AdminCustomer[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,10 +45,14 @@ export default function AdminCustomers() {
       setNextCursor(result.nextCursor);
       if (!cursor) {
         setActiveSearch(query);
+        setFailedSearch(null);
         setEditingId(null);
       }
     } catch {
-      if (currentRequest === requestId.current) setMessage({ kind: 'error', text: t('admin:listError') });
+      if (currentRequest === requestId.current) {
+        setFailedSearch(cursor ? null : query);
+        setMessage({ kind: 'error', text: t('admin:listError') });
+      }
     } finally {
       if (currentRequest === requestId.current) setLoading(false);
     }
@@ -86,7 +91,7 @@ export default function AdminCustomers() {
     // A list request started earlier must not replace the row returned by this mutation.
     requestId.current += 1;
     setLoading(false);
-    setSaving(true); setMessage(null);
+    setSaving(true); setMessage(null); setFailedSearch(null);
     try {
       const saved = await adminApi.updateCustomerSystems(customer.userId, selectedSystems, customer.revision);
       setCustomers(current => current.map(item => item.userId === saved.userId ? saved : item));
@@ -102,7 +107,7 @@ export default function AdminCustomers() {
     <Card className="shadow-none"><CardContent><form className="flex flex-col gap-4 sm:flex-row sm:items-end" onSubmit={searchCustomers}>
       <div className="field flex-1"><Label htmlFor="admin-customer-search">{t('admin:searchLabel')}</Label><Input id="admin-customer-search" value={search} onChange={event => setSearch(event.target.value)} maxLength={160} disabled={saving} /></div>
       <Button type="submit" disabled={loading || saving}>{t('admin:search')}</Button>
-      <Button type="button" variant="outline" disabled={loading || saving} onClick={() => void load(activeSearch)}>{message?.kind === 'error' && customers.length === 0 ? t('admin:tryAgain') : t('admin:refresh')}</Button>
+      <Button type="button" variant="outline" disabled={loading || saving} onClick={() => void load(failedSearch ?? activeSearch)}>{failedSearch !== null ? t('admin:tryAgain') : t('admin:refresh')}</Button>
     </form></CardContent></Card>
 
     {message && <p role={message.kind === 'error' ? 'alert' : 'status'} className={`rounded-lg border p-4 text-base ${message.kind === 'error' ? 'border-destructive/40 text-destructive' : 'border-primary/40 bg-secondary/40'}`}>{message.text}</p>}
