@@ -147,3 +147,37 @@ test('a list response started before a save cannot replace the saved revision', 
   await page.getByRole('button', { name: 'Guardar sistemas' }).click();
   await expect.poll(() => patchCalls).toBe(2);
 });
+
+test('a cancelled search cannot change the query used to paginate the displayed list', async ({ page }) => {
+  await signInAs(page, 'PLATFORM_ADMIN');
+  let releaseSearch!: () => void;
+  const searchPending = new Promise<void>(resolve => { releaseSearch = resolve; });
+  let paginatedQuery: URLSearchParams | null = null;
+  await page.route('**/api/v1/admin/customers**', async route => {
+    if (route.request().method() === 'PATCH') {
+      await route.fulfill({ json: { ...customer, selectedSystems: ['sgq', 'sga'], revision: 2 } });
+      return;
+    }
+    const params = new URL(route.request().url()).searchParams;
+    if (params.get('cursor') === 'cursor-old') {
+      paginatedQuery = params;
+      await route.fulfill({ json: { items: [], nextCursor: null } });
+    } else if (params.get('search') === 'Maria') {
+      await searchPending;
+      await route.fulfill({ json: { items: [], nextCursor: null } });
+    } else {
+      await route.fulfill({ json: { items: [customer], nextCursor: 'cursor-old' } });
+    }
+  });
+  await page.goto('/admin/customers');
+  await page.getByRole('button', { name: 'Editar sistemas de Cooperativa Exemplo' }).click();
+  await page.getByLabel('Procurar por nome ou email').fill('Maria');
+  await page.getByRole('button', { name: 'Procurar' }).click();
+  await page.getByRole('checkbox', { name: /ISO 14001/ }).check();
+  await page.getByRole('button', { name: 'Guardar sistemas' }).click();
+  await expect(page.getByRole('status')).toContainText('Sistemas guardados');
+  releaseSearch();
+  await page.getByRole('button', { name: 'Ver mais empresas' }).click();
+  await expect.poll(() => paginatedQuery?.get('cursor')).toBe('cursor-old');
+  expect(paginatedQuery?.has('search')).toBe(false);
+});

@@ -42,7 +42,10 @@ export default function AdminCustomers() {
       if (currentRequest !== requestId.current) return;
       setCustomers(previous => cursor ? [...previous, ...result.items] : result.items);
       setNextCursor(result.nextCursor);
-      if (!cursor) setEditingId(null);
+      if (!cursor) {
+        setActiveSearch(query);
+        setEditingId(null);
+      }
     } catch {
       if (currentRequest === requestId.current) setMessage({ kind: 'error', text: t('admin:listError') });
     } finally {
@@ -60,7 +63,6 @@ export default function AdminCustomers() {
     event.preventDefault();
     if (saving) return;
     const query = search.trim();
-    setActiveSearch(query);
     void load(query);
   }
 
