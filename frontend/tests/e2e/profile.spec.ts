@@ -20,6 +20,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { user, profile } }));
   await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
+  await page.route('**/api/v1/customers/me/avatar', route => route.fulfill({ json: { photoUrl: null } }));
 });
 
 test('carrega o perfil e guarda os dados da conta sem escrever no armazenamento do navegador', async ({ page }) => {

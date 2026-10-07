@@ -34,6 +34,7 @@ model CustomerProfile {
   id        String   @id @default(cuid())
   userId    String   @unique
   data      Json     @db.JsonB
+  avatarObjectKey String?
   revision  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

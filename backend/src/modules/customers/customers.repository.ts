@@ -14,6 +14,15 @@ export class CustomersRepository {
     });
   }
 
+  async getAvatarObjectKey(userId: string): Promise<string | null> {
+    const profile = await this.prisma.customerProfile.findUnique({ where: { userId }, select: { avatarObjectKey: true } });
+    return profile?.avatarObjectKey ?? null;
+  }
+
+  async updateAvatarObjectKey(userId: string, avatarObjectKey: string | null): Promise<void> {
+    await this.prisma.customerProfile.update({ where: { userId }, data: { avatarObjectKey } });
+  }
+
   async updateProfile(userId: string, revision: number, profile: UpdateCustomerProfileInput['profile']) {
     return this.prisma.$transaction(async (transaction) => {
       const current = await transaction.customerProfile.findUnique({
