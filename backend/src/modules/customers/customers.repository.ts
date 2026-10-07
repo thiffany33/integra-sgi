@@ -19,8 +19,12 @@ export class CustomersRepository {
     return profile?.avatarObjectKey ?? null;
   }
 
-  async updateAvatarObjectKey(userId: string, avatarObjectKey: string | null): Promise<void> {
-    await this.prisma.customerProfile.update({ where: { userId }, data: { avatarObjectKey } });
+  async compareAndSwapAvatarObjectKey(userId: string, expectedKey: string | null, nextKey: string | null): Promise<boolean> {
+    const result = await this.prisma.customerProfile.updateMany({
+      where: { userId, avatarObjectKey: expectedKey },
+      data: { avatarObjectKey: nextKey },
+    });
+    return result.count === 1;
   }
 
   async updateProfile(userId: string, revision: number, profile: UpdateCustomerProfileInput['profile']) {

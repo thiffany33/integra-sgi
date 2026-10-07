@@ -19,12 +19,24 @@ describe('customer avatar HTTP flow', () => {
   const putObject = vi.fn(async () => undefined);
   const getSignedReadUrl = vi.fn(async ({ key }: { key: string }) => `https://storage.example/${key}?signature=short`);
   const deleteObject = vi.fn(async () => undefined);
+  let avatarReadGate: { promise: Promise<void>; release: () => void; waiting: number } | undefined;
 
   beforeAll(async () => {
     const repository = {
-      getAvatarObjectKey: async (userId: string) => profiles.get(userId) ?? null,
-      updateAvatarObjectKey: async (userId: string, key: string | null) => {
-        profiles.set(userId, key);
+      getAvatarObjectKey: async (userId: string) => {
+        const key = profiles.get(userId) ?? null;
+        const gate = avatarReadGate;
+        if (gate) {
+          gate.waiting += 1;
+          if (gate.waiting === 2) gate.release();
+          await gate.promise;
+        }
+        return key;
+      },
+      compareAndSwapAvatarObjectKey: async (userId: string, expectedKey: string | null, nextKey: string | null) => {
+        if ((profiles.get(userId) ?? null) !== expectedKey) return false;
+        profiles.set(userId, nextKey);
+        return true;
       },
     };
     const moduleRef = await Test.createTestingModule({
@@ -47,6 +59,7 @@ describe('customer avatar HTTP flow', () => {
 
   afterAll(async () => { await app?.close(); });
   beforeEach(() => {
+    avatarReadGate = undefined;
     profiles.clear();
     putObject.mockClear(); putObject.mockImplementation(async () => undefined);
     getSignedReadUrl.mockClear(); getSignedReadUrl.mockImplementation(async ({ key }) => `https://storage.example/${key}?signature=short`);
@@ -128,9 +141,47 @@ describe('customer avatar HTTP flow', () => {
     expect(profiles.get('customer-a')).toBe('avatars/customer-a/current.webp');
   });
 
+  it('uses compare-and-swap so concurrent uploads keep one referenced object and clean the loser', async () => {
+    profiles.set('customer-a', 'avatars/customer-a/original.png');
+    let release!: () => void;
+    const promise = new Promise<void>((resolve) => { release = resolve; });
+    avatarReadGate = { promise, release, waiting: 0 };
+    const responses = await Promise.all([
+      request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
+        .attach('photo', png, { filename: 'first.png', contentType: 'image/png' }),
+      request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
+        .attach('photo', png, { filename: 'second.png', contentType: 'image/png' }),
+    ]);
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+    const savedKey = profiles.get('customer-a');
+    const uploadedKeys = putObject.mock.calls.map(([input]) => input.key);
+    expect(uploadedKeys).toContain(savedKey);
+    expect(deleteObject.mock.calls.map(([input]) => input.key)).toEqual(expect.arrayContaining([
+      'avatars/customer-a/original.png', uploadedKeys.find((key) => key !== savedKey),
+    ]));
+  });
+
+  it('uses compare-and-swap so a concurrent upload and delete cannot remove a newly saved key', async () => {
+    profiles.set('customer-a', 'avatars/customer-a/original.png');
+    let release!: () => void;
+    const promise = new Promise<void>((resolve) => { release = resolve; });
+    avatarReadGate = { promise, release, waiting: 0 };
+    const [uploadResponse, deleteResponse] = await Promise.all([
+      request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
+        .attach('photo', png, { filename: 'new.png', contentType: 'image/png' }),
+      request(app.getHttpServer()).delete('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a'),
+    ]);
+    const savedKey = profiles.get('customer-a') ?? null;
+    const uploadedKey = putObject.mock.calls[0]?.[0].key;
+    const deletionWon = uploadResponse.status === 409 && deleteResponse.status === 204 && savedKey === null;
+    const uploadWon = uploadResponse.status === 201 && deleteResponse.status === 409 && savedKey === uploadedKey;
+    expect(deletionWon || uploadWon).toBe(true);
+    expect(uploadedKey === savedKey || deleteObject.mock.calls.some(([input]) => input.key === uploadedKey)).toBe(true);
+  });
+
   it('compensates the newly stored object when the database update fails', async () => {
     const repository = app.get(CustomersRepository);
-    vi.spyOn(repository, 'updateAvatarObjectKey').mockRejectedValueOnce(new Error('database unavailable'));
+    vi.spyOn(repository, 'compareAndSwapAvatarObjectKey').mockRejectedValueOnce(new Error('database unavailable'));
     const response = await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
       .attach('photo', png, { filename: 'new.png', contentType: 'image/png' }).expect(500);
     expect(response.body.error).toBeDefined();
@@ -140,7 +191,7 @@ describe('customer avatar HTTP flow', () => {
   it('does not update the database when object storage rejects the upload', async () => {
     putObject.mockRejectedValueOnce(new Error('storage unavailable'));
     const repository = app.get(CustomersRepository);
-    const update = vi.spyOn(repository, 'updateAvatarObjectKey');
+    const update = vi.spyOn(repository, 'compareAndSwapAvatarObjectKey');
     await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
       .attach('photo', png, { filename: 'new.png', contentType: 'image/png' }).expect(500);
     expect(update).not.toHaveBeenCalled();

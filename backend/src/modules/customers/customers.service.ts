@@ -48,21 +48,29 @@ export class CustomersService {
     const previousKey = await this.repository.getAvatarObjectKey(userId);
     const key = `avatars/${userId}/${randomUUID()}.${format.extension}`;
     await this.storage.putObject({ key, body: photo.buffer, contentType: format.contentType });
+    let changed: boolean;
     try {
-      await this.repository.updateAvatarObjectKey(userId, key);
+      changed = await this.repository.compareAndSwapAvatarObjectKey(userId, previousKey, key);
     } catch {
       try { await this.storage.deleteObject({ key }); } catch { /* preserve the database error response; object cleanup is best effort */ }
       throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, {
         code: 'PROFILE_PHOTO_SAVE_FAILED', message: 'Unable to save profile photo. Please try again.',
       });
     }
+    if (!changed) {
+      try { await this.storage.deleteObject({ key }); } catch { /* cleanup is best effort after losing the profile race */ }
+      throw this.avatarConflict();
+    }
 
     if (previousKey && previousKey !== key) {
       try {
         await this.storage.deleteObject({ key: previousKey });
       } catch {
-        try { await this.repository.updateAvatarObjectKey(userId, previousKey); } catch { /* best-effort reference recovery */ }
-        try { await this.storage.deleteObject({ key }); } catch { /* best-effort uploaded-object cleanup */ }
+        let rolledBack = false;
+        try { rolledBack = await this.repository.compareAndSwapAvatarObjectKey(userId, key, previousKey); } catch { /* best-effort reference recovery */ }
+        if (rolledBack) {
+          try { await this.storage.deleteObject({ key }); } catch { /* best-effort uploaded-object cleanup */ }
+        }
         throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, {
           code: 'PROFILE_PHOTO_REPLACE_FAILED', message: 'Unable to replace profile photo. Please try again.',
         });
@@ -74,11 +82,17 @@ export class CustomersService {
   async deleteAvatar(userId: string): Promise<void> {
     const key = await this.repository.getAvatarObjectKey(userId);
     if (!key) return;
-    await this.repository.updateAvatarObjectKey(userId, null);
+    let changed: boolean;
+    try { changed = await this.repository.compareAndSwapAvatarObjectKey(userId, key, null); } catch {
+      throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, {
+        code: 'PROFILE_PHOTO_DELETE_FAILED', message: 'Unable to remove profile photo. Please try again.',
+      });
+    }
+    if (!changed) throw this.avatarConflict();
     try {
       await this.storage.deleteObject({ key });
     } catch {
-      try { await this.repository.updateAvatarObjectKey(userId, key); } catch { /* best-effort reference recovery */ }
+      try { await this.repository.compareAndSwapAvatarObjectKey(userId, null, key); } catch { /* best-effort reference recovery */ }
       throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, {
         code: 'PROFILE_PHOTO_DELETE_FAILED', message: 'Unable to remove profile photo. Please try again.',
       });
@@ -88,6 +102,12 @@ export class CustomersService {
   private invalidPhoto() {
     return new ApiException(HttpStatus.BAD_REQUEST, {
       code: 'INVALID_PROFILE_PHOTO', message: 'Choose a JPEG, PNG or WebP image up to 5 MiB.',
+    });
+  }
+
+  private avatarConflict() {
+    return new ApiException(HttpStatus.CONFLICT, {
+      code: 'PROFILE_PHOTO_CONFLICT', message: 'The profile photo changed elsewhere. Reload the page and try again.',
     });
   }
 
