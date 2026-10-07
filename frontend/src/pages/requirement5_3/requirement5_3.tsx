@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import { useOnboarding } from "@/contexts/onboarding-state";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
@@ -95,7 +96,7 @@ function Requirement5_3() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement5/5_3/5_3_modelo_responsabilidades.xlsx"
+                            href={filesApi.templateDownloadUrl('responsibilities')}
                             download
                         >Baixar Responsabilidades</DownloadLink>
 

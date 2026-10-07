@@ -82,7 +82,7 @@ test('painel continua utilizável sem carregar ou gravar estado em armazenamento
   expect(await page.evaluate(() => localStorage.length)).toBe(0)
 })
 
-test('leitura do requisito e download funcionam com teclado', async ({ page }) => {
+test('leitura do requisito e link privado do modelo funcionam com teclado', async ({ page }) => {
   await signInForPrivatePages(page)
   await page.goto('/requirement4_1')
   const trigger = page.getByRole('button', { name: 'Ferramentas de apoio', exact: true })
@@ -90,9 +90,7 @@ test('leitura do requisito e download funcionam com teclado', async ({ page }) =
   await page.keyboard.press('Enter')
   const download = page.getByRole('link', { name: /SWOT/i })
   await expect(download).toBeVisible()
-  const response = await page.request.get((await download.getAttribute('href'))!)
-  expect(response.ok()).toBeTruthy()
-  expect(response.headers()['content-type']).not.toContain('text/html')
+  await expect(download).toHaveAttribute('href', /^http:\/\/localhost:3001\/api\/v1\/files\/templates\/swot-analysis$/)
 })
 
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/login', '/nao-existe']) {

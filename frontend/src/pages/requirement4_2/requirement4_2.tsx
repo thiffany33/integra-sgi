@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -55,7 +56,7 @@ function Requirement4_2() {
                     <div>
 
                         <DownloadLink
-                            href={"/documents/requirement4/4_2/4_2_modelo_partes_interessadas.xlsx"}
+                            href={filesApi.templateDownloadUrl('interested-parties')}
                             download
                         >Baixar Partes interessadas</DownloadLink>
 

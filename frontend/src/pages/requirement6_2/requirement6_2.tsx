@@ -1,5 +1,6 @@
 import { useOnboarding } from "@/contexts/onboarding-state";
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -105,7 +106,7 @@ function Requirement6_2() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement6/6_2/6_2_modelo_objetivos.xlsx"
+                            href={filesApi.templateDownloadUrl('objectives')}
                             download
                         >Baixar Objetivos</DownloadLink>
 

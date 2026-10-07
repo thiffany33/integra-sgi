@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -61,7 +62,7 @@ function Requirement4_1() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement4/4_1/4_1_modelo_swot.xlsx"
+                            href={filesApi.templateDownloadUrl('swot-analysis')}
                             download
                             >Baixar Análise SWOT</DownloadLink>
 

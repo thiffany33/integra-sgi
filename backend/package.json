@@ -16,7 +16,8 @@
     "db:validate": "prisma validate",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:promote-platform-admin": "node --import tsx prisma/promote-platform-admin.ts"
+    "db:promote-platform-admin": "node --import tsx prisma/promote-platform-admin.ts",
+    "storage:sync-templates": "npm run build --workspace @integra/shared && tsx scripts/sync-template-assets.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1146.0",

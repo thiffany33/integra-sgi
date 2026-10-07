@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -87,7 +88,7 @@ function Requirement5_2() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement5/5_2/5_2_modelo_politica.docx"
+                            href={filesApi.templateDownloadUrl('integrated-policy')}
                             download
                         >Baixar Política integrada</DownloadLink>
 

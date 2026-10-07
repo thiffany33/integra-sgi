@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -86,7 +87,7 @@ function Requirement4_4() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement4/4_4/4_4_modelo_mapa_de_processos.xlsx"
+                            href={filesApi.templateDownloadUrl('process-map')}
                             download
                         >Baixar Mapa de processos</DownloadLink>
 
@@ -102,7 +103,7 @@ function Requirement4_4() {
 
                     <div>
                         <DownloadLink
-                            href="/documents/requirement4/4_4/4_4_modelo_cadeia_de_valor.xlsx"
+                            href={filesApi.templateDownloadUrl('value-chain')}
                             download
                         >Baixar Cadeia de valor</DownloadLink>
 
@@ -122,7 +123,7 @@ function Requirement4_4() {
                         <div>
 
                         <DownloadLink
-                            href="/documents/requirement4/4_4/4_4_modelo_fluxograma.xlsx"
+                            href={filesApi.templateDownloadUrl('process-flowchart')}
                             download
                         >Baixar Fluxograma</DownloadLink>
 

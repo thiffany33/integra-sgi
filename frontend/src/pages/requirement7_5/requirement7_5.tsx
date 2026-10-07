@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -89,7 +90,7 @@ function Requirement7_5() {
 
           <div>
             <DownloadLink
-              href="/documents/requirement7/7_5_modelo_controlo_documental.xlsx"
+              href={filesApi.templateDownloadUrl('document-control')}
               download
             >Baixar Controlo de documentos</DownloadLink>
           </div>

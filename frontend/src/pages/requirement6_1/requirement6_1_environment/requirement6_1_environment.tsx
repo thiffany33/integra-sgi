@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import { useOnboarding } from "@/contexts/onboarding-state";
 import Accordion from "../../../components/accordion/accordion";
 import RequirementNavigation from "../../../components/requirementNavigation/requirementNavigation";
@@ -113,7 +114,7 @@ function Environment() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement6/6_1/6_1_modelo_aspetos_ambiental.xlsx"
+                            href={filesApi.templateDownloadUrl('environmental-aspects')}
                             download
                         >Baixar Aspetos ambientais</DownloadLink>
 

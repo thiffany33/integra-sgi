@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import { useOnboarding } from "@/contexts/onboarding-state";
 import Accordion from "../../../components/accordion/accordion";
 import RequirementNavigation from "../../../components/requirementNavigation/requirementNavigation";
@@ -100,7 +101,7 @@ function Quality() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement6/6_1/6_1_modelo_riscos_oportunidades.xlsx"
+                            href={filesApi.templateDownloadUrl('risks-opportunities')}
                             download
                         >Baixar Riscos e oportunidades</DownloadLink>
 

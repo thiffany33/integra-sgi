@@ -1,4 +1,5 @@
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -79,7 +80,7 @@ function Requirement4_3() {
                     <div>
 
                         <DownloadLink
-                            href="/documents/requirement4/4_3/4_3_modelo_ambito.docx"
+                            href={filesApi.templateDownloadUrl('management-system-scope')}
                             download
                         >Baixar Âmbito do sistema de gestão</DownloadLink>
 

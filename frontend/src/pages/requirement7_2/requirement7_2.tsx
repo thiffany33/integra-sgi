@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -171,7 +172,7 @@ function Requirement7_2() {
 
                 <div>
                     <DownloadLink
-                        href="/documents/requirement7/7_3_modelo_plano_formacao.xlsx"
+                        href={filesApi.templateDownloadUrl('training-plan')}
                         download
                     >Baixar Plano de formação</DownloadLink>
                 </div>

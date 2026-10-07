@@ -5,5 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  resolve: { alias: {
+    '@': fileURLToPath(new URL('./src', import.meta.url)),
+    '@integra/shared/documents': fileURLToPath(new URL('../packages/shared/src/documents/documents.ts', import.meta.url)),
+  } },
 })
