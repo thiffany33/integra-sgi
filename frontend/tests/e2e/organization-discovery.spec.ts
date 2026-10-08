@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const profile = {
   schemaVersion: 1,
@@ -61,6 +62,36 @@ test('anonymous visitors sign in before opening discovery', async ({ page }) => 
   await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 401, json: {} }));
   await page.goto('/organization-discovery');
   await expect(page).toHaveURL(/\/login\?returnTo=%2Forganization-discovery/);
+});
+
+test('discovery remains accessible by keyboard and at mobile width with 200% text', async ({ page }) => {
+  await mockFlow(page);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/organization-discovery');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+
+  async function checkScreen() {
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    expect(results.violations).toEqual([]);
+  }
+
+  await checkScreen();
+  await page.getByRole('button', { name: 'Começar' }).focus();
+  await page.keyboard.press('Enter');
+  for (let step = 1; step <= 5; step++) {
+    await expect(page.getByText(`Passo ${step} de 6`)).toBeVisible();
+    await checkScreen();
+    await page.getByRole('button', { name: 'Continuar' }).focus();
+    await page.keyboard.press('Enter');
+  }
+  await expect(page.getByRole('heading', { name: 'Rever respostas' })).toBeVisible();
+  await checkScreen();
+  await page.getByRole('button', { name: 'Confirmar descoberta' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Respostas guardadas' })).toBeVisible();
+  await checkScreen();
 });
 
 test('starts, saves five groups, reviews and completes without storing answers in the browser', async ({ page }) => {

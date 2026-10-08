@@ -107,7 +107,7 @@ export default function Navbar() {
             variant="outline"
             size="sm"
             aria-label={`${t('navigation:language')}: ${localeNames[activeLocale]}`}
-            className="min-w-0 justify-start gap-2 text-base"
+            className="min-w-0 max-w-full justify-start gap-2 text-base"
           >
             <span aria-hidden="true" className="text-xl leading-none">{localeFlags[activeLocale]}</span>
             <span className="truncate">{localeNames[activeLocale]}</span>
