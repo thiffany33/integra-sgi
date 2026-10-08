@@ -42,6 +42,16 @@ npm run db:migrate:dev -- --name init
 npm run dev
 ```
 
+### Acesso administrador local
+
+Para entrar na área administrativa durante o desenvolvimento, defina `SEED_ADMIN_NAME`, `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` no `backend/.env` (use uma senha local com pelo menos 12 caracteres). Depois de iniciar o PostgreSQL e aplicar as migrações, execute:
+
+```bash
+npm run db:seed --workspace @integra/api
+```
+
+Use na tela de login exatamente o email e a senha definidos no seu `backend/.env`. O comando cria ou atualiza essa conta como administradora da plataforma, marca o email como verificado e garante um perfil associado. A senha é armazenada com Argon2; o comando não a imprime. Ele recusa qualquer `APP_ENV` diferente de `development`; não configure essas três variáveis na Vercel, em homologação ou em produção.
+
 `npm run dev` inicia web e API. Também existem `npm run dev:web` e `npm run dev:api`. Para verificações locais, use `npm run lint`, `npm run build`, `npm test --workspaces --if-present` e `npm run test:e2e --workspace @integra/web`.
 
 ## Banco de dados e migrações
