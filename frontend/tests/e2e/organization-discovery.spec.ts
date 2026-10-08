@@ -174,6 +174,23 @@ test('review keeps free-text answers literal when they match an option key', asy
   await expect(page.getByText('Que atividades realiza?').first().locator('..').locator('dd')).toHaveText('Outra');
 });
 
+test('review preserves an additional person’s free-text role', async ({ page }) => {
+  await mockFlow(page);
+  await page.goto('/organization-discovery');
+  await page.getByRole('button', { name: 'Começar' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByLabel('Responsável pela gestão').fill('Maria Silva');
+  await page.getByRole('button', { name: 'Adicionar pessoa' }).click();
+  await page.getByLabel('Nome', { exact: true }).fill('Ana Costa');
+  await page.getByLabel('Função ou trabalho').fill('other');
+  for (let step = 3; step <= 5; step++) await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rever respostas');
+  const peopleCard = page.getByRole('heading', { name: 'Pessoas e responsabilidades', exact: true }).locator('..').locator('..');
+  await expect(peopleCard.getByText('Ana Costa · other')).toBeVisible();
+  await expect(peopleCard.getByText('Responsável pela gestão · Maria Silva')).toBeVisible();
+});
+
 test('all language catalogs render the discovery introduction', async ({ page }) => {
   const flow = await mockFlow(page);
   for (const [locale, heading, start, stepHeading] of [

@@ -27,15 +27,15 @@ const values: Record<string, string> = {
   management: 'responsibleManagement', quality: 'responsibleQuality', environment: 'responsibleEnvironment', safety: 'responsibleSafety',
   daily: 'daily', weekly: 'weekly', monthly: 'monthly', occasionally: 'occasionally',
 };
-const choiceFields = new Set(['workforceRange', 'workLocation', 'activityTypes', 'customerTypes', 'operatingAreas', 'attentionTopics', 'activity', 'frequency', 'role']);
+const choiceFields = new Set(['workforceRange', 'workLocation', 'activityTypes', 'customerTypes', 'operatingAreas', 'attentionTopics', 'activity', 'frequency']);
 
 export function OrganizationDiscoveryReview({ state, profile, onEdit, onComplete, busy }: { state: OrganizationDiscoveryState; profile: CustomerProfileInput; onEdit: (step: 1 | 2 | 3 | 4 | 5) => void; onComplete: () => void; busy: boolean }) {
   const { t } = useTranslation('organizationDiscovery');
-  const show = (value: unknown, field: string): string => {
-    if (Array.isArray(value)) return value.length ? value.map(item => show(item, field)).join(', ') : t('notProvided');
-    if (value && typeof value === 'object') return Object.entries(value).filter(([, item]) => item !== undefined && item !== '').map(([key, item]) => show(item, key)).join(' · ');
+  const show = (value: unknown, field: string, parentField?: string): string => {
+    if (Array.isArray(value)) return value.length ? value.map(item => show(item, field, parentField)).join(', ') : t('notProvided');
+    if (value && typeof value === 'object') return Object.entries(value).filter(([, item]) => item !== undefined && item !== '').map(([key, item]) => show(item, key, field)).join(' · ');
     if (value === undefined || value === '') return t('notProvided');
-    if (typeof value === 'string' && choiceFields.has(field)) return t(values[value] ?? value);
+    if (typeof value === 'string' && (choiceFields.has(field) || (field === 'role' && parentField === 'responsibilityAssignments'))) return t(values[value] ?? value);
     return String(value);
   };
   return <section className="mx-auto max-w-4xl space-y-8 py-6">
