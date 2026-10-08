@@ -35,6 +35,10 @@ const Requirement4 = lazy(
   () => import("../pages/requirement4/requirement4")
 );
 
+const OrganizationDiscovery = lazy(
+  () => import("../pages/organization-discovery/organization-discovery")
+);
+
 const Requirement4_1 = lazy(
   () => import("../pages/requirement4_1/requirement4_1")
 );
@@ -140,6 +144,7 @@ function AppRoutes() {
             <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
             <Route element={<RequireAuth><Outlet /></RequireAuth>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/organization-discovery" element={<OrganizationDiscovery />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/downloads" element={<Downloads />} />
 

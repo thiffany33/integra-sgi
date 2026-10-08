@@ -12,6 +12,11 @@ enum UserRole {
   PLATFORM_ADMIN
 }
 
+enum CustomerGuidedFlowStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
   id                   String                     @id @default(cuid())
   name                 String                     @db.VarChar(160)
@@ -28,6 +33,39 @@ model User {
   verificationTokens   EmailVerificationToken[]
   systemChangesMade    CustomerSystemsChange[] @relation("SystemChangeActor")
   systemChangesReceived CustomerSystemsChange[] @relation("SystemChangeTarget")
+  requirementResponses CustomerRequirementResponse[]
+  guidedFlows          CustomerGuidedFlow[]
+}
+
+model CustomerRequirementResponse {
+  id              String   @id @default(cuid())
+  userId          String
+  requirementCode String
+  schemaVersion   Int      @default(1)
+  data            Json     @db.JsonB
+  revision        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, requirementCode])
+  @@index([userId])
+}
+
+model CustomerGuidedFlow {
+  id             String                   @id @default(cuid())
+  userId         String
+  flowKey        String
+  currentStep    Int                      @default(1)
+  completedSteps Int[]                    @default([])
+  status         CustomerGuidedFlowStatus @default(IN_PROGRESS)
+  revision       Int                      @default(1)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flowKey])
+  @@index([userId])
 }
 
 model CustomerProfile {
