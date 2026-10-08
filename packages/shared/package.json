@@ -20,6 +20,11 @@
       "types": "./dist/documents/documents.d.ts",
       "require": "./dist/documents/documents.js",
       "default": "./dist/documents/documents.js"
+    },
+    "./requirements": {
+      "types": "./dist/requirements/index.d.ts",
+      "require": "./dist/requirements/index.js",
+      "default": "./dist/requirements/index.js"
     }
   },
   "scripts": {
