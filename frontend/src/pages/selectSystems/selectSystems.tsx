@@ -1,5 +1,5 @@
 import { useOnboarding } from "@/contexts/onboarding-state";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { systemOptions } from "@/lib/systems";
 import { PageHeading } from "@/components/pageHeading/pageHeading";
@@ -16,12 +16,17 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from 'react-i18next';
 import type { SupportedLocale } from '@integra/shared/auth';
 import { supportedLocales } from '@/i18n';
+import { AccessTabs } from '@/pages/login/access-tabs';
+import { safeReturnTo } from '@/lib/return-to';
 export default function SelectSystems() {
   const { systems, updateSystems } = useOnboarding();
   const { organization, representative } = useOnboarding();
   const auth = useAuth();
   const { t, i18n } = useTranslation('onboarding');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.has('returnTo') ? safeReturnTo(searchParams.get('returnTo')) : null;
+  const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -44,14 +49,14 @@ export default function SelectSystems() {
           selectedSystems,
         },
       });
-      navigate("/dashboard", { replace: true });
+      navigate(returnTo || "/dashboard", { replace: true });
     } catch {
       setError(t('registrationError'));
     } finally {
       setBusy(false);
     }
   }
-  return <div className="mx-auto max-w-3xl"><SetupSteps current={3} />
+  return <div className="mx-auto max-w-3xl"><AccessTabs active="register" returnTo={returnTo} /><div id="access-panel" role="tabpanel" aria-labelledby="access-register-tab"><SetupSteps current={3} />
     <PageHeading title={t('systemsTitle')} description={t('systemsDescription')} />
     <form className="space-y-6" onSubmit={event => { event.preventDefault(); void createAccount(); }}>
       <fieldset className="min-w-0 space-y-4"><legend className="sr-only">{t('systemsLegend')}</legend>
@@ -65,7 +70,7 @@ export default function SelectSystems() {
       {!selected && <p role="alert" className="rounded-lg border bg-secondary p-4 text-base">{t('chooseOneSystem')}</p>}
       <div className="field"><Label htmlFor="account-password">{t('createPassword')}</Label><Input id="account-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={event => setPassword(event.target.value)} aria-describedby="password-help" /><p id="password-help" className="field-hint">{t('passwordHint')}</p></div>
       {error && <p role="alert" className="text-base text-destructive">{error}</p>}
-      <div className="form-actions"><Button asChild variant="outline"><Link to="/representative"><ArrowLeft aria-hidden="true" />{t('backRepresentative')}</Link></Button><Button type="submit" disabled={!selected || busy}>{busy ? t('creatingAccount') : t('createAccountPlan')}<ArrowRight aria-hidden="true" /></Button></div>
-    </form>
+      <div className="form-actions"><Button asChild variant="outline"><Link to={`/representative${query}`}><ArrowLeft aria-hidden="true" />{t('backRepresentative')}</Link></Button><Button type="submit" disabled={!selected || busy}>{busy ? t('creatingAccount') : t('createAccountPlan')}<ArrowRight aria-hidden="true" /></Button></div>
+    </form></div>
   </div>;
 }

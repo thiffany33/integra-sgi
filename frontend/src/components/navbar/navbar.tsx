@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Sprout } from 'lucide-react';
+import { Check, ChevronDown, Sprout, UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from 'radix-ui';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context-value';
 import type { SupportedLocale } from '@integra/shared/auth';
 import { supportedLocales } from '@/i18n';
+import { profileApi } from '@/api/profile.api';
 
 const localeNames: Record<SupportedLocale, string> = {
   en: 'English', 'pt-PT': 'Português (Portugal)', fr: 'Français', de: 'Deutsch',
@@ -22,6 +23,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [languageError, setLanguageError] = useState('');
   const [logoutError, setLogoutError] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoLoaded, setPhotoLoaded] = useState(false);
   const signedIn = auth.status === 'authenticated';
   const links = [
     { to: '/', label: t('navigation:home') },
@@ -29,10 +32,10 @@ export default function Navbar() {
     { to: '/requirement', label: t('navigation:guidance') },
     ...(signedIn ? [{ to: '/downloads', label: t('navigation:downloads') }] : []),
     { to: '/contact', label: t('navigation:help') },
-    ...(signedIn ? [{ to: '/profile', label: t('navigation:profile') }] : [
+    ...(!signedIn ? [
       { to: '/login', label: t('navigation:login') },
       { to: '/register', label: t('navigation:register') },
-    ]),
+    ] : []),
     ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
       ? [{ to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
   ];
@@ -51,12 +54,22 @@ export default function Navbar() {
   async function logout() {
     setLogoutError('');
     try {
-      navigate('/', { flushSync: true });
+      navigate('/login', { replace: true });
       await auth.logout();
     } catch {
       setLogoutError(t('navigation:logoutError'));
     }
   }
+
+  async function loadPhoto() {
+    if (!signedIn) return;
+    setPhotoLoaded(false);
+    try { setPhotoUrl(await profileApi.getPhoto()); }
+    catch { setPhotoUrl(null); }
+    finally { setPhotoLoaded(true); }
+  }
+
+  const initials = signedIn ? auth.user.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]?.toLocaleUpperCase()).join('') : '';
 
   return <header className="border-b bg-card">
     <div className="page-shell flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
@@ -66,7 +79,24 @@ export default function Navbar() {
       </Link>
       <nav aria-label={t('navigation:label')} className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap">
         {links.map(({ to, label }) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => cn("inline-flex min-h-12 items-center rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-accent", isActive ? "bg-secondary text-secondary-foreground underline decoration-2 underline-offset-8" : "text-foreground")}>{label}</NavLink>)}
-        {signedIn && <button type="button" onClick={() => void logout()} className="inline-flex min-h-12 items-center rounded-lg px-3 py-2 text-base font-medium text-foreground transition-colors hover:bg-accent">{t('navigation:logout')}</button>}
+        {signedIn && <DropdownMenu.Root onOpenChange={open => { if (open) void loadPhoto(); }}>
+          <DropdownMenu.Trigger asChild>
+            <Button variant="outline" size="icon" aria-label={t('navigation:accountMenu', { name: auth.user.name })} className="size-12 overflow-hidden rounded-full p-0">
+              {photoLoaded && photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" /> : initials || <UserRound aria-hidden="true" className="size-6" />}
+            </Button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content align="end" sideOffset={6} className="z-50 min-w-56 rounded-lg border bg-card p-1 text-foreground shadow-lg">
+              <div className="border-b px-3 py-3"><p className="text-base font-semibold">{auth.user.name}</p><p className="text-sm text-muted-foreground">{auth.user.email}</p></div>
+              <DropdownMenu.Item asChild className="flex min-h-12 cursor-default items-center rounded-md px-3 text-base outline-none focus:bg-accent">
+                <Link to="/profile">{t('navigation:profile')}</Link>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={event => { event.preventDefault(); void logout(); }} className="flex min-h-12 cursor-default items-center rounded-md px-3 text-base outline-none focus:bg-accent">
+                {t('navigation:logout')}
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>}
       </nav>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>

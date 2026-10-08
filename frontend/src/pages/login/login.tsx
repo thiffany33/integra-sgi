@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context-value';
 import { safeReturnTo } from '@/lib/return-to';
 import { useTranslation } from 'react-i18next';
+import { AccessTabs } from './access-tabs';
 
 export default function Login() {
   const auth = useAuth();
@@ -37,6 +38,8 @@ export default function Login() {
   }
 
   return <div className="mx-auto max-w-2xl">
+    <AccessTabs active="login" returnTo={returnTo} />
+    <div id="access-panel" role="tabpanel" aria-labelledby="access-login-tab">
     <PageHeading title={t('loginTitle')} description={t('loginDescription')} />
     <Card className="shadow-none"><CardContent className="space-y-6">
       <Alert role="note"><Info aria-hidden="true" /><AlertTitle>{t('loginInfoTitle')}</AlertTitle><AlertDescription>{t('loginInfo')}</AlertDescription></Alert>
@@ -48,7 +51,7 @@ export default function Login() {
         <Button type="submit" disabled={busy || auth.status === 'loading'}>{busy ? t('loggingIn') : t('login')}<ArrowRight aria-hidden="true" /></Button>
       </form>
       <p className="text-base"><Link className="text-link" to="/forgot-password">{t('forgot')}</Link></p>
-      <p className="text-base">{t('noAccount')} <Link className="text-link" to="/register">{t('createAccount')}</Link></p>
     </CardContent></Card>
+    </div>
   </div>;
 }

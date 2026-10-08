@@ -19,6 +19,16 @@ import Profile from "../pages/profile/profile";
 import { RequireAuth } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
 import AdminCustomers from "../pages/admin/customers";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/auth-context-value";
+import { useTranslation } from "react-i18next";
+
+function RootRoute() {
+  const auth = useAuth();
+  const { t } = useTranslation('navigation');
+  if (auth.status === 'loading') return <p role="status">{t('checkingAccount')}</p>;
+  return auth.status === 'authenticated' ? <Navigate to="/dashboard" replace /> : <Home />;
+}
 
 // Requisito 4
 const Requirement4 = lazy(
@@ -117,7 +127,7 @@ function AppRoutes() {
 
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />

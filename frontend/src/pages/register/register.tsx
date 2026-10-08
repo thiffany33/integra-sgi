@@ -11,17 +11,25 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
+import { AccessTabs } from '@/pages/login/access-tabs';
+import { safeReturnTo } from '@/lib/return-to';
 
 export default function Register() {
   const { organization, updateOrganization } = useOnboarding();
   const { t } = useTranslation('onboarding');
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.has('returnTo') ? safeReturnTo(searchParams.get('returnTo')) : null;
+  const nextRoute = `/representative${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
   return <div className="mx-auto max-w-3xl">
+    <AccessTabs active="register" returnTo={returnTo} />
+    <div id="access-panel" role="tabpanel" aria-labelledby="access-register-tab">
     <SetupSteps current={1} />
         <PageHeading title={t('organizationTitle')} description={t('organizationDescription')} />
     <Card className="shadow-none"><CardContent>
-      <form className="space-y-6" onSubmit={event => { event.preventDefault(); if (!organization.name.trim()) { setError(t('nameError')); return; } navigate("/representative"); }}>
+      <form className="space-y-6" onSubmit={event => { event.preventDefault(); if (!organization.name.trim()) { setError(t('nameError')); return; } navigate(nextRoute); }}>
         <p className="text-base text-muted-foreground">{t('organizationFields')}</p>
         <div className="field"><Label htmlFor="company-name">{t('organizationName')}</Label><Input id="company-name" autoComplete="organization" value={organization.name} onChange={e => { updateOrganization({ name: e.target.value }); setError(""); }} required aria-invalid={Boolean(error)} aria-describedby={error ? "name-error" : undefined} />{error && <p id="name-error" role="alert" className="text-base text-destructive">{error}</p>}</div>
         <div className="field"><Label htmlFor="nif">{t('nif')}</Label><Input id="nif" inputMode="numeric" value={organization.nif} onChange={e => updateOrganization({ nif: e.target.value })} required aria-describedby="nif-hint" /><p id="nif-hint" className="field-hint">{t('nifHint')}</p></div>
@@ -31,5 +39,6 @@ export default function Register() {
         <div className="form-actions"><Button asChild variant="outline"><Link to="/"><ArrowLeft aria-hidden="true" />{t('backHome')}</Link></Button><Button type="submit">{t('continueRepresentative')}<ArrowRight aria-hidden="true" /></Button></div>
       </form>
     </CardContent></Card>
+    </div>
   </div>;
 }
