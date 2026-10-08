@@ -1,7 +1,11 @@
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { DownloadLink } from "@/components/downloadLink/downloadLink";
+import { filesApi } from "@/api/files.api";
+import { useTranslation } from "react-i18next";
 
 function Requirement5_4() {
+    const { t } = useTranslation('requirements');
 
     return (
 
@@ -86,6 +90,17 @@ function Requirement5_4() {
 
                 </div>
 
+            </Accordion>
+
+            <Accordion title={t('tools')}>
+                <div className="flex flex-col items-start gap-4">
+                    <DownloadLink href={filesApi.templateDownloadUrl('worker-consultation')}>
+                        {t('workerConsultationDownload')}
+                    </DownloadLink>
+                    <DownloadLink href={filesApi.templateDownloadUrl('participation-next-steps')}>
+                        {t('participationNextStepsDownload')}
+                    </DownloadLink>
+                </div>
             </Accordion>
 
             <Accordion title="Referência Oficial">
