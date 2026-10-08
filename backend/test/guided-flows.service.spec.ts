@@ -114,7 +114,7 @@ describe('GuidedFlowsService', () => {
   it('requires all five saved steps before completion', async () => {
     const db = fixture();
     await db.service.saveOrganizationDiscoveryStep('ana', 1, save(0, {}));
-    await expect(db.service.completeOrganizationDiscovery('ana', 1)).rejects.toMatchObject({ response: { error: { code: 'GUIDED_FLOW_INCOMPLETE' } } });
+    await expect(db.service.completeOrganizationDiscovery('ana', 1)).rejects.toMatchObject({ status: 400, response: { error: { code: 'INCOMPLETE_GUIDED_FLOW' } } });
     expect(db.flows[0].status).toBe('IN_PROGRESS');
   });
 
@@ -122,7 +122,7 @@ describe('GuidedFlowsService', () => {
     const db = fixture();
     for (let step = 1; step <= 5; step++) await db.service.saveOrganizationDiscoveryStep('ana', step, save(step - 1, {}));
     const state = await db.service.completeOrganizationDiscovery('ana', 5);
-    expect(state).toMatchObject({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5], revision: 6 });
+    expect(state).toMatchObject({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: 6 });
     expect(db.responses.map((x) => x.data)).toEqual([{}, {}, {}, {}]);
     expect(JSON.stringify({ state, responses: db.responses })).not.toMatch(/compliant|compliance|conform/i);
   });

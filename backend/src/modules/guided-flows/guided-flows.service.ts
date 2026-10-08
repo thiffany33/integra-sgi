@@ -57,6 +57,15 @@ export class GuidedFlowsService {
     if (!Number.isInteger(expectedRevision) || expectedRevision < 0) throw new ApiException(HttpStatus.BAD_REQUEST, {
       code: 'GUIDED_FLOW_INVALID_INPUT', message: 'The discovery revision is invalid.',
     });
+    const current = await this.getOrganizationDiscovery(userId);
+    if (current.revision !== expectedRevision || current.status === 'COMPLETED') throw new ApiException(HttpStatus.CONFLICT, {
+      code: 'GUIDED_FLOW_REVISION_CONFLICT', message: 'This discovery changed elsewhere. Reload it and try again.',
+    });
+    if (![1, 2, 3, 4, 5].every((step) => current.completedSteps.includes(step as OrganizationDiscoverySaveStep))) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, {
+        code: 'INCOMPLETE_GUIDED_FLOW', message: 'Save every discovery step before completing it.',
+      });
+    }
     await this.repository.completeFlow(userId, ORGANIZATION_DISCOVERY_FLOW_KEY, expectedRevision);
     return this.getOrganizationDiscovery(userId);
   }

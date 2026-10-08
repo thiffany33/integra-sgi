@@ -87,13 +87,13 @@ export class GuidedFlowsRepository {
       const current = await transaction.customerGuidedFlow.findUnique({ where: { userId_flowKey: { userId, flowKey } } });
       if ((current?.revision ?? 0) !== expectedRevision || current?.status === 'COMPLETED') throw conflict();
       if (!current || ![1, 2, 3, 4, 5].every((step) => current.completedSteps.includes(step))) {
-        throw new ApiException(HttpStatus.CONFLICT, {
-          code: 'GUIDED_FLOW_INCOMPLETE', message: 'Save every discovery step before completing it.',
+        throw new ApiException(HttpStatus.BAD_REQUEST, {
+          code: 'INCOMPLETE_GUIDED_FLOW', message: 'Save every discovery step before completing it.',
         });
       }
       const updated = await transaction.customerGuidedFlow.updateMany({
         where: { userId, flowKey, revision: expectedRevision },
-        data: { status: 'COMPLETED', currentStep: 6, revision: { increment: 1 } },
+        data: { status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: { increment: 1 } },
       });
       if (updated.count !== 1) throw conflict();
     });
