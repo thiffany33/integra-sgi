@@ -81,8 +81,11 @@ export default function Navbar() {
         {links.map(({ to, label }) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => cn("inline-flex min-h-12 items-center rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-accent", isActive ? "bg-secondary text-secondary-foreground underline decoration-2 underline-offset-8" : "text-foreground")}>{label}</NavLink>)}
         {signedIn && <DropdownMenu.Root onOpenChange={open => { if (open) void loadPhoto(); }}>
           <DropdownMenu.Trigger asChild>
-            <Button variant="outline" size="icon" aria-label={t('navigation:accountMenu', { name: auth.user.name })} className="size-12 overflow-hidden rounded-full p-0">
-              {photoLoaded && photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" /> : initials || <UserRound aria-hidden="true" className="size-6" />}
+            <Button variant="outline" size="icon" aria-label={t('navigation:accountMenu', { name: auth.user.name })} className="size-12 rounded-full p-0 sm:w-auto sm:gap-2 sm:rounded-lg sm:pr-3">
+              <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
+                {photoLoaded && photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" /> : initials || <UserRound aria-hidden="true" className="size-6" />}
+              </span>
+              <span aria-hidden="true" className="hidden whitespace-nowrap sm:inline">{t('navigation:myAccount')}</span>
             </Button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>

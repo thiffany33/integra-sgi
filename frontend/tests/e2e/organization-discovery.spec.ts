@@ -12,15 +12,23 @@ type Flow = { status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; currentStep: 
 async function mockFlow(page: Page) {
   let state: Flow = { status: 'NOT_STARTED', currentStep: 1, completedSteps: [], revision: 0, responses: {} };
   let failNextSave = false;
+  let failNextGet = false;
   let locale = 'pt-PT';
   let gets = 0;
+  let releaseGet: (() => void) | null = null;
+  let pendingGet: Promise<void> | null = null;
   const writes: Array<{ step: number; body: { revision: number; answers: Record<string, unknown> } }> = [];
   await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { user: { ...user, locale }, profile } }));
   await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
-  await page.route('**/api/v1/guided-flows/organization-discovery**', route => {
+  await page.route('**/api/v1/guided-flows/organization-discovery**', async route => {
     const method = route.request().method();
     const url = route.request().url();
-    if (method === 'GET') { gets += 1; return route.fulfill({ json: state }); }
+    if (method === 'GET') {
+      gets += 1;
+      if (pendingGet) { await pendingGet; pendingGet = null; }
+      if (failNextGet) { failNextGet = false; return route.fulfill({ status: 503, json: { error: { code: 'UNAVAILABLE' } } }); }
+      return route.fulfill({ json: state });
+    }
     if (failNextSave) {
       failNextSave = false;
       return route.fulfill({ status: 503, json: { error: { code: 'UNAVAILABLE' } } });
@@ -38,7 +46,15 @@ async function mockFlow(page: Page) {
     }
     return route.fulfill({ json: state });
   });
-  return { writes, getState: () => state, getCount: () => gets, failSave: () => { failNextSave = true; }, setLocale: (value: string) => { locale = value; } };
+  return {
+    writes, getState: () => state, getCount: () => gets,
+    failSave: () => { failNextSave = true; },
+    failGet: () => { failNextGet = true; },
+    holdGet: () => { pendingGet = new Promise<void>(resolve => { releaseGet = resolve; }); },
+    releaseGet: () => { releaseGet?.(); releaseGet = null; },
+    setState: (next: Flow) => { state = next; },
+    setLocale: (value: string) => { locale = value; },
+  };
 }
 
 test('anonymous visitors sign in before opening discovery', async ({ page }) => {
@@ -204,5 +220,71 @@ test('all language catalogs render the discovery introduction', async ({ page })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
     await page.getByRole('button', { name: start }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(stepHeading);
+  }
+});
+
+test('dashboard starts discovery from saved not-started state and identifies selected systems as planned', async ({ page }) => {
+  await mockFlow(page);
+  await page.goto('/dashboard');
+  await expect(page.getByRole('link', { name: 'Começar a descoberta' })).toHaveAttribute('href', '/organization-discovery');
+  await expect(page.getByText('Incluído no plano')).toBeVisible();
+  await expect(page.getByRole('main').getByText(/concluído/i)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Começar pelo requisito 4' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Consultar todo o guia' })).toBeVisible();
+  const account = page.getByRole('button', { name: 'Menu da conta de Maria Silva' });
+  await expect(account).toContainText('A minha conta');
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(account).toBeVisible();
+  await account.click();
+  await expect(page.getByRole('menuitem', { name: 'O meu perfil' })).toBeVisible();
+});
+
+test('dashboard resumes at the step returned by the saved discovery', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 3, completedSteps: [1, 2], revision: 2, responses: { '4.1': { workforceRange: '10-49' } } });
+  await page.goto('/dashboard');
+  await expect(page.getByRole('link', { name: 'Retomar no passo 3 de 6' })).toHaveAttribute('href', '/organization-discovery');
+  await expect(page.getByRole('main').getByText(/descoberta concluída/i)).toHaveCount(0);
+  await page.getByRole('link', { name: 'Retomar no passo 3 de 6' }).click();
+  await expect(page.getByText('Passo 3 de 6')).toBeVisible();
+});
+
+test('dashboard offers the next guide action after confirmed discovery', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: 6, responses: {} });
+  await page.goto('/dashboard');
+  await expect(page.getByText('Descoberta concluída')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Abrir o guia do requisito 4' })).toHaveAttribute('href', '/requirement4');
+  await expect(page.getByRole('link', { name: /Retomar no passo/ })).toHaveCount(0);
+});
+
+test('dashboard waits for saved progress and retries a failed load without showing guessed progress', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.holdGet();
+  await page.goto('/dashboard');
+  await expect(page.getByRole('status')).toContainText('A carregar a descoberta');
+  await expect(page.getByRole('link', { name: 'Começar a descoberta' })).toHaveCount(0);
+  flow.failGet();
+  flow.releaseGet();
+  await expect(page.getByRole('alert')).toContainText('Não foi possível carregar');
+  await expect(page.getByRole('link', { name: 'Começar a descoberta' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.getByRole('link', { name: 'Começar a descoberta' })).toBeVisible();
+  expect(flow.getCount()).toBe(2);
+});
+
+test('dashboard discovery action remains readable in every supported locale', async ({ page }) => {
+  const flow = await mockFlow(page);
+  for (const [locale, action, included, account] of [
+    ['pt-PT', 'Começar a descoberta', 'Incluído no plano', 'A minha conta'],
+    ['en', 'Start discovery', 'Included in the plan', 'My account'],
+    ['fr', 'Commencer la découverte', 'Inclus dans le plan', 'Mon compte'],
+    ['de', 'Erkundung beginnen', 'Im Plan enthalten', 'Mein Konto'],
+  ]) {
+    flow.setLocale(locale);
+    await page.goto('/dashboard');
+    await expect(page.getByRole('link', { name: action })).toBeVisible();
+    await expect(page.getByText(included)).toBeVisible();
+    await expect(page.getByText(account, { exact: true })).toBeVisible();
   }
 });
