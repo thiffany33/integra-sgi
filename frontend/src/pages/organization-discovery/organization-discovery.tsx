@@ -65,7 +65,7 @@ export default function OrganizationDiscovery() {
     return () => { active = false; };
   }, []);
 
-  async function save(action: 'next' | 'back' | 'leave') {
+  const save = useCallback(async (action: 'next' | 'back' | 'leave' | 'navigate', destination?: string) => {
     if (!state || !answers || screen < 1 || screen > 5 || busy) return;
     const step = screen as Step;
     setBusy(true); setMessage(null);
@@ -79,12 +79,30 @@ export default function OrganizationDiscovery() {
         : await organizationDiscoveryApi.saveStep(5, state.revision, answers[5]);
       setState(saved); setAnswers(answersFromState(saved)); setMessage('saved');
       if (action === 'leave') { void navigate('/dashboard'); return; }
+      if (action === 'navigate' && destination) { void navigate(destination); return; }
       if (action === 'back') { setScreen(step === 1 ? 0 : (step - 1) as Screen); setEditingReview(false); return; }
       setScreen(editingReview ? 6 : (step + 1) as Screen);
       setEditingReview(false);
     } catch (error) { setMessage(saveErrorKey(error)); }
     finally { setBusy(false); }
-  }
+  }, [state, answers, screen, busy, editingReview, navigate]);
+
+  useEffect(() => {
+    if (!state || !answers || state.status === 'COMPLETED' || screen < 1 || screen > 5) return;
+    const onLinkClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target;
+      const anchor = target instanceof Element ? target.closest('a[href]') : null;
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
+      const destination = new URL(anchor.href);
+      if (destination.origin !== window.location.origin || (destination.pathname === window.location.pathname && destination.search === window.location.search)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!busy) void save('navigate', `${destination.pathname}${destination.search}${destination.hash}`);
+    };
+    document.addEventListener('click', onLinkClick, true);
+    return () => document.removeEventListener('click', onLinkClick, true);
+  }, [state, answers, screen, busy, save]);
 
   async function complete() {
     if (!state || busy) return;

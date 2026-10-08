@@ -126,6 +126,54 @@ test('a reload restores only answers saved on the backend', async ({ page }) => 
   await expect(page.getByLabel('Dimensão da equipa')).toHaveValue('');
 });
 
+test('shared header links save the current step before leaving', async ({ page }) => {
+  const flow = await mockFlow(page);
+  await page.goto('/organization-discovery');
+  await page.getByRole('button', { name: 'Começar' }).click();
+  await page.getByLabel('Localização principal').fill('Lisboa');
+  await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Meu plano' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.getState().responses['4.1'].primaryLocation).toBe('Lisboa');
+  await page.goto('/organization-discovery');
+  await expect(page.getByText('Passo 2 de 6')).toBeVisible();
+  await page.getByLabel('Descreva a atividade principal').fill('Reparação de máquinas');
+  await page.getByRole('button', { name: 'Menu da conta de Maria Silva' }).click();
+  await page.getByRole('menuitem', { name: 'O meu perfil' }).click();
+  await expect(page).toHaveURL(/\/profile$/);
+  expect(flow.getState().responses['4.1'].activityDescription).toBe('Reparação de máquinas');
+});
+
+test('a failed save blocks header navigation and preserves the draft', async ({ page }) => {
+  const flow = await mockFlow(page);
+  await page.goto('/organization-discovery');
+  await page.getByRole('button', { name: 'Começar' }).click();
+  await page.getByLabel('Localização principal').fill('Braga');
+  flow.failSave();
+  await page.getByRole('link', { name: 'Integra SGI — página inicial' }).click();
+  await expect(page).toHaveURL(/\/organization-discovery$/);
+  await expect(page.getByRole('alert')).toContainText('Não foi possível guardar');
+  await expect(page.getByLabel('Localização principal')).toHaveValue('Braga');
+  expect(flow.writes).toHaveLength(0);
+  await page.getByRole('link', { name: 'Integra SGI — página inicial' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.getState().responses['4.1'].primaryLocation).toBe('Braga');
+});
+
+test('review keeps free-text answers literal when they match an option key', async ({ page }) => {
+  await mockFlow(page);
+  await page.goto('/organization-discovery');
+  await page.getByRole('button', { name: 'Começar' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByLabel('Outra').first().check();
+  for (let step = 2; step <= 4; step++) await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByLabel('Quer acrescentar alguma nota?').fill('other');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rever respostas');
+  const notes = page.getByText('Quer acrescentar alguma nota?').locator('..');
+  await expect(notes.locator('dd')).toHaveText('other');
+  await expect(page.getByText('Que atividades realiza?').first().locator('..').locator('dd')).toHaveText('Outra');
+});
+
 test('all language catalogs render the discovery introduction', async ({ page }) => {
   const flow = await mockFlow(page);
   for (const [locale, heading, start, stepHeading] of [

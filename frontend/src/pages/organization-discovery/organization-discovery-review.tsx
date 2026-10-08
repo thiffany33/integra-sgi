@@ -27,19 +27,22 @@ const values: Record<string, string> = {
   management: 'responsibleManagement', quality: 'responsibleQuality', environment: 'responsibleEnvironment', safety: 'responsibleSafety',
   daily: 'daily', weekly: 'weekly', monthly: 'monthly', occasionally: 'occasionally',
 };
+const choiceFields = new Set(['workforceRange', 'workLocation', 'activityTypes', 'customerTypes', 'operatingAreas', 'attentionTopics', 'activity', 'frequency', 'role']);
 
 export function OrganizationDiscoveryReview({ state, profile, onEdit, onComplete, busy }: { state: OrganizationDiscoveryState; profile: CustomerProfileInput; onEdit: (step: 1 | 2 | 3 | 4 | 5) => void; onComplete: () => void; busy: boolean }) {
   const { t } = useTranslation('organizationDiscovery');
-  const show = (value: unknown): string => {
-    if (Array.isArray(value)) return value.length ? value.map(item => typeof item === 'string' ? t(values[item] ?? item) : Object.values(item as Record<string, unknown>).filter(Boolean).map(show).join(' · ')).join(', ') : t('notProvided');
+  const show = (value: unknown, field: string): string => {
+    if (Array.isArray(value)) return value.length ? value.map(item => show(item, field)).join(', ') : t('notProvided');
+    if (value && typeof value === 'object') return Object.entries(value).filter(([, item]) => item !== undefined && item !== '').map(([key, item]) => show(item, key)).join(' · ');
     if (value === undefined || value === '') return t('notProvided');
-    return t(values[String(value)] ?? String(value));
+    if (typeof value === 'string' && choiceFields.has(field)) return t(values[value] ?? value);
+    return String(value);
   };
   return <section className="mx-auto max-w-4xl space-y-8 py-6">
     <div className="space-y-3"><p className="eyebrow">{t('step', { number: 6 })}</p><h1>{t('reviewTitle')}</h1><p className="text-lg text-muted-foreground">{t('reviewIntro')}</p></div>
     <div className="grid gap-5 md:grid-cols-2">{sections.map(section => {
       const response = state.responses[section.code] as Record<string, unknown> | undefined;
-      return <Card key={section.step} className="shadow-none"><CardHeader className="flex flex-row items-start justify-between gap-3"><h2>{t(section.title)}</h2><Button variant="outline" onClick={() => onEdit(section.step)}>{t(section.edit)}</Button></CardHeader><CardContent><dl className="space-y-3">{section.step === 1 && ([['organizationName', profile.organization.name], ['taxId', profile.organization.nif], ['sector', profile.organization.sector], ['contactEmail', profile.organization.email]] as const).map(([key, value]) => <div key={key}><dt className="text-base font-semibold">{t(key)}</dt><dd className="text-base text-muted-foreground">{value}</dd></div>)}{section.fields.map(field => <div key={field}><dt className="text-base font-semibold">{t(labels[field])}</dt><dd className="text-base text-muted-foreground">{show(response?.[field])}</dd></div>)}</dl></CardContent></Card>;
+      return <Card key={section.step} className="shadow-none"><CardHeader className="flex flex-row items-start justify-between gap-3"><h2>{t(section.title)}</h2><Button variant="outline" onClick={() => onEdit(section.step)}>{t(section.edit)}</Button></CardHeader><CardContent><dl className="space-y-3">{section.step === 1 && ([['organizationName', profile.organization.name], ['taxId', profile.organization.nif], ['sector', profile.organization.sector], ['contactEmail', profile.organization.email]] as const).map(([key, value]) => <div key={key}><dt className="text-base font-semibold">{t(key)}</dt><dd className="text-base text-muted-foreground">{value}</dd></div>)}{section.fields.map(field => <div key={field}><dt className="text-base font-semibold">{t(labels[field])}</dt><dd className="text-base text-muted-foreground">{show(response?.[field], field)}</dd></div>)}</dl></CardContent></Card>;
     })}</div>
     <Button size="lg" onClick={onComplete} disabled={busy}>{busy ? t('saving') : t('confirm')}</Button>
   </section>;
