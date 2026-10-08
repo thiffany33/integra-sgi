@@ -12,6 +12,7 @@ import ptAdmin from './locales/pt-PT/admin.json';
 import ptRequirements from './locales/pt-PT/requirements.json';
 import ptDownloads from './locales/pt-PT/downloads.json';
 import ptHelp from './locales/pt-PT/help.json';
+import ptOrganizationDiscovery from './locales/pt-PT/organizationDiscovery.json';
 import enCommon from './locales/en/common.json';
 import enNavigation from './locales/en/navigation.json';
 import enAuth from './locales/en/auth.json';
@@ -22,6 +23,7 @@ import enAdmin from './locales/en/admin.json';
 import enRequirements from './locales/en/requirements.json';
 import enDownloads from './locales/en/downloads.json';
 import enHelp from './locales/en/help.json';
+import enOrganizationDiscovery from './locales/en/organizationDiscovery.json';
 import frCommon from './locales/fr/common.json';
 import frNavigation from './locales/fr/navigation.json';
 import frAuth from './locales/fr/auth.json';
@@ -32,6 +34,7 @@ import frAdmin from './locales/fr/admin.json';
 import frRequirements from './locales/fr/requirements.json';
 import frDownloads from './locales/fr/downloads.json';
 import frHelp from './locales/fr/help.json';
+import frOrganizationDiscovery from './locales/fr/organizationDiscovery.json';
 import deCommon from './locales/de/common.json';
 import deNavigation from './locales/de/navigation.json';
 import deAuth from './locales/de/auth.json';
@@ -42,12 +45,13 @@ import deAdmin from './locales/de/admin.json';
 import deRequirements from './locales/de/requirements.json';
 import deDownloads from './locales/de/downloads.json';
 import deHelp from './locales/de/help.json';
+import deOrganizationDiscovery from './locales/de/organizationDiscovery.json';
 
 export const localeResources = {
-  'pt-PT': { common: ptCommon, navigation: ptNavigation, auth: ptAuth, onboarding: ptOnboarding, home: ptHome, profile: ptProfile, admin: ptAdmin, requirements: ptRequirements, downloads: ptDownloads, help: ptHelp },
-  en: { common: enCommon, navigation: enNavigation, auth: enAuth, onboarding: enOnboarding, home: enHome, profile: enProfile, admin: enAdmin, requirements: enRequirements, downloads: enDownloads, help: enHelp },
-  fr: { common: frCommon, navigation: frNavigation, auth: frAuth, onboarding: frOnboarding, home: frHome, profile: frProfile, admin: frAdmin, requirements: frRequirements, downloads: frDownloads, help: frHelp },
-  de: { common: deCommon, navigation: deNavigation, auth: deAuth, onboarding: deOnboarding, home: deHome, profile: deProfile, admin: deAdmin, requirements: deRequirements, downloads: deDownloads, help: deHelp },
+  'pt-PT': { common: ptCommon, navigation: ptNavigation, auth: ptAuth, onboarding: ptOnboarding, home: ptHome, profile: ptProfile, admin: ptAdmin, requirements: ptRequirements, downloads: ptDownloads, help: ptHelp, organizationDiscovery: ptOrganizationDiscovery },
+  en: { common: enCommon, navigation: enNavigation, auth: enAuth, onboarding: enOnboarding, home: enHome, profile: enProfile, admin: enAdmin, requirements: enRequirements, downloads: enDownloads, help: enHelp, organizationDiscovery: enOrganizationDiscovery },
+  fr: { common: frCommon, navigation: frNavigation, auth: frAuth, onboarding: frOnboarding, home: frHome, profile: frProfile, admin: frAdmin, requirements: frRequirements, downloads: frDownloads, help: frHelp, organizationDiscovery: frOrganizationDiscovery },
+  de: { common: deCommon, navigation: deNavigation, auth: deAuth, onboarding: deOnboarding, home: deHome, profile: deProfile, admin: deAdmin, requirements: deRequirements, downloads: deDownloads, help: deHelp, organizationDiscovery: deOrganizationDiscovery },
 };
 
 export const supportedLocales = ['pt-PT', 'en', 'fr', 'de'] as const;
@@ -68,7 +72,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: 'pt-PT',
   supportedLngs: [...supportedLocales],
   defaultNS: 'common',
-  ns: ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'admin', 'requirements', 'downloads', 'help'],
+  ns: ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'admin', 'requirements', 'downloads', 'help', 'organizationDiscovery'],
   interpolation: { escapeValue: false },
   returnEmptyString: false,
 });
