@@ -20,7 +20,7 @@ test('customer cannot see or render the platform administration', async ({ page 
   await page.goto('/');
   await expect(page.getByRole('link', { name: 'Empresas' })).toHaveCount(0);
   await page.goto('/admin/customers');
-  await expect(page).toHaveURL('/');
+  await expect(page).toHaveURL('/dashboard');
   await expect(page.getByRole('heading', { name: 'Gerir empresas' })).toHaveCount(0);
 });
 
