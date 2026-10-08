@@ -32,3 +32,4 @@ playwright-report/
 *.sln
 *.sw?
 .neon
+.worktrees/
