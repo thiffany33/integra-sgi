@@ -94,7 +94,7 @@ describe('GuidedFlowsService', () => {
     expect(await db.service.getOrganizationDiscovery('ana')).toMatchObject({ status: 'NOT_STARTED', revision: 0, responses: {} });
   });
 
-  it('rolls back all writes when one requirement response is invalid', async () => {
+  it('rejects an invalid merged requirement response before writing', async () => {
     const db = fixture();
     await expect(db.repository.saveStep({
       userId: 'ana', flowKey: 'organization-discovery', step: 1, expectedRevision: 0,
