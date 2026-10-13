@@ -119,5 +119,6 @@
   "personNameRequired": "Geben Sie den Namen dieser Person ein.",
   "personRoleRequired": "Geben Sie die Funktion oder Tätigkeit dieser Person ein.",
   "yearsInvalid": "Geben Sie eine ganze Zahl zwischen 0 und 200 ein.",
-  "fieldInvalid": "Bitte prüfen Sie die Antworten in diesem Schritt."
+  "fieldInvalid": "Bitte prüfen Sie die Antworten in diesem Schritt.",
+  "cancelEditAnswers": "Ohne Speichern zu meinen Antworten zurück"
 }

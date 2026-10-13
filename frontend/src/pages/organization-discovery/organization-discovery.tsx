@@ -71,7 +71,7 @@ export default function OrganizationDiscovery() {
 
   const show = useCallback((saved: OrganizationDiscoveryState) => {
     setState(saved); setAnswers(answersFromState(saved));
-    if (saved.status !== 'NOT_STARTED' && editStep) { setScreen(editStep); setMode('edit'); }
+    if (saved.status !== 'NOT_STARTED' && editStep) { setScreen(editStep); setMode('edit-dashboard'); }
     else { setScreen(saved.status === 'NOT_STARTED' ? 0 : saved.currentStep); setMode('flow'); }
   }, [editStep]);
 
@@ -90,6 +90,9 @@ export default function OrganizationDiscovery() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [show]);
+
+  // Screens change inside one page, so bring each new screen into view from the top.
+  useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   const save = useCallback(async (action: 'next' | 'back' | 'leave' | 'navigate', destination?: string) => {
     if (!state || !answers || screen < 1 || screen > 5 || busy) return;
@@ -113,7 +116,8 @@ export default function OrganizationDiscovery() {
         : await organizationDiscoveryApi.saveStep(5, state.revision, answers[5]);
       setState(saved); setAnswers(answersFromState(saved)); setMessage('saved');
       if (leaving) { void navigate(leaving); return; }
-      if (mode === 'edit') { void navigate('/dashboard'); return; }
+      if (mode === 'edit-dashboard') { void navigate('/dashboard'); return; }
+      if (mode === 'edit-summary') { setScreen(6); setMode('flow'); return; }
       if (action === 'back') { setScreen(step === 1 ? 0 : (step - 1) as Screen); setEditingReview(false); return; }
       setScreen(editingReview ? 6 : (step + 1) as Screen);
       setEditingReview(false);
@@ -150,6 +154,12 @@ export default function OrganizationDiscovery() {
     finally { setBusy(false); }
   }
 
+  function cancelEdit() {
+    if (mode === 'edit-dashboard') { void navigate('/dashboard'); return; }
+    if (state) setAnswers(answersFromState(state));
+    setErrors({}); setMessage(null); setPendingLeave(null); setScreen(6); setMode('flow');
+  }
+
   function stay() {
     setPendingLeave(null);
     setMessage(Object.keys(errors).length ? 'fixFields' : null);
@@ -166,8 +176,8 @@ export default function OrganizationDiscovery() {
         {pendingLeave && <><Button variant="outline" onClick={stay}>{t('stay')}</Button><Button variant="outline" onClick={() => void navigate(pendingLeave)}>{t('leaveWithoutSaving')}</Button></>}
       </div>}
     </div>}
-    {screen >= 1 && screen <= 5 ? <OrganizationDiscoveryStep step={screen as Step} mode={mode} answers={answers} profile={auth.profile} errors={errors} onChange={setAnswers} onNext={() => void save('next')} onBack={() => void save('back')} onLeave={() => void save('leave')} onCancelEdit={() => void navigate('/dashboard')} busy={busy} />
-      : state.status === 'COMPLETED' ? <OrganizationDiscoveryComplete />
+    {screen >= 1 && screen <= 5 ? <OrganizationDiscoveryStep step={screen as Step} mode={mode} answers={answers} profile={auth.profile} errors={errors} onChange={setAnswers} onNext={() => void save('next')} onBack={() => void save('back')} onLeave={() => void save('leave')} onCancelEdit={cancelEdit} busy={busy} />
+      : state.status === 'COMPLETED' ? <OrganizationDiscoveryComplete state={state} onEdit={step => { setScreen(step); setMode('edit-summary'); setMessage(null); }} />
       : screen === 0 ? <OrganizationDiscoveryIntro onStart={() => { setScreen(1); setMessage(null); }} />
       : <OrganizationDiscoveryReview state={state} profile={auth.profile} busy={busy} onEdit={step => { setScreen(step); setEditingReview(true); setMessage(null); }} onComplete={() => void complete()} />}
   </>;

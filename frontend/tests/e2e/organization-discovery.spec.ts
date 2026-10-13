@@ -427,3 +427,28 @@ test('signed-in pages use a side menu instead of the public header', async ({ pa
   await expect(page).toHaveURL(/\/downloads$/);
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
 });
+
+test('the completed discovery page lists the answers and edits them in place', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: 6, responses: { '4.1': { primaryLocation: 'Porto' }, '6.1': { notes: 'Rever stock.' } } });
+  await page.goto('/organization-discovery');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Respostas guardadas');
+  const answers = page.getByRole('region', { name: 'As suas respostas' });
+  await expect(answers.getByText('Porto')).toBeVisible();
+
+  await answers.getByRole('button', { name: 'Editar pontos de atenção' }).click();
+  await page.getByLabel('Quer acrescentar alguma nota?').fill('Rascunho que não fica.');
+  await page.getByRole('button', { name: 'Voltar às respostas sem guardar' }).click();
+  await expect(answers.getByText('Rever stock.')).toBeVisible();
+  expect(flow.writes).toHaveLength(0);
+
+  await answers.getByRole('button', { name: 'Editar organização' }).click();
+  await page.getByLabel('Localização principal').fill('Braga');
+  await page.getByRole('button', { name: 'Guardar alterações' }).click();
+  await expect(page).toHaveURL(/\/organization-discovery$/);
+  await expect(page.getByRole('status')).toContainText('guardad');
+  await expect(answers.getByText('Braga')).toBeVisible();
+  expect(flow.getState()).toMatchObject({ status: 'COMPLETED', responses: { '4.1': { primaryLocation: 'Braga' } } });
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(results.violations).toEqual([]);
+});

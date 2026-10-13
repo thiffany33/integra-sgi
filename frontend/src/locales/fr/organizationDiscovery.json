@@ -119,5 +119,6 @@
   "personNameRequired": "Indiquez le nom de cette personne.",
   "personRoleRequired": "Indiquez la fonction ou le travail de cette personne.",
   "yearsInvalid": "Indiquez un nombre entier entre 0 et 200.",
-  "fieldInvalid": "Vérifiez les réponses de cette étape."
+  "fieldInvalid": "Vérifiez les réponses de cette étape.",
+  "cancelEditAnswers": "Revenir à mes réponses sans enregistrer"
 }

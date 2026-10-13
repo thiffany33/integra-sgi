@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Download, LifeBuoy, Layers3, Pencil, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, BookOpen, Download, LifeBuoy, Layers3, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { OrganizationDiscoveryState } from '@integra/shared/requirements';
 import { organizationDiscoveryApi } from '@/api/organization-discovery.api';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { discoveryFieldLabels, discoverySections, formatDiscoveryAnswer } from '@/pages/organization-discovery/discovery-summary';
+import { DiscoveryAnswers } from '@/pages/organization-discovery/discovery-answers';
 
 const savedGroups = (discovery: OrganizationDiscoveryState) => discovery.completedSteps.filter(step => step <= 5).length;
 
@@ -37,21 +37,6 @@ function DiscoveryMetrics({ discovery }: { discovery: OrganizationDiscoveryState
     <h2 id="summary-title">{t('summaryTitle')}</h2>
     <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{metrics.map(([label, value]) => <div key={label} className="flex flex-col-reverse gap-2 rounded-xl border bg-card p-5 text-card-foreground"><dt className="text-base text-muted-foreground">{t(label)}</dt><dd className="text-3xl font-bold">{value}</dd></div>)}</dl>
     <p className="field-hint">{t('metricsNote')}</p>
-  </section>;
-}
-
-function DiscoveryAnswers({ discovery }: { discovery: OrganizationDiscoveryState }) {
-  const { t } = useTranslation('home');
-  const { t: tDiscovery } = useTranslation('organizationDiscovery');
-  return <section aria-labelledby="answers-title" className="space-y-4">
-    <div className="space-y-2"><h2 id="answers-title">{t('answersTitle')}</h2><p className="max-w-2xl text-muted-foreground">{t('answersIntro')}</p></div>
-    <div className="grid gap-5 md:grid-cols-2">{discoverySections.map(section => {
-      const response = discovery.responses[section.code] as Record<string, unknown> | undefined;
-      return <Card key={section.step} className="min-w-0 shadow-none">
-        <CardHeader className="flex flex-wrap items-start justify-between gap-3"><h3>{tDiscovery(section.title)}</h3><Button asChild variant="outline" className="min-w-0 max-w-full"><Link to={`/organization-discovery?step=${section.step}`}><Pencil aria-hidden="true" />{tDiscovery(section.edit)}</Link></Button></CardHeader>
-        <CardContent><dl className="space-y-3 [overflow-wrap:anywhere]">{section.fields.map(field => <div key={field}><dt className="text-base font-semibold">{tDiscovery(discoveryFieldLabels[field])}</dt><dd className="text-base text-muted-foreground">{formatDiscoveryAnswer(tDiscovery, response?.[field], field)}</dd></div>)}</dl></CardContent>
-      </Card>;
-    })}</div>
   </section>;
 }
 

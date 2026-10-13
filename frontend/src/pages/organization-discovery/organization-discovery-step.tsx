@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 type Step = 1 | 2 | 3 | 4 | 5;
-/** `edit` is used when a saved answer is changed from the dashboard: save returns there. */
-export type StepMode = 'flow' | 'edit';
+/** Editing one saved group returns to where it was opened: the dashboard or the answers summary. */
+export type StepMode = 'flow' | 'edit-dashboard' | 'edit-summary';
 type Props = { step: Step; mode: StepMode; answers: DiscoveryAnswers; profile: CustomerProfileInput; errors: Record<string, string>; onChange: (answers: DiscoveryAnswers) => void; onNext: () => void; onBack: () => void; onLeave: () => void; onCancelEdit: () => void; busy: boolean };
 const choices = {
   activityTypes: [['services', 'services'], ['production', 'production'], ['trade', 'trade'], ['construction', 'construction'], ['other', 'other']],
@@ -65,8 +65,8 @@ export function OrganizationDiscoveryStep({ step, mode, answers, profile, errors
       })}</fieldset>}
       {step === 5 && <>{checkGroup('attentionTopics', answers[5].attentionTopics ?? [], values => set(5, { ...answers[5], attentionTopics: values as DiscoveryAnswers[5]['attentionTopics'] }))}<div className="field"><Label htmlFor="notes">{t('notes')} <span className="font-normal text-muted-foreground">({t('optional')})</span></Label><Textarea id="notes" className="min-h-28" maxLength={1000} value={answers[5].notes ?? ''} onChange={event => set(5, { ...answers[5], notes: event.target.value })} placeholder={t('notesExample')} /></div></>}
       <p className="field-hint">{t('choose')}</p>
-      {mode === 'edit'
-        ? <div className="form-actions"><Button type="button" variant="outline" onClick={onCancelEdit} disabled={busy}>{t('cancelEdit')}</Button><Button type="submit" size="lg" disabled={busy}>{busy ? t('saving') : t('saveChanges')}</Button></div>
+      {mode !== 'flow'
+        ? <div className="form-actions"><Button type="button" variant="outline" onClick={onCancelEdit} disabled={busy}>{t(mode === 'edit-summary' ? 'cancelEditAnswers' : 'cancelEdit')}</Button><Button type="submit" size="lg" disabled={busy}>{busy ? t('saving') : t('saveChanges')}</Button></div>
         : <div className="form-actions"><div className="flex flex-wrap gap-3"><Button type="button" variant="outline" onClick={onBack} disabled={busy}>{t('back')}</Button><Button type="button" variant="outline" onClick={onLeave} disabled={busy}>{t('saveLeave')}</Button></div><Button type="submit" size="lg" disabled={busy}>{busy ? t('saving') : t('continue')}</Button></div>}
     </form>
   </section>;

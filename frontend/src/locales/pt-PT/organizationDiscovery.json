@@ -119,5 +119,6 @@
   "personNameRequired": "Escreva o nome desta pessoa.",
   "personRoleRequired": "Escreva a função ou o trabalho desta pessoa.",
   "yearsInvalid": "Escreva um número inteiro entre 0 e 200.",
-  "fieldInvalid": "Verifique as respostas deste passo."
+  "fieldInvalid": "Verifique as respostas deste passo.",
+  "cancelEditAnswers": "Voltar às respostas sem guardar"
 }

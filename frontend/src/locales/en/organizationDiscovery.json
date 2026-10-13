@@ -119,5 +119,6 @@
   "personNameRequired": "Write this person’s name.",
   "personRoleRequired": "Write this person’s role or job.",
   "yearsInvalid": "Write a whole number between 0 and 200.",
-  "fieldInvalid": "Please check your answers on this step."
+  "fieldInvalid": "Please check your answers on this step.",
+  "cancelEditAnswers": "Back to my answers without saving"
 }
