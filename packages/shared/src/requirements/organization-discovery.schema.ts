@@ -61,6 +61,14 @@ export const organizationDiscoveryStep3AnswersSchema = z.object(peopleShape).str
 export const organizationDiscoveryStep4AnswersSchema = z.object(processesShape).strict();
 export const organizationDiscoveryStep5AnswersSchema = z.object(attentionShape).strict();
 
+export const organizationDiscoveryStepAnswersSchemas = {
+  1: organizationDiscoveryStep1AnswersSchema,
+  2: organizationDiscoveryStep2AnswersSchema,
+  3: organizationDiscoveryStep3AnswersSchema,
+  4: organizationDiscoveryStep4AnswersSchema,
+  5: organizationDiscoveryStep5AnswersSchema,
+} as const;
+
 export const organizationDiscoveryResponseSchemas = {
   '4.1': z.object({ ...organizationContextShape, ...activityContextShape }).strict(),
   '4.2': organizationDiscoveryStep3AnswersSchema,
@@ -86,11 +94,11 @@ const saveSchema = <T extends z.ZodType>(answers: T) => z.object({
 }).strict();
 
 export const organizationDiscoverySaveSchemas = {
-  1: saveSchema(organizationDiscoveryStep1AnswersSchema),
-  2: saveSchema(organizationDiscoveryStep2AnswersSchema),
-  3: saveSchema(organizationDiscoveryStep3AnswersSchema),
-  4: saveSchema(organizationDiscoveryStep4AnswersSchema),
-  5: saveSchema(organizationDiscoveryStep5AnswersSchema),
+  1: saveSchema(organizationDiscoveryStepAnswersSchemas[1]),
+  2: saveSchema(organizationDiscoveryStepAnswersSchemas[2]),
+  3: saveSchema(organizationDiscoveryStepAnswersSchemas[3]),
+  4: saveSchema(organizationDiscoveryStepAnswersSchemas[4]),
+  5: saveSchema(organizationDiscoveryStepAnswersSchemas[5]),
 } as const;
 
 export function getOrganizationDiscoverySaveSchema(step: number) {

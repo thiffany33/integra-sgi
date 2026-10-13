@@ -121,6 +121,18 @@ describe('organization discovery HTTP API', () => {
     expect(JSON.stringify(response.body)).not.toMatch(/compliant|compliance|conform/i);
   });
 
+  it('clears a removed answer and keeps a completed discovery editable', async () => {
+    for (let step = 1; step <= 5; step++) {
+      const answers = step === 1 ? { workforceRange: '1-9', primaryLocation: 'Porto' } : {};
+      await request(app.getHttpServer()).put(`${base}/steps/${step}`).set(auth).send({ revision: step - 1, answers }).expect(200);
+    }
+    await request(app.getHttpServer()).post(`${base}/complete`).set(auth).send({ revision: 5 }).expect(200);
+    const response = await request(app.getHttpServer()).put(`${base}/steps/1`).set(auth)
+      .send({ revision: 6, answers: { primaryLocation: 'Porto' } }).expect(200);
+    expect(response.body).toMatchObject({ status: 'COMPLETED', revision: 7, responses: { '4.1': { primaryLocation: 'Porto' } } });
+    expect(response.body.responses['4.1']).not.toHaveProperty('workforceRange');
+  });
+
   it('returns 400 INCOMPLETE_GUIDED_FLOW until steps 1–5 are saved', async () => {
     await request(app.getHttpServer()).put(`${base}/steps/1`).set(auth).send({ revision: 0, answers: {} }).expect(200);
     const response = await request(app.getHttpServer()).post(`${base}/complete`).set(auth).send({ revision: 1 }).expect(400);

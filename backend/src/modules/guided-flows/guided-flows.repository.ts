@@ -21,6 +21,8 @@ export type SaveStepOptions = {
   flowKey: string;
   step: number;
   expectedRevision: number;
+  /** Fields owned by the saved step; stored values for them are replaced, so removed answers are cleared. */
+  replacedFields: readonly string[];
   responsesByCode: Partial<Record<OrganizationDiscoveryRequirementCode, Record<string, unknown>>>;
 };
 
@@ -38,18 +40,20 @@ export class GuidedFlowsRepository {
     });
   }
 
-  async saveStep({ userId, flowKey, step, expectedRevision, responsesByCode }: SaveStepOptions) {
+  async saveStep({ userId, flowKey, step, expectedRevision, replacedFields, responsesByCode }: SaveStepOptions) {
     try {
       return await this.prisma.$transaction(async (transaction) => {
         const current = await transaction.customerGuidedFlow.findUnique({ where: { userId_flowKey: { userId, flowKey } } });
-        if ((current?.revision ?? 0) !== expectedRevision || current?.status === 'COMPLETED') throw conflict();
+        // Completed discoveries stay editable; saving keeps them COMPLETED.
+        if ((current?.revision ?? 0) !== expectedRevision) throw conflict();
 
         const mergedResponses: Array<{ code: OrganizationDiscoveryRequirementCode; data: Prisma.InputJsonValue }> = [];
         for (const [code, patch] of Object.entries(responsesByCode) as Array<[OrganizationDiscoveryRequirementCode, Record<string, unknown>]>) {
           const stored = await transaction.customerRequirementResponse.findUnique({
             where: { userId_requirementCode: { userId, requirementCode: code } },
           });
-          const merged = { ...(stored?.data as Record<string, unknown> | undefined), ...patch };
+          const kept = Object.entries((stored?.data ?? {}) as Record<string, unknown>).filter(([field]) => !replacedFields.includes(field));
+          const merged = { ...Object.fromEntries(kept), ...patch };
           const parsed = organizationDiscoveryResponseSchemas[code]?.safeParse(merged);
           if (!parsed?.success) throw invalidInput();
           mergedResponses.push({ code, data: parsed.data as Prisma.InputJsonValue });

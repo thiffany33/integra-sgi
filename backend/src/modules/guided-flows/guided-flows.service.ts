@@ -3,6 +3,7 @@ import {
   getOrganizationDiscoverySaveSchema,
   organizationDiscoveryRequirementCodeByStep,
   organizationDiscoveryResponseSchemas,
+  organizationDiscoveryStepAnswersSchemas,
   type OrganizationDiscoveryResponses,
   type OrganizationDiscoveryState,
   type OrganizationDiscoverySaveStep,
@@ -48,6 +49,7 @@ export class GuidedFlowsService {
     await this.repository.saveStep({
       userId, flowKey: ORGANIZATION_DISCOVERY_FLOW_KEY, step,
       expectedRevision: parsed.data.revision,
+      replacedFields: Object.keys(organizationDiscoveryStepAnswersSchemas[step as OrganizationDiscoverySaveStep].shape),
       responsesByCode: { [code]: parsed.data.answers },
     });
     return this.getOrganizationDiscovery(userId);

@@ -69,9 +69,26 @@ describe('GuidedFlowsService', () => {
     const db = fixture();
     await db.service.saveOrganizationDiscoveryStep('ana', 1, save(0, { workforceRange: '1-9' }));
     await db.service.saveOrganizationDiscoveryStep('ana', 2, save(1, { customerTypes: ['businesses'] }));
-    await db.service.saveOrganizationDiscoveryStep('ana', 1, save(2, { workLocation: 'remote' }));
+    await db.service.saveOrganizationDiscoveryStep('ana', 1, save(2, { workforceRange: '1-9', workLocation: 'remote' }));
     expect((await db.service.getOrganizationDiscovery('ana')).responses['4.1']).toEqual({ workforceRange: '1-9', customerTypes: ['businesses'], workLocation: 'remote' });
     expect(db.responses).toHaveLength(1);
+  });
+
+  it('clears answers the person removed from the step being saved', async () => {
+    const db = fixture();
+    await db.service.saveOrganizationDiscoveryStep('ana', 1, save(0, { workforceRange: '1-9', yearsInOperation: 3, primaryLocation: 'Porto' }));
+    await db.service.saveOrganizationDiscoveryStep('ana', 2, save(1, { customerTypes: ['businesses'] }));
+    const state = await db.service.saveOrganizationDiscoveryStep('ana', 1, save(2, { primaryLocation: 'Porto' }));
+    expect(state.responses['4.1']).toEqual({ primaryLocation: 'Porto', customerTypes: ['businesses'] });
+  });
+
+  it('lets a completed discovery be edited without reopening it', async () => {
+    const db = fixture();
+    for (let step = 1; step <= 5; step++) await db.service.saveOrganizationDiscoveryStep('ana', step, save(step - 1, {}));
+    await db.service.completeOrganizationDiscovery('ana', 5);
+    const state = await db.service.saveOrganizationDiscoveryStep('ana', 5, save(6, { notes: 'Rever stock.' }));
+    expect(state).toMatchObject({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: 7 });
+    expect(state.responses['6.1']).toEqual({ notes: 'Rever stock.' });
   });
 
   it('advances to the first unsaved step and preserves completed steps', async () => {
@@ -97,7 +114,7 @@ describe('GuidedFlowsService', () => {
   it('rejects an invalid merged requirement response before writing', async () => {
     const db = fixture();
     await expect(db.repository.saveStep({
-      userId: 'ana', flowKey: 'organization-discovery', step: 1, expectedRevision: 0,
+      userId: 'ana', flowKey: 'organization-discovery', step: 1, expectedRevision: 0, replacedFields: [],
       responsesByCode: { '4.1': { workforceRange: '1-9' }, '4.2': { additionalPeople: [{ name: '', role: 'quality' }] } },
     })).rejects.toMatchObject({ response: { error: { code: 'GUIDED_FLOW_INVALID_INPUT' } } });
     expect(db.flows).toHaveLength(0);
