@@ -104,19 +104,22 @@ function Requirement7_2() {
         </p>
 
         <p>
-          No Integra SIG, a identificação das competências e o planeamento
-          das necessidades de formação são abordados no{" "}
-          <Link to="/requirement5_2">
-            Requisito 5.2 - Competência e Formação
+          No Integra SGI, as funções e responsabilidades de cada pessoa são
+          definidas no{" "}
+          <Link to="/requirement5_3">
+            Requisito 5.3 - Funções, Responsabilidades e Autoridades Organizacionais
           </Link>
-          .
+          . Use essa definição como ponto de partida: para cada função,
+          identifique as competências necessárias e compare-as com as
+          competências que a pessoa já tem.
         </p>
 
         <p>
-          Assim, não é necessário criar uma segunda matriz de competências
-          neste requisito. O objetivo do 7.2 é garantir que as competências
-          identificadas são demonstradas através de evidências adequadas
-          e que essas evidências são devidamente mantidas e controladas.
+          Assim, não é necessário criar uma segunda lista de funções neste
+          requisito. O objetivo do 7.2 é garantir que as competências
+          necessárias são demonstradas através de evidências adequadas e,
+          quando faltar alguma competência, planear a formação ou outra ação
+          com o plano de formação disponível nas Ferramentas de Apoio.
         </p>
       </Accordion>
 

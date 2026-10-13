@@ -110,8 +110,8 @@ function Requirement7_5() {
       <RequirementNavigation
         previousLink="/requirement7_4"
         previousLabel="7.4 Comunicação"
-        nextLink="/requirement"
-        nextLabel="Voltar ao guia de gestão"
+        nextLink="/requirement8"
+        nextLabel="Requisito 8 - Operação"
       />
     </>
   );

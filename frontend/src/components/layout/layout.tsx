@@ -14,6 +14,7 @@ const chapters = [
   { path: "/requirement5", title: "chapter5" },
   { path: "/requirement6", title: "chapter6" },
   { path: "/requirement7", title: "chapter7" },
+  { path: "/requirement8", title: "chapter8" },
 ];
 
 export default function Layout() {
@@ -22,7 +23,7 @@ export default function Layout() {
   const { pathname } = useLocation();
   const previousPath = useRef(pathname);
   const main = useRef<HTMLElement>(null);
-  const requirement = /^\/requirement[4-7]/.test(pathname);
+  const requirement = /^\/requirement[4-8]/.test(pathname);
   const chapter = chapters.find(item => pathname.startsWith(item.path));
   useEffect(() => {
     if (previousPath.current !== pathname) {

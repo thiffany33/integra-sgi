@@ -1,6 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { DownloadLink } from "@/components/downloadLink/downloadLink";
-import { filesApi } from "@/api/files.api";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
 
@@ -30,12 +28,6 @@ function Requirement7_1() {
           <li>{t("resourcesFinancial")}</li>
         </ul>
         <p>{t("resourcesActionText")}</p>
-      </Accordion>
-
-      <Accordion title={t("tools")}>
-        <DownloadLink href={filesApi.templateDownloadUrl("document-control-resources")}>
-          {t("documentControlResourcesDownload")}
-        </DownloadLink>
       </Accordion>
 
       <RequirementNavigation
