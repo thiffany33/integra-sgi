@@ -6,7 +6,7 @@ import type { OrganizationDiscoveryState } from '@integra/shared/requirements';
 import { organizationDiscoveryApi } from '@/api/organization-discovery.api';
 import { systemOptions } from '@/lib/systems';
 import { useOnboarding } from '@/contexts/onboarding-state';
-import { PageHeading } from '@/components/pageHeading/pageHeading';
+import { useAuth } from '@/contexts/auth-context-value';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -58,6 +58,7 @@ function DiscoveryAnswers({ discovery }: { discovery: OrganizationDiscoveryState
 export default function Dashboard() {
   const { t } = useTranslation(['home', 'onboarding', 'navigation']);
   const { systems } = useOnboarding();
+  const auth = useAuth();
   const selected = systemOptions.filter(item => systems[item.key]);
   const [discovery, setDiscovery] = useState<OrganizationDiscoveryState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,7 +86,11 @@ export default function Dashboard() {
   const started = discovery && discovery.status !== 'NOT_STARTED';
 
   return <>
-    <PageHeading eyebrow={t('home:dashboardEyebrow')} title={t('home:dashboardTitle')} description={t('home:dashboardDescription')} />
+    <header className="mb-8 space-y-2">
+      <p className="eyebrow">{t('home:dashboardEyebrow')}</p>
+      <h1 className="text-3xl sm:text-4xl">{auth.status === 'authenticated' ? t('home:dashboardGreeting', { name: auth.user.name.trim().split(/\s+/)[0] }) : t('home:dashboardTitle')}</h1>
+      <p className="max-w-2xl text-lg text-muted-foreground">{t('home:dashboardSummary')}</p>
+    </header>
     <div className="space-y-10">
       <section aria-labelledby="discovery-title">
         <Card className="border-primary/20 bg-secondary/40 shadow-none">

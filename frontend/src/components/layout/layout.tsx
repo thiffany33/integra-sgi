@@ -5,6 +5,9 @@ import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/contexts/auth-context-value";
+import { cn } from "@/lib/utils";
+import { AppShell } from "./app-shell";
 
 const chapters = [
   { path: "/requirement4", title: "chapter4" },
@@ -15,6 +18,7 @@ const chapters = [
 
 export default function Layout() {
   const { t } = useTranslation('navigation');
+  const auth = useAuth();
   const { pathname } = useLocation();
   const previousPath = useRef(pathname);
   const main = useRef<HTMLElement>(null);
@@ -27,15 +31,12 @@ export default function Layout() {
       previousPath.current = pathname;
     }
   }, [pathname]);
-  return <div className="flex min-h-screen flex-col">
-    <a className="sr-only z-50 rounded-md bg-primary p-4 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4" href="#conteudo">{t('skip')}</a>
-    <Navbar />
-    <main id="conteudo" ref={main} tabIndex={-1} className="page-shell flex-1 py-8 outline-none sm:py-12">
-      {requirement ? <>
+  const skip = <a className="sr-only z-50 rounded-md bg-primary p-4 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4" href="#conteudo">{t('skip')}</a>;
+  const content = requirement ? <>
             <nav aria-label={t('breadcrumb')} className="mb-8 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
               <Link to="/requirement" className="text-link">{t('guidance')}</Link><ChevronRight className="size-4" aria-hidden="true" /><span>{chapter ? t(chapter.title) : ''}</span>
         </nav>
-        <div className="grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <div className={cn("grid gap-10", auth.status === "authenticated" ? "xl:grid-cols-[15rem_minmax(0,1fr)]" : "lg:grid-cols-[15rem_minmax(0,1fr)]")}>
           <aside className="min-w-0">
             <p className="mb-3 flex items-center gap-2 text-base font-semibold"><BookOpen className="size-5" aria-hidden="true" />{t('exploreGuide')}</p>
             <nav aria-label={t('chapters')} className="grid gap-2">
@@ -45,8 +46,12 @@ export default function Layout() {
           </aside>
           <article className="reading-content"><Suspense fallback={<p role="status">{t('loadingContent')}</p>}><Outlet /></Suspense></article>
         </div>
-      </> : <Suspense fallback={<p role="status">{t('loadingContent')}</p>}><Outlet /></Suspense>}
-    </main>
+      </> : <Suspense fallback={<p role="status">{t('loadingContent')}</p>}><Outlet /></Suspense>;
+  if (auth.status === 'authenticated') return <>{skip}<AppShell main={main}>{content}</AppShell></>;
+  return <div className="flex min-h-screen flex-col">
+    {skip}
+    <Navbar />
+    <main id="conteudo" ref={main} tabIndex={-1} className="page-shell flex-1 py-8 outline-none sm:py-12">{content}</main>
     <Footer />
   </div>;
 }

@@ -400,3 +400,30 @@ test('a completed discovery can be edited from the dashboard and stays completed
   await expect(page.getByText('Descoberta concluída')).toBeVisible();
   expect(flow.getState().status).toBe('COMPLETED');
 });
+
+test('signed-in pages use a side menu instead of the public header', async ({ page }) => {
+  await mockFlow(page);
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Olá, Maria');
+  const nav = page.getByRole('navigation', { name: 'Navegação principal' });
+  await expect(nav.getByRole('link', { name: 'Início' })).toHaveCount(0);
+  await expect(nav.getByRole('link', { name: 'Meu plano' })).toHaveAttribute('aria-current', 'page');
+  await nav.getByRole('link', { name: 'Guia de gestão' }).click();
+  await expect(nav.getByRole('link', { name: 'Guia de gestão' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('contentinfo')).toHaveCount(0);
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/dashboard');
+  const menu = page.getByRole('button', { name: 'Menu', exact: true });
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await expect(nav).toBeHidden();
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(results.violations).toEqual([]);
+  await nav.getByRole('link', { name: 'Modelos' }).click();
+  await expect(page).toHaveURL(/\/downloads$/);
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+});
