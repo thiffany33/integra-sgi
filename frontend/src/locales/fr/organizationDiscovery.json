@@ -109,5 +109,15 @@
   "completeIntro": "Vos réponses sont enregistrées et vous aideront à préparer votre système de gestion. Consultez le guide pour les prochaines étapes pratiques.",
   "openGuide": "Continuer vers le guide",
   "dashboard": "Retour à mon plan",
-  "loading": "Chargement du parcours…"
+  "loading": "Chargement du parcours…",
+  "saveChanges": "Enregistrer les modifications",
+  "cancelEdit": "Revenir à mon plan sans enregistrer",
+  "stay": "Rester et corriger",
+  "leaveWithoutSaving": "Quitter sans enregistrer",
+  "leaveSaveError": "Impossible d’enregistrer vos réponses. Vous pouvez rester et réessayer, ou quitter sans enregistrer les modifications de cette étape.",
+  "fixFields": "Certaines réponses demandent votre attention. Corrigez les champs signalés ou supprimez la fiche de personne incomplète.",
+  "personNameRequired": "Indiquez le nom de cette personne.",
+  "personRoleRequired": "Indiquez la fonction ou le travail de cette personne.",
+  "yearsInvalid": "Indiquez un nombre entier entre 0 et 200.",
+  "fieldInvalid": "Vérifiez les réponses de cette étape."
 }

@@ -109,5 +109,15 @@
   "completeIntro": "As suas respostas foram guardadas e ajudam a preparar o sistema de gestão. Continue para o guia e veja os próximos passos práticos.",
   "openGuide": "Continuar para o guia",
   "dashboard": "Voltar ao meu plano",
-  "loading": "A carregar descoberta…"
+  "loading": "A carregar descoberta…",
+  "saveChanges": "Guardar alterações",
+  "cancelEdit": "Voltar ao meu plano sem guardar",
+  "stay": "Ficar e corrigir",
+  "leaveWithoutSaving": "Sair sem guardar",
+  "leaveSaveError": "Não foi possível guardar as respostas. Pode ficar e tentar novamente, ou sair sem guardar as alterações deste passo.",
+  "fixFields": "Algumas respostas precisam de atenção. Corrija os campos assinalados ou remova o cartão da pessoa incompleto.",
+  "personNameRequired": "Escreva o nome desta pessoa.",
+  "personRoleRequired": "Escreva a função ou o trabalho desta pessoa.",
+  "yearsInvalid": "Escreva um número inteiro entre 0 e 200.",
+  "fieldInvalid": "Verifique as respostas deste passo."
 }

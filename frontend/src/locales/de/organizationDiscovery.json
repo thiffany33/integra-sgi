@@ -109,5 +109,15 @@
   "completeIntro": "Ihre Antworten wurden gespeichert und helfen bei der Vorbereitung Ihres Managementsystems. Im Leitfaden finden Sie die nächsten praktischen Schritte.",
   "openGuide": "Weiter zum Leitfaden",
   "dashboard": "Zurück zu meinem Plan",
-  "loading": "Fragebogen wird geladen…"
+  "loading": "Fragebogen wird geladen…",
+  "saveChanges": "Änderungen speichern",
+  "cancelEdit": "Ohne Speichern zu meinem Plan zurück",
+  "stay": "Bleiben und korrigieren",
+  "leaveWithoutSaving": "Ohne Speichern verlassen",
+  "leaveSaveError": "Ihre Antworten konnten nicht gespeichert werden. Sie können bleiben und es erneut versuchen oder die Seite verlassen, ohne die Änderungen dieses Schritts zu speichern.",
+  "fixFields": "Einige Antworten brauchen Ihre Aufmerksamkeit. Korrigieren Sie die markierten Felder oder entfernen Sie die unvollständige Personenkarte.",
+  "personNameRequired": "Geben Sie den Namen dieser Person ein.",
+  "personRoleRequired": "Geben Sie die Funktion oder Tätigkeit dieser Person ein.",
+  "yearsInvalid": "Geben Sie eine ganze Zahl zwischen 0 und 200 ein.",
+  "fieldInvalid": "Bitte prüfen Sie die Antworten in diesem Schritt."
 }

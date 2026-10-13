@@ -109,5 +109,15 @@
   "completeIntro": "Your answers are saved and will help you prepare your management system. Continue with the guide to see the next practical steps.",
   "openGuide": "Continue to the guide",
   "dashboard": "Back to my plan",
-  "loading": "Loading discovery…"
+  "loading": "Loading discovery…",
+  "saveChanges": "Save changes",
+  "cancelEdit": "Back to my plan without saving",
+  "stay": "Stay and correct",
+  "leaveWithoutSaving": "Leave without saving",
+  "leaveSaveError": "Your answers could not be saved. You can stay and try again, or leave without saving the changes on this step.",
+  "fixFields": "Some answers need attention. Correct the highlighted fields or remove the incomplete person card.",
+  "personNameRequired": "Write this person’s name.",
+  "personRoleRequired": "Write this person’s role or job.",
+  "yearsInvalid": "Write a whole number between 0 and 200.",
+  "fieldInvalid": "Please check your answers on this step."
 }

@@ -8,6 +8,10 @@ const profile = {
   selectedSystems: ['sgq'],
 };
 const user = { id: 'user-1', name: 'Maria Silva', email: 'maria@example.pt', locale: 'pt-PT', emailVerifiedAt: null };
+const stepFields: Record<number, string[]> = {
+  1: ['workforceRange', 'workLocation', 'primaryLocation', 'yearsInOperation'],
+  2: ['activityTypes', 'customerTypes', 'operatingAreas', 'activityDescription'],
+};
 type Flow = { status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; currentStep: number; completedSteps: number[]; revision: number; responses: Record<string, Record<string, unknown>> };
 
 async function mockFlow(page: Page) {
@@ -43,7 +47,9 @@ async function mockFlow(page: Page) {
       writes.push({ step, body });
       const requirement = ['4.1', '4.1', '4.2', '4.4', '6.1'][step - 1];
       const completedSteps = [...new Set([...state.completedSteps, step])].sort();
-      state = { status: 'IN_PROGRESS', currentStep: [1, 2, 3, 4, 5].find(candidate => !completedSteps.includes(candidate)) ?? 6, completedSteps, revision: state.revision + 1, responses: { ...state.responses, [requirement]: { ...state.responses[requirement], ...body.answers } } };
+      // Like the API: a step replaces the fields it owns; steps 1 and 2 share requirement 4.1.
+      const kept = Object.fromEntries(Object.entries(state.responses[requirement] ?? {}).filter(([field]) => stepFields[step] && !stepFields[step].includes(field)));
+      state = { status: state.status === 'COMPLETED' ? 'COMPLETED' : 'IN_PROGRESS', currentStep: [1, 2, 3, 4, 5].find(candidate => !completedSteps.includes(candidate)) ?? 6, completedSteps, revision: state.revision + 1, responses: { ...state.responses, [requirement]: { ...kept, ...body.answers } } };
     }
     return route.fulfill({ json: state });
   });
@@ -190,7 +196,7 @@ test('shared header links save the current step before leaving', async ({ page }
   expect(flow.getState().responses['4.1'].activityDescription).toBe('Reparação de máquinas');
 });
 
-test('a failed save blocks header navigation and preserves the draft', async ({ page }) => {
+test('a failed save keeps the draft and offers to stay or leave without saving', async ({ page }) => {
   const flow = await mockFlow(page);
   await page.goto('/organization-discovery');
   await page.getByRole('button', { name: 'Começar' }).click();
@@ -199,6 +205,9 @@ test('a failed save blocks header navigation and preserves the draft', async ({ 
   await page.getByRole('link', { name: 'Integra SGI — página inicial' }).click();
   await expect(page).toHaveURL(/\/organization-discovery$/);
   await expect(page.getByRole('alert')).toContainText('Não foi possível guardar');
+  await expect(page.getByRole('button', { name: 'Sair sem guardar' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ficar e corrigir' }).click();
+  await expect(page.getByRole('button', { name: 'Sair sem guardar' })).toHaveCount(0);
   await expect(page.getByLabel('Localização principal')).toHaveValue('Braga');
   expect(flow.writes).toHaveLength(0);
   await page.getByRole('link', { name: 'Integra SGI — página inicial' }).click();
@@ -318,4 +327,76 @@ test('dashboard discovery action remains readable in every supported locale', as
     await expect(page.getByText(included)).toBeVisible();
     await expect(page.getByText(account, { exact: true })).toBeVisible();
   }
+});
+
+test('removing a saved answer clears it on the backend', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 2, completedSteps: [1], revision: 1, responses: { '4.1': { workforceRange: '1-9', yearsInOperation: 4, customerTypes: ['businesses'] } } });
+  await page.goto('/organization-discovery?step=1');
+  await page.getByLabel('Dimensão da equipa').selectOption('');
+  await page.getByLabel('Anos de atividade').fill('');
+  await page.getByRole('button', { name: 'Guardar alterações' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.getState().responses['4.1']).toEqual({ customerTypes: ['businesses'] });
+});
+
+test('an incomplete person card is explained beside the field and the person can still leave', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 3, completedSteps: [1, 2], revision: 2, responses: {} });
+  await page.goto('/organization-discovery');
+  await page.getByRole('button', { name: 'Adicionar pessoa' }).click();
+  await page.getByLabel('Função ou trabalho').fill('Contabilidade');
+  await page.getByRole('button', { name: 'Guardar e sair' }).click();
+  await expect(page).toHaveURL(/\/organization-discovery$/);
+  const name = page.getByLabel('Nome', { exact: true });
+  await expect(name).toBeFocused();
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Escreva o nome desta pessoa.')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Corrija os campos assinalados');
+  expect(flow.writes).toHaveLength(0);
+  await page.getByRole('button', { name: 'Sair sem guardar' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.writes).toHaveLength(0);
+});
+
+test('dashboard shows progress, a summary and the saved answers', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 4, completedSteps: [1, 2, 3], revision: 3, responses: {
+    '4.1': { workforceRange: '10-49', customerTypes: ['businesses'] },
+    '4.2': { responsibilityAssignments: [{ role: 'management', personName: 'Maria Silva' }], additionalPeople: [{ name: 'Ana Costa', role: 'Compras' }] },
+  } });
+  await page.goto('/dashboard');
+  await expect(page.getByRole('progressbar', { name: '3 de 5 grupos de respostas guardados' })).toHaveAttribute('aria-valuenow', '3');
+  const summary = page.getByRole('region', { name: 'Resumo' });
+  await expect(summary.getByText('3 de 5', { exact: true })).toBeVisible();
+  await expect(summary.getByText('Pessoas indicadas').locator('..').locator('dd')).toHaveText('2');
+  await expect(summary.getByText(/Não indicam conformidade/)).toBeVisible();
+  const answers = page.getByRole('region', { name: 'As suas respostas' });
+  await expect(answers.getByText('10–49 pessoas')).toBeVisible();
+  await expect(answers.getByText('Ana Costa · Compras')).toBeVisible();
+  await expect(answers.getByRole('link', { name: 'Editar pessoas' })).toHaveAttribute('href', '/organization-discovery?step=3');
+  await expect(page.getByRole('link', { name: 'Ajuda e contactos' })).toHaveAttribute('href', '/contact');
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test('a completed discovery can be edited from the dashboard and stays completed', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: 6, responses: { '6.1': { notes: 'Rever stock.' } } });
+  await page.goto('/dashboard');
+  await page.getByRole('link', { name: 'Editar pontos de atenção' }).click();
+  await expect(page.getByLabel('Quer acrescentar alguma nota?')).toHaveValue('Rever stock.');
+  await page.getByRole('button', { name: 'Voltar ao meu plano sem guardar' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.writes).toHaveLength(0);
+  await page.getByRole('link', { name: 'Editar pontos de atenção' }).click();
+  await page.getByLabel('Quer acrescentar alguma nota?').fill('Rever stock todas as semanas.');
+  await page.getByRole('button', { name: 'Guardar alterações' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText('Rever stock todas as semanas.')).toBeVisible();
+  await expect(page.getByText('Descoberta concluída')).toBeVisible();
+  expect(flow.getState().status).toBe('COMPLETED');
 });
