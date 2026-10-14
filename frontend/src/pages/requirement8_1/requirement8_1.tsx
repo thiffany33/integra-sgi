@@ -8,58 +8,58 @@ function Requirement8_1() {
 
       <Accordion title="O que é?">
         <p>
-          A organização deve planear, realizar e controlar as atividades
-          necessárias para entregar os seus produtos e serviços e para gerir
-          os riscos identificados no planeamento.
+          O requisito 8.1 estabelece a necessidade de planear, implementar e
+          controlar os processos necessários para que as atividades da
+          organização sejam realizadas de forma adequada.
         </p>
 
         <p>
-          Isto inclui definir como o trabalho deve ser feito, que resultado se
-          espera e que verificações são necessárias para confirmar que tudo
-          correu como planeado.
+          A organização deve determinar como os processos são executados,
+          que critérios têm de ser cumpridos, que recursos são necessários,
+          quem é responsável e que controlos devem ser aplicados.
         </p>
       </Accordion>
 
       <Accordion title="Por que é importante?">
         <p>
           Quando cada pessoa sabe o que fazer, como fazer e o que verificar,
-          o trabalho torna-se mais previsível. Os erros são detetados mais
-          cedo e é mais fácil corrigir problemas antes de chegarem ao cliente,
-          ao ambiente ou aos trabalhadores.
+          o trabalho torna-se mais previsível e os problemas são detetados
+          mais cedo.
         </p>
 
         <p>
-          O controlo operacional é também a forma de pôr em prática as ações
-          definidas para os riscos, os aspetos ambientais e os perigos
-          identificados no requisito 6.
+          Os controlos devem considerar os diferentes requisitos do sistema
+          integrado, incluindo as ações definidas no requisito 6 para os
+          riscos, os aspetos ambientais e os perigos.
         </p>
       </Accordion>
 
       <Accordion title="Como implementar?">
+        <p>Para cada processo, a organização deve perguntar:</p>
         <ul>
-          <li>Partir das atividades e processos identificados no requisito 4.4.</li>
-          <li>Definir, para cada atividade, o que é um resultado aceitável.</li>
-          <li>Definir as verificações e os controlos necessários.</li>
-          <li>Garantir que existem os recursos necessários, como pessoas, equipamentos e materiais.</li>
-          <li>Guardar os registos que mostram que as atividades foram feitas como planeado.</li>
-          <li>Planear as alterações antes de as fazer e analisar os efeitos de alterações não previstas.</li>
-          <li>Garantir que as atividades feitas por terceiros também são controladas.</li>
+          <li>O que fazemos?</li>
+          <li>Como fazemos?</li>
+          <li>O que precisa de ser controlado?</li>
+          <li>Que requisitos têm de ser cumpridos?</li>
+          <li>O que pode correr mal?</li>
+          <li>Como vamos verificar se está tudo conforme?</li>
+          <li>Que evidência precisamos de manter?</li>
         </ul>
+
+        <p>
+          O resultado pode ser um procedimento, uma instrução de trabalho,
+          uma ficha de controlo, um plano, um formulário, uma especificação
+          ou outro tipo de controlo adequado. A norma não exige um modelo
+          específico.
+        </p>
       </Accordion>
 
       <Accordion title="Explicação do Requisito">
         <p>
           O nível de controlo depende da realidade de cada organização. Uma
-          atividade simples e bem conhecida pode precisar apenas de uma regra
-          clara. Uma atividade com mais riscos pode precisar de instruções
-          escritas, verificações e registos.
-        </p>
-
-        <p>
-          Num sistema integrado, o mesmo controlo pode responder a várias
-          normas ao mesmo tempo. Por exemplo, uma instrução de trabalho pode
-          indicar como fazer a tarefa com qualidade, como evitar desperdício e
-          que equipamento de proteção usar.
+          atividade simples pode precisar apenas de uma regra clara; uma
+          atividade com mais riscos pode precisar de instruções escritas,
+          verificações e registos.
         </p>
 
         <h3>Qualidade (ISO 9001)</h3>
@@ -71,22 +71,23 @@ function Requirement8_1() {
         <h3>Ambiente (ISO 14001)</h3>
         <p>
           Definir controlos para os aspetos ambientais significativos, como
-          resíduos, consumos de energia e água ou emissões, considerando as
-          várias fases do ciclo de vida do produto ou serviço.
+          resíduos, consumos ou emissões, considerando o ciclo de vida do
+          produto ou serviço.
         </p>
 
         <h3>Segurança e Saúde no Trabalho (ISO 45001)</h3>
         <p>
-          Eliminar perigos e reduzir riscos, dando prioridade à eliminação,
-          depois à substituição, aos meios de proteção coletiva, às medidas de
-          organização e, por fim, aos equipamentos de proteção individual.
-          As alterações e os trabalhos feitos por empresas externas também
-          devem ser controlados.
+          Eliminar perigos e reduzir riscos, começando pela eliminação e pela
+          substituição e deixando os equipamentos de proteção individual como
+          última medida. As alterações e os trabalhos de empresas externas
+          também devem ser controlados.
         </p>
 
+        <h3>Segurança dos Alimentos (ISO 22000)</h3>
         <p>
-          A norma não exige um modelo específico para este requisito. Use os
-          documentos e registos que já fazem sentido na sua organização.
+          Quando aplicável, o controlo operacional inclui os programas de
+          pré-requisitos (PPR), a análise de perigos e o plano de controlo de
+          perigos, seguindo os princípios do HACCP.
         </p>
       </Accordion>
 
@@ -105,9 +106,9 @@ function Requirement8_1() {
 
       <RequirementNavigation
         previousLink="/requirement8"
-        previousLabel="Requisito 8 - Operação"
+        previousLabel="Requisito 8 - Operacionalização"
         nextLink="/requirement8_2"
-        nextLabel="8.2 Requisitos para Produtos e Serviços e Preparação para Emergências"
+        nextLabel="8.2 Requisitos Aplicáveis à Operação"
       />
     </>
   );

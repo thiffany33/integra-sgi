@@ -111,7 +111,7 @@ function Requirement7_5() {
         previousLink="/requirement7_4"
         previousLabel="7.4 Comunicação"
         nextLink="/requirement8"
-        nextLabel="Requisito 8 - Operação"
+        nextLabel="Requisito 8 - Operacionalização"
       />
     </>
   );
