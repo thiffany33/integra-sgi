@@ -65,3 +65,13 @@ test('o capítulo 8 aparece no guia, na lista de capítulos e nos sub-requisitos
   }
   await expect(page.locator('main a[download]')).toHaveCount(0)
 })
+
+test('o 8.4 e a página de modelos oferecem a avaliação de fornecedores', async ({ page }) => {
+  const href = 'http://localhost:3001/api/v1/files/templates/supplier-evaluation'
+  await page.goto('/requirement8_4')
+  await page.getByRole('button', { name: 'Ferramentas de apoio' }).click()
+  await expect(page.getByRole('link', { name: 'Baixar Avaliação de fornecedores' })).toHaveAttribute('href', href)
+  await page.goto('/downloads')
+  const chapter8 = page.getByRole('region', { name: 'Requisito 8' })
+  await expect(chapter8.getByRole('link', { name: 'Descarregar Avaliação de fornecedores' })).toHaveAttribute('href', href)
+})

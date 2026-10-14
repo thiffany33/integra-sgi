@@ -15,6 +15,7 @@ export const filesManifest = [
   { id: 'document-control-resources', chapter: '7', title: 'Controlo documental — recursos', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/document-control-resources/7_1_modelo_controlo_documental.xlsx', filename: '7_1_modelo_controlo_documental.xlsx' },
   { id: 'training-plan', chapter: '7', title: 'Plano de formação', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/training-plan/7_3_modelo_plano_formacao.xlsx', filename: '7_3_modelo_plano_formacao.xlsx' },
   { id: 'document-control', chapter: '7', title: 'Controlo de documentos', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/document-control/7_5_modelo_controlo_documental.xlsx', filename: '7_5_modelo_controlo_documental.xlsx' },
+  { id: 'supplier-evaluation', chapter: '8', title: 'Avaliação de fornecedores', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/supplier-evaluation/8_4_modelo_avaliacao_fornecedores.xlsx', filename: '8_4_modelo_avaliacao_fornecedores.xlsx' },
 ] as const;
 
 export type FileManifestEntry = (typeof filesManifest)[number];
