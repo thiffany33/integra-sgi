@@ -11,7 +11,7 @@ const s3Mocks = vi.hoisted(() => ({
 vi.mock('@aws-sdk/client-s3', () => ({
   S3Client: class {
     send = s3Mocks.send;
-    constructor(options: unknown) { s3Mocks.client(options); }
+    constructor(readonly options: unknown) { s3Mocks.client(options); }
   },
   PutObjectCommand: class { constructor(readonly input: unknown) {} },
   GetObjectCommand: class { constructor(readonly input: unknown) {} },
@@ -27,8 +27,9 @@ const config = {
   AWS_REGION: 'us-east-2',
 };
 
-function service() {
-  return new ObjectStorageService({ get: (key: keyof typeof config) => config[key] } as ConfigService);
+function service(overrides: Record<string, string> = {}) {
+  const values: Record<string, string> = { ...config, ...overrides };
+  return new ObjectStorageService({ get: (key: string) => values[key] } as ConfigService);
 }
 
 describe('ObjectStorageService', () => {
@@ -49,6 +50,21 @@ describe('ObjectStorageService', () => {
       },
       forcePathStyle: true,
     });
+  });
+
+  it('signs read URLs with the public endpoint when the browser reaches storage elsewhere', async () => {
+    await service({ AWS_ENDPOINT_URL_S3: 'http://s3mock:9090', AWS_PUBLIC_ENDPOINT_URL_S3: 'http://localhost:9090' })
+      .getSignedReadUrl({ key: 'templates/a/a.xlsx', expiresInSeconds: 300 });
+    const signer = s3Mocks.signedUrl.mock.calls[0][0] as { options: { endpoint: string } };
+    expect(signer.options.endpoint).toBe('http://localhost:9090');
+    expect(s3Mocks.client).toHaveBeenCalledWith(expect.objectContaining({ endpoint: 'http://s3mock:9090' }));
+  });
+
+  it('signs with the storage endpoint when no public endpoint is configured', async () => {
+    await service().getSignedReadUrl({ key: 'templates/a/a.xlsx', expiresInSeconds: 300 });
+    const signer = s3Mocks.signedUrl.mock.calls[0][0] as { options: { endpoint: string } };
+    expect(signer.options.endpoint).toBe(config.AWS_ENDPOINT_URL_S3);
+    expect(s3Mocks.client).toHaveBeenCalledTimes(1);
   });
 
   it('uploads into the private sgi bucket', async () => {

@@ -50,6 +50,8 @@ export const envSchema = z
     AWS_SECRET_ACCESS_KEY: storageValue,
     AWS_ENDPOINT_URL_S3: storageEndpoint,
     AWS_REGION: storageValue,
+    // Optional address browsers use for presigned URLs when it differs from AWS_ENDPOINT_URL_S3.
+    AWS_PUBLIC_ENDPOINT_URL_S3: storageEndpoint,
   })
   .passthrough()
   .superRefine((environment, context) => {

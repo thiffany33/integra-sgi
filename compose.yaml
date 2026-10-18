@@ -1,3 +1,11 @@
+# Local S3 mock settings shared by the API and the template sync. Override them in .env to use a real bucket.
+x-local-storage: &local-storage
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-local}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-local}
+  AWS_ENDPOINT_URL_S3: ${AWS_ENDPOINT_URL_S3:-http://storage:9090}
+  AWS_PUBLIC_ENDPOINT_URL_S3: ${AWS_PUBLIC_ENDPOINT_URL_S3:-http://localhost:9090}
+  AWS_REGION: ${AWS_REGION:-us-east-1}
+
 services:
   db:
     image: postgres:17-alpine
@@ -14,6 +22,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+
+  # Local S3 mock: templates and profile photos are stored here instead of a real bucket.
+  storage:
+    image: adobe/s3mock:latest
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: sgi
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      # The image has no curl; bash can open a TCP connection on its own.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9090"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Uploads the document templates from backend/assets into storage on every start.
+  sync-templates:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: build
+    command: ["npm", "run", "storage:sync-templates", "--workspace", "@integra/api"]
+    environment:
+      <<: *local-storage
+      APP_ENV: development
+      NODE_ENV: development
+      # The script validates the full API environment, so it needs the same defaults.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/integra_sgi?schema=public}
+      SESSION_SECRET: ${SESSION_SECRET:-local-development-session-secret-change-me}
+    depends_on:
+      storage:
+        condition: service_healthy
+    restart: "no"
 
   migrate:
     build:
@@ -47,12 +88,15 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-local-development-session-secret-change-me}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       EMAIL_FROM: ${EMAIL_FROM:-Integra SGI <noreply@localhost>}
+      <<: *local-storage
     ports:
       - "127.0.0.1:3001:3001"
     depends_on:
       db:
         condition: service_healthy
       migrate:
+        condition: service_completed_successfully
+      sync-templates:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
