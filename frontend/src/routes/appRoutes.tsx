@@ -166,6 +166,23 @@ const Requirement8_9 = lazy(
   () => import("../pages/requirement8_9/requirement8_9")
 );
 
+// Requisito 9
+const Requirement9 = lazy(
+  () => import("../pages/requirement9/requirement9")
+);
+
+const Requirement9_1 = lazy(
+  () => import("../pages/requirement9_1/requirement9_1")
+);
+
+const Requirement9_2 = lazy(
+  () => import("../pages/requirement9_2/requirement9_2")
+);
+
+const Requirement9_3 = lazy(
+  () => import("../pages/requirement9_3/requirement9_3")
+);
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -245,6 +262,12 @@ function AppRoutes() {
             <Route path="/requirement8_7" element={<Requirement8_7 />} />
             <Route path="/requirement8_8" element={<Requirement8_8 />} />
             <Route path="/requirement8_9" element={<Requirement8_9 />} />
+
+            {/* Requisito 9 */}
+            <Route path="/requirement9" element={<Requirement9 />} />
+            <Route path="/requirement9_1" element={<Requirement9_1 />} />
+            <Route path="/requirement9_2" element={<Requirement9_2 />} />
+            <Route path="/requirement9_3" element={<Requirement9_3 />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Route>

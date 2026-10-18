@@ -64,8 +64,8 @@ function Requirement8_9() {
       <RequirementNavigation
         previousLink="/requirement8_8"
         previousLabel="8.8 Verificação dos Controlos de Segurança dos Alimentos"
-        nextLink="/requirement"
-        nextLabel="Voltar ao guia de gestão"
+        nextLink="/requirement9"
+        nextLabel="Requisito 9 - Avaliação do Desempenho"
       />
     </>
   );

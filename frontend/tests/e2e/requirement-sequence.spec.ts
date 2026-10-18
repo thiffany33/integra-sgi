@@ -25,6 +25,10 @@ const sequence = [
   ['/requirement8_7', '8.7 Controlo de Saídas Não Conformes'],
   ['/requirement8_8', '8.8 Verificação dos Controlos de Segurança dos Alimentos'],
   ['/requirement8_9', '8.9 Controlo de Não Conformidades de Produto e Processo'],
+  ['/requirement9', 'Requisito 9 - Avaliação do Desempenho'],
+  ['/requirement9_1', '9.1 Monitorização, Medição, Análise e Avaliação'],
+  ['/requirement9_2', '9.2 Auditoria Interna'],
+  ['/requirement9_3', '9.3 Revisão pela Gestão'],
 ] as const
 
 test.beforeEach(async ({ page }) => {
@@ -32,7 +36,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile, revision: 1, updatedAt: new Date().toISOString() } }))
 })
 
-test('os botões seguinte e anterior percorrem do 7 ao 8.9 pela ordem certa', async ({ page }) => {
+test('os botões seguinte e anterior percorrem do 7 ao 9.3 pela ordem certa', async ({ page }) => {
   const sequenceNav = page.getByRole('navigation', { name: 'Sequência do guia' })
   await page.goto(sequence[0][0])
   for (const [index, [path, title]] of sequence.entries()) {
@@ -62,7 +66,7 @@ test('o capítulo 8 aparece no guia, na lista de capítulos e nos sub-requisitos
   await page.goto('/requirement')
   await expect(page.getByRole('heading', { name: 'Operacionalização' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Começar requisito 8' })).toHaveAttribute('href', '/requirement8')
-  await expect(page.getByText('cobrem os requisitos 4 a 8')).toBeVisible()
+  await expect(page.getByText('cobrem os requisitos 4 a 9')).toBeVisible()
   await page.goto('/requirement8')
   await expect(page.getByRole('navigation', { name: 'Capítulos do guia' }).getByRole('link', { name: '8. Operacionalização' })).toHaveAttribute('aria-current', 'page')
   await page.getByRole('button', { name: 'Sub-requisitos' }).click()
@@ -80,4 +84,45 @@ test('o 8.4 e a página de modelos oferecem a avaliação de fornecedores', asyn
   await page.goto('/downloads')
   const chapter8 = page.getByRole('region', { name: 'Requisito 8' })
   await expect(chapter8.getByRole('link', { name: 'Descarregar Avaliação de fornecedores' })).toHaveAttribute('href', href)
+})
+
+test('o capítulo 9 aparece no guia e liga aos três sub-requisitos', async ({ page }) => {
+  await page.goto('/requirement')
+  await expect(page.getByRole('link', { name: 'Começar requisito 9' })).toHaveAttribute('href', '/requirement9')
+  await page.goto('/requirement9')
+  await expect(page.getByRole('navigation', { name: 'Capítulos do guia' }).getByRole('link', { name: '9. Avaliação do desempenho' })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('button', { name: 'Sub-requisitos' }).click()
+  for (const path of ['/requirement9_1', '/requirement9_2', '/requirement9_3']) {
+    await expect(page.locator(`main a[href="${path}"]`).first()).toBeVisible()
+  }
+})
+
+test('o 9.1 mostra apenas os sistemas selecionados pela organização', async ({ page }) => {
+  const environmentOnly = { ...profile, selectedSystems: ['sga'] }
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { user, profile: environmentOnly } }))
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile: environmentOnly, revision: 1, updatedAt: new Date().toISOString() } }))
+  await page.goto('/requirement9_1')
+  await page.getByRole('button', { name: 'Aplicação nos sistemas selecionados' }).click()
+  await expect(page.getByRole('heading', { name: 'Ambiente (ISO 14001)' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Qualidade (ISO 9001)' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Segurança e Saúde no Trabalho (ISO 45001)' })).toHaveCount(0)
+})
+
+test('os modelos do capítulo 9 estão nas páginas certas e na página de modelos', async ({ page }) => {
+  const url = (id: string) => `http://localhost:3001/api/v1/files/templates/${id}`
+  const pages = [
+    ['/requirement9_1', [['Baixar Equipamentos de monitorização e medição', 'monitoring-equipment']]],
+    ['/requirement9_2', [['Baixar Plano de auditoria', 'audit-plan'], ['Baixar Relatório de auditoria', 'audit-report'], ['Baixar Guia de preenchimento do plano e relatório de auditoria', 'audit-guide']]],
+    ['/requirement9_3', [['Baixar Relatório de revisão pela gestão', 'management-review']]],
+  ] as const
+  for (const [path, links] of pages) {
+    await page.goto(path)
+    await page.getByRole('button', { name: 'Ferramentas de apoio' }).click()
+    for (const [name, id] of links) await expect(page.getByRole('link', { name, exact: true })).toHaveAttribute('href', url(id))
+  }
+  await page.goto('/downloads')
+  const chapter9 = page.getByRole('region', { name: 'Requisito 9' })
+  for (const id of ['monitoring-equipment', 'audit-plan', 'audit-report', 'audit-guide', 'management-review']) {
+    await expect(chapter9.locator(`a[href="${url(id)}"]`)).toHaveCount(1)
+  }
 })
