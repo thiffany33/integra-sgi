@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   DeleteObjectCommand,
@@ -15,7 +15,8 @@ const BUCKET = 'sgi';
 export class ObjectStorageService {
   private readonly client: S3Client | null;
 
-  constructor(config: ConfigService<Environment, true>) {
+  // Explicit token: scripts run through tsx, which does not emit decorator metadata.
+  constructor(@Inject(ConfigService) config: ConfigService<Environment, true>) {
     const accessKeyId = config.get('AWS_ACCESS_KEY_ID');
     const secretAccessKey = config.get('AWS_SECRET_ACCESS_KEY');
     const endpoint = config.get('AWS_ENDPOINT_URL_S3');
