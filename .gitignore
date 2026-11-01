@@ -31,5 +31,18 @@ playwright-report/
 *.njsproj
 *.sln
 *.sw?
+.superpowers
 .neon
 .worktrees/
+.agents
+.codex
+
+backend/.windsurf
+backend/.claude
+
+# Vercel local settings, environment files and build artifacts
+.vercel/
+# Keep deployment instructions versioned despite local docs ignore
+!/docs/
+/docs/*
+!/docs/deployment-vercel.md

@@ -9,7 +9,7 @@
     "backend"
   ],
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=22.14.0 <23"
   },
   "scripts": {
     "dev": "concurrently --names web,api \"npm run dev:web\" \"npm run dev:api\"",
