@@ -6,6 +6,9 @@ on:
   push:
     branches: [homolog, main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -46,3 +49,106 @@ jobs:
       - run: npm test --workspaces --if-present
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e --workspace @integra/web
+      - name: Upload Playwright failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-traces
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+
+  deploy-homolog:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/homolog'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: vercel-homolog
+      cancel-in-progress: false
+    environment:
+      name: homolog
+    env:
+      DEPLOY_SHA: ${{ github.sha }}
+      DEPLOY_BRANCH: ${{ github.ref_name }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      API_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
+      WEB_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+      API_DOMAIN: ${{ vars.API_DOMAIN }}
+      WEB_DOMAIN: ${{ vars.WEB_DOMAIN }}
+      VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+    steps:
+      - name: Check out the validated commit (API)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: api-source
+          persist-credentials: false
+      - name: Check out the validated commit (web)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: web-source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: npm
+          cache-dependency-path: api-source/package-lock.json
+      - name: Validate configuration and reject superseded commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for key in VERCEL_ORG_ID VERCEL_TOKEN API_PROJECT_ID WEB_PROJECT_ID API_DOMAIN WEB_DOMAIN VERCEL_CLI_VERSION; do
+            test -n "${!key}" || { echo "Missing configuration: $key"; exit 1; }
+          done
+          [[ "$VERCEL_CLI_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$API_DOMAIN" =~ ^[a-zA-Z0-9.-]+$ && "$WEB_DOMAIN" =~ ^[a-zA-Z0-9.-]+$ ]]
+          test "$API_PROJECT_ID" != "$WEB_PROJECT_ID"
+          test "$API_DOMAIN" != "$WEB_DOMAIN"
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$DEPLOY_BRANCH" --jq '.object.sha')
+          test "$current" = "$DEPLOY_SHA" || { echo 'Superseded commit: run CI on the branch head.'; exit 1; }
+      - name: Install pinned Vercel CLI separately from workspaces
+        run: npm install --prefix "$RUNNER_TEMP/vercel-cli" "vercel@$VERCEL_CLI_VERSION"
+      - name: Pull settings and build both projects
+        run: |
+          set -euo pipefail
+          cli="$RUNNER_TEMP/vercel-cli/node_modules/.bin/vercel"
+          for project in api web; do
+            if [[ "$project" == api ]]; then export VERCEL_PROJECT_ID="$API_PROJECT_ID"; else export VERCEL_PROJECT_ID="$WEB_PROJECT_ID"; fi
+            cd "$GITHUB_WORKSPACE/$project-source"
+            git switch --force-create "$DEPLOY_BRANCH" "$DEPLOY_SHA"
+            "$cli" pull --yes --environment=preview --git-branch="$DEPLOY_BRANCH" --token="$VERCEL_TOKEN"
+            "$cli" build --token="$VERCEL_TOKEN"
+          done
+          node "$GITHUB_WORKSPACE/api-source/scripts/check-vercel-package.mjs" "$GITHUB_WORKSPACE/api-source/.vercel/output"
+          test -s "$GITHUB_WORKSPACE/web-source/.vercel/output/static/index.html"
+      - name: Recheck branch head before migrating
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$DEPLOY_BRANCH" --jq '.object.sha')
+          test "$current" = "$DEPLOY_SHA" || { echo 'Branch advanced during build; refusing migration.'; exit 1; }
+      - name: Apply approved migrations to the homolog database
+        working-directory: api-source
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DIRECT_URL" || { echo 'DIRECT_URL is required'; exit 1; }
+          node scripts/check-vercel-environment.mjs
+          npm run db:migrate:deploy --workspace @integra/api
+      - name: Deploy API and web, with health gates
+        env:
+          API_BYPASS_SECRET: ${{ secrets.VERCEL_API_BYPASS_SECRET }}
+          WEB_BYPASS_SECRET: ${{ secrets.VERCEL_WEB_BYPASS_SECRET }}
+        run: bash api-source/scripts/deploy-vercel.sh
+      - name: Deployment result
+        if: always()
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          printf '### Homolog deployment\n\nCommit: `%s`\n\nBranch: `%s`\n\nResult: %s\n' "$DEPLOY_SHA" "$DEPLOY_BRANCH" "$RESULT" >> "$GITHUB_STEP_SUMMARY"
