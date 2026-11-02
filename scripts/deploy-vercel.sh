@@ -29,4 +29,7 @@ for project in api web; do
     "$cli" alias set "$url" "$domain" --token="$VERCEL_TOKEN"
   fi
   node scripts/check-deployment-health.mjs "https://$domain$health_path" "$project"
+  if [[ "$project" == web ]]; then
+    node scripts/check-deployment-health.mjs "https://$domain/api/v1/health" api
+  fi
 done

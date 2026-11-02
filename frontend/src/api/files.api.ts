@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1')).replace(/\/$/, '');
 
 export const filesApi = {
   templateDownloadUrl(documentId: string): string {

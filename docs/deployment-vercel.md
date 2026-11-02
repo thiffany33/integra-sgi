@@ -64,27 +64,26 @@ O CD usa dois checkouts completos separados (`api-source`, `web-source`) e IDs
 explícitos, com comandos Vercel na raiz de cada checkout. Isso impede que um pull
 ou build sobrescreva os settings, env ou `.vercel/output` do outro projeto.
 
-## Domínios, autenticação e homologação estável
+## Domínios Vercel, autenticação e homologação estável
 
-Utilizar, por exemplo, `homolog.example.com` / `api-homolog.example.com` e
-`app.example.com` / `api.example.com`. Ambos os pares precisam ser HTTPS e
-**same-site**: mesmo domínio registrável. Os cookies atuais são HttpOnly,
-Secure em homolog/production e SameSite=Lax. Dois hosts independentes `*.vercel.app`
-não são uma configuração válida para depender desses cookies. Não alterar para
-SameSite=None como atalho; isso exigiria nova análise de segurança/compatibilidade.
+O app pode usar os domínios Vercel dos projetos, sem configurar DNS próprio:
+`WEB_DOMAIN` aponta para o alias web e `API_DOMAIN` para o alias da API. Use
+aliases distintos entre `homolog` e `production`; o workflow atribui os aliases
+estáveis de homolog com `vercel alias set` e promove os de produção.
 
-Cadastrar os domínios de homolog nos respectivos projetos **sem vinculá-los ao
-ambiente Production**. O workflow usa Preview com variáveis da branch `homolog`
-e `vercel alias set` para manter URLs estáveis. Domínios de produção pertencem
-somente a Production. Confirmar no painel os domínios afetados por `promote`.
+Os domínios `*.vercel.app` da web e da API são sites diferentes, e os cookies de
+sessão são `HttpOnly`, `Secure` e `SameSite=Lax`. Para manter a sessão, o web usa
+`/api/v1` no mesmo host. Durante o build de homologação/produção, o workflow cria
+um rewrite externo `/api/*` para `API_DOMAIN`; a Vercel encaminha a chamada sem
+mudar a URL visível no browser. O rewrite injeta o bypass da API no servidor,
+usando `VERCEL_API_BYPASS_SECRET` do ambiente do projeto web. Esse valor não vai
+para o bundle do browser. O rewrite também desativa cache para caminhos `/api/*`.
 
-CORS permite somente `FRONTEND_URL`, com credentials. O frontend já usa cookies.
-Definir `TRUST_PROXY_HOPS=1` e validar a cadeia de proxies Vercel no primeiro teste
-integrado. Se houver outro proxy/CDN, revisar a contagem antes de confiar no IP.
-
-Deployment Protection pode bloquear preview, health e preflight CORS. Configurar
-acesso de usuários/browser aos domínios estáveis. Secrets de bypass usados pela
-CI não tornam a aplicação acessível ao navegador e nunca devem ser variáveis VITE.
+CORS e validação de origem da API continuam limitados a `FRONTEND_URL`, com
+credentials. Definir `TRUST_PROXY_HOPS=1` e validar a cadeia de proxies Vercel no
+primeiro teste integrado. Se houver outro proxy/CDN, revisar a contagem antes de
+confiar no IP. Deployment Protection pode bloquear preview e health; o bypass
+de automação deve ser configurado nos projetos correspondentes.
 
 ## GitHub Actions: proteção, secrets e variáveis
 
@@ -115,13 +114,13 @@ Secrets **em cada Environment**, nunca em arquivos versionados:
 | `VERCEL_API_PROJECT_ID` | Projeto integra-sgi-api |
 | `VERCEL_WEB_PROJECT_ID` | Projeto integra-sgi-web (ID diferente) |
 | `DIRECT_URL` | Conexão direta ao banco daquele ambiente para migrações |
-| `VERCEL_API_BYPASS_SECRET` | Opcional: bypass de proteção da API para health checks |
+| `VERCEL_API_BYPASS_SECRET` | Bypass de proteção da API para health checks e chamadas encaminhadas pelo proxy web |
 | `VERCEL_WEB_BYPASS_SECRET` | Opcional: bypass de proteção do web para health checks |
 
-Variáveis **em cada Environment**: `API_DOMAIN`, `WEB_DOMAIN` (somente hostname,
-sem esquema/path), `VERCEL_CLI_VERSION` (versão exata `X.Y.Z`, validada primeiro
-em homolog). Os IDs podem ser iguais entre Environments porque são dois projetos
-com Preview e Production; credenciais de banco devem ser diferentes.
+Variáveis **em cada Environment**: `API_DOMAIN`, `WEB_DOMAIN` (somente hostname
+Vercel terminado em `.vercel.app`), `VERCEL_CLI_VERSION` (versão exata `X.Y.Z`,
+validada primeiro em homolog). Os IDs podem ser iguais entre Environments porque
+são dois projetos com Preview e Production; credenciais de banco devem ser diferentes.
 
 ## Variáveis Vercel
 
@@ -133,9 +132,13 @@ Não adicionar segredos de produção ao Preview genérico.
 | API | `APP_ENV=homolog` ou `production`; `NODE_ENV=production`; `DATABASE_URL`; `DIRECT_URL`; `SESSION_SECRET` (aleatório, >=32 caracteres); `APP_URL`; `FRONTEND_URL`; `TRUST_PROXY_HOPS=1` |
 | API/email | `RESEND_API_KEY`, `EMAIL_FROM` |
 | API/storage | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT_URL_S3`, `AWS_REGION`; opcional `AWS_PUBLIC_ENDPOINT_URL_S3` |
-| Web | `VITE_API_URL=https://<API_DOMAIN>/api/v1` |
+| Web | `VITE_API_URL=/api/v1`; `VERCEL_API_BYPASS_SECRET` igual ao bypass de automação criado no projeto API |
 
 `APP_URL` e `FRONTEND_URL` devem ser `https://<WEB_DOMAIN>` sem barra final.
+O workflow gera a rota `/api/*` para `API_DOMAIN` do GitHub Environment.
+O secret `VERCEL_API_BYPASS_SECRET` precisa existir no ambiente correspondente
+do projeto web e coincidir com o secret de bypass `VERCEL_API_BYPASS_SECRET` do
+GitHub Environment, pois o teste do workflow confere os dois sem imprimir valores.
 `DATABASE_URL` usa o pooler do provedor quando disponível; `DIRECT_URL` usa conexão
 direta TLS ao **mesmo banco**. Não imprimir URLs completas nos logs.
 O CD verifica que DIRECT_URL do GitHub é idêntica à obtida da Vercel, para reduzir
@@ -260,7 +263,7 @@ por `vercel pull` nem exibir seu conteúdo nos logs.
 - [ ] Desativar deploy Git automático e quaisquer canais paralelos de publicação.
 - [ ] Provisionar bancos separados, backups, storage e email, sem compras não aprovadas.
 - [ ] Configurar env Vercel e GitHub, versão exata da CLI e IDs corretos.
-- [ ] Configurar DNS/TLS same-site, aliases homolog e domínios Production separados.
+- [ ] Configurar aliases `.vercel.app` estáveis de homolog e Production para API e web.
 - [ ] Habilitar reviewers, regras de branches e proteção dos arquivos de deploy.
 - [ ] Validar build/prebuilt completo e login/logout em homolog.
 - [ ] Testar falha de CI, reprovação, health falho e rollback em homolog.

@@ -26,7 +26,8 @@ if [[ "$FAIL_HEALTH" == yes ]]; then exit 1; fi
       env: { ...process.env, PATH: `${root}/bin:${process.env.PATH}`, GITHUB_WORKSPACE: root,
         RUNNER_TEMP: root, DEPLOY_BRANCH: branch, DEPLOY_SHA: 'validated-sha',
         VERCEL_TOKEN: 'fake', API_PROJECT_ID: 'api', WEB_PROJECT_ID: 'web',
-        API_DOMAIN: 'api.example.test', WEB_DOMAIN: 'app.example.test',
+        API_DOMAIN: 'integra-sgi-api-git-homolog-example.vercel.app',
+        WEB_DOMAIN: 'integra-sgi-web-git-homolog-example.vercel.app',
         GITHUB_STEP_SUMMARY: join(root, 'summary'), CALL_LOG: log,
         FAIL_HEALTH: failHealth ? 'yes' : 'no' },
     });
@@ -40,20 +41,21 @@ test('production stages and checks API before promotion and web publication', ()
   const { status, calls } = simulate('main');
   assert.equal(status, 0);
   assert.match(calls[0], /^api:deploy --prebuilt --yes --skip-domain --prod /);
-  assert.match(calls[1], /^health:.*https:\/\/api.example.test\/api\/v1\/health api$/);
+  assert.match(calls[1], /^health:.*https:\/\/api\.example\.test\/api\/v1\/health api$/);
   assert.match(calls[2], /^api:promote /);
   assert.match(calls[3], /^health:/);
   assert.match(calls[4], /^web:deploy /);
   assert.match(calls[6], /^web:promote /);
-  assert.equal(calls.length, 8);
+  assert.match(calls[8], /^health:.*https:\/\/integra-sgi-web-git-homolog-example\.vercel\.app\/api\/v1\/health api$/);
+  assert.equal(calls.length, 9);
 });
 
 test('homolog uses preview and assigns each stable alias', () => {
   const { status, calls } = simulate('homolog');
   assert.equal(status, 0);
   assert(!calls.some(call => call.includes('--prod') || call.includes(':promote')));
-  assert.match(calls[2], /^api:alias set https:\/\/api.example.test api.example.test /);
-  assert.match(calls[6], /^web:alias set https:\/\/web.example.test app.example.test /);
+  assert.match(calls[2], /^api:alias set https:\/\/api.example.test integra-sgi-api-git-homolog-example\.vercel\.app /);
+  assert.match(calls[6], /^web:alias set https:\/\/web.example.test integra-sgi-web-git-homolog-example\.vercel\.app /);
 });
 
 test('failed API health blocks domain changes and frontend publication', () => {
@@ -71,14 +73,16 @@ function checkEnvironment(directUrl) {
       'APP_ENV=production', 'NODE_ENV=production',
       'DIRECT_URL=postgresql://sensitive-password@db.example.test/app',
       'DATABASE_URL=postgresql://pooled.example.test/app',
-      'APP_URL=https://app.example.test', 'FRONTEND_URL=https://app.example.test',
+      'APP_URL=https://integra-sgi-web.vercel.app', 'FRONTEND_URL=https://integra-sgi-web.vercel.app',
       ...['SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'AWS_ACCESS_KEY_ID',
         'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'].map(key => `${key}=fake`),
     ].join('\n'));
-    writeFileSync(join(root, 'web-source/.vercel/.env.production.local'), 'VITE_API_URL=https://api.example.test/api/v1');
+    writeFileSync(join(root, 'web-source/.vercel/.env.production.local'),
+      'VITE_API_URL=/api/v1\nVERCEL_API_BYPASS_SECRET=fake-api-bypass');
     return spawnSync(process.execPath, [resolve('scripts/check-vercel-environment.mjs')], {
       encoding: 'utf8', env: { ...process.env, GITHUB_WORKSPACE: root, DEPLOY_BRANCH: 'main',
-        API_DOMAIN: 'api.example.test', WEB_DOMAIN: 'app.example.test', DIRECT_URL: directUrl },
+        API_DOMAIN: 'integra-sgi-api.vercel.app', WEB_DOMAIN: 'integra-sgi-web.vercel.app',
+        API_BYPASS_SECRET: 'fake-api-bypass', DIRECT_URL: directUrl },
     });
   } finally {
     rmSync(root, { recursive: true, force: true });
