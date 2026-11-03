@@ -16,12 +16,15 @@ function check(condition, message) {
 // Reduces a Postgres URL to "host/database", ignoring credentials, query string
 // and Neon's "-pooler" suffix, so pooled and direct URLs of the same branch match.
 // Uses a regex instead of new URL() so passwords with special characters, stray
-// quotes or whitespace do not break parsing. Errors never include the raw value.
+// quotes or whitespace do not break parsing. Errors never include the raw value:
+// only the scheme (when "://" exists) and the length are reported.
 function dbIdentity(url, label) {
   const cleaned = String(url).trim().replace(/^['"]|['"]$/g, '');
   const match = cleaned.match(/^postgres(?:ql)?:\/\/(?:.*@)?([^/:?#]+)(?::\d+)?\/([^?#]+)/);
   if (!match) {
-    const scheme = cleaned.split('://')[0].slice(0, 25).replace(/[^\w+.-]/g, '?');
+    const scheme = cleaned.includes('://')
+      ? cleaned.split('://')[0].slice(0, 25).replace(/[^\w+.-]/g, '?')
+      : 'none';
     throw new assert.AssertionError({
       message: `${label} is not a valid database URL (scheme: "${scheme}", len: ${cleaned.length})`,
     });
@@ -33,20 +36,23 @@ function dbIdentity(url, label) {
 check(Boolean(process.env.DIRECT_URL), 'GitHub DIRECT_URL is required');
 check(Boolean(api.DATABASE_URL), 'Vercel DATABASE_URL is required');
 
+// TEMPORARY DIAGNOSTIC: remove after finding why Vercel DATABASE_URL is rejected.
+// Prints only shape information, never host, user or password.
 const v = String(api.DATABASE_URL);
 console.log('len:', v.length);
-console.log('scheme:', JSON.stringify(v.split('://')[0].slice(0, 25)));
+console.log('scheme:', v.includes('://') ? JSON.stringify(v.split('://')[0].slice(0, 25)) : 'none');
 console.log('has "://":', v.includes('://'));
 console.log('contains "DATABASE_URL=":', v.includes('DATABASE_URL='));
 console.log('has newline:', /[\r\n]/.test(v));
 console.log('has "@":', v.includes('@'));
 console.log('path after host:', /:\/\/[^/]*\/[^?#\s]+/.test(v));
+
 // Sensitive Vercel variables are never written by `vercel pull`, so we cannot
 // compare DIRECT_URL strings. Instead, verify that migrations (GitHub DIRECT_URL)
 // and the app (Vercel DATABASE_URL) point to the same Neon host + database.
 check(
   dbIdentity(api.DATABASE_URL, 'Vercel DATABASE_URL') ===
-  dbIdentity(process.env.DIRECT_URL, 'GitHub DIRECT_URL'),
+    dbIdentity(process.env.DIRECT_URL, 'GitHub DIRECT_URL'),
   'GitHub DIRECT_URL must point to the same database as Vercel DATABASE_URL',
 );
 
