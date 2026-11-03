@@ -65,14 +65,16 @@ test('failed API health blocks domain changes and frontend publication', () => {
   assert(!calls.some(call => call.startsWith('web:') || call.includes(':promote')));
 });
 
-function checkEnvironment(directUrl) {
+// `vercel pull` masks Sensitive variables, so the Vercel side exposes the migration
+// target through the non-sensitive DB_IDENTITY ("host/database"), not through URLs.
+function checkEnvironment(directUrl, { dbIdentity = 'db.example.test/app' } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'integra-env-test-'));
   try {
     for (const project of ['api', 'web']) mkdirSync(join(root, `${project}-source/.vercel`), { recursive: true });
     writeFileSync(join(root, 'api-source/.vercel/.env.production.local'), [
       'APP_ENV=production', 'NODE_ENV=production',
-      'DIRECT_URL=postgresql://sensitive-password@db.example.test/app',
-      'DATABASE_URL=postgresql://db-pooler.example.test/app',
+      `DB_IDENTITY=${dbIdentity}`,
+      'DATABASE_URL=fake',
       'APP_URL=https://integra-sgi-web.vercel.app', 'FRONTEND_URL=https://integra-sgi-web.vercel.app',
       ...['SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'AWS_ACCESS_KEY_ID',
         'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'].map(key => `${key}=fake`),
@@ -92,10 +94,28 @@ function checkEnvironment(directUrl) {
 test('migration target must match the Vercel runtime configuration without leaking credentials', () => {
   const result = checkEnvironment('postgresql://other-sensitive-password@wrong.example.test/app');
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /GitHub DIRECT_URL must point to the same database as Vercel DATABASE_URL/);
+  assert.match(result.stderr, /GitHub DIRECT_URL must point to the same database as Vercel DB_IDENTITY/);
   assert(!`${result.stdout}${result.stderr}`.includes('sensitive-password'));
 });
 
 test('consistent production URLs and variables pass the migration gate', () => {
   assert.equal(checkEnvironment('postgresql://sensitive-password@db.example.test/app').status, 0);
+});
+
+test('pooled host and query string still match the same database', () => {
+  const url = 'postgresql://sensitive-password@db-pooler.example.test/app?sslmode=require&channel_binding=require';
+  assert.equal(checkEnvironment(url).status, 0);
+});
+
+test('same host with a different database name is rejected', () => {
+  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/other');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /must point to the same database as Vercel DB_IDENTITY/);
+});
+
+test('invalid DIRECT_URL fails without leaking its value', () => {
+  const result = checkEnvironment('not-a-url-secret-value');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /GitHub DIRECT_URL is not a valid database URL/);
+  assert(!`${result.stdout}${result.stderr}`.includes('secret-value'));
 });

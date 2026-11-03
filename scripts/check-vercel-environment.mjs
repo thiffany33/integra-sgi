@@ -15,9 +15,7 @@ function check(condition, message) {
 
 // Reduces a Postgres URL to "host/database", ignoring credentials, query string
 // and Neon's "-pooler" suffix, so pooled and direct URLs of the same branch match.
-// Uses a regex instead of new URL() so passwords with special characters, stray
-// quotes or whitespace do not break parsing. Errors never include the raw value:
-// only the scheme (when "://" exists) and the length are reported.
+// Errors never include the raw value: only the scheme (when "://" exists) and length.
 function dbIdentity(url, label) {
   const cleaned = String(url).trim().replace(/^['"]|['"]$/g, '');
   const match = cleaned.match(/^postgres(?:ql)?:\/\/(?:.*@)?([^/:?#]+)(?::\d+)?\/([^?#]+)/);
@@ -34,26 +32,16 @@ function dbIdentity(url, label) {
 }
 
 check(Boolean(process.env.DIRECT_URL), 'GitHub DIRECT_URL is required');
-check(Boolean(api.DATABASE_URL), 'Vercel DATABASE_URL is required');
 
-// TEMPORARY DIAGNOSTIC: remove after finding why Vercel DATABASE_URL is rejected.
-// Prints only shape information, never host, user or password.
-const v = String(api.DATABASE_URL);
-console.log('len:', v.length);
-console.log('scheme:', v.includes('://') ? JSON.stringify(v.split('://')[0].slice(0, 25)) : 'none');
-console.log('has "://":', v.includes('://'));
-console.log('contains "DATABASE_URL=":', v.includes('DATABASE_URL='));
-console.log('has newline:', /[\r\n]/.test(v));
-console.log('has "@":', v.includes('@'));
-console.log('path after host:', /:\/\/[^/]*\/[^?#\s]+/.test(v));
-
-// Sensitive Vercel variables are never written by `vercel pull`, so we cannot
-// compare DIRECT_URL strings. Instead, verify that migrations (GitHub DIRECT_URL)
-// and the app (Vercel DATABASE_URL) point to the same Neon host + database.
+// `vercel pull` masks Sensitive variables, so neither DIRECT_URL nor DATABASE_URL
+// can be compared from the pulled file. DB_IDENTITY is a NON-sensitive Vercel
+// variable holding only "host/database" (no user, no password), e.g.
+// ep-xxxx.region.aws.neon.tech/neondb. It must match the migration target.
+check(Boolean(api.DB_IDENTITY), 'Vercel DB_IDENTITY (host/database, non-sensitive) is required');
 check(
-  dbIdentity(api.DATABASE_URL, 'Vercel DATABASE_URL') ===
-    dbIdentity(process.env.DIRECT_URL, 'GitHub DIRECT_URL'),
-  'GitHub DIRECT_URL must point to the same database as Vercel DATABASE_URL',
+  api.DB_IDENTITY.trim().toLowerCase().replace('-pooler', '') ===
+    dbIdentity(process.env.DIRECT_URL, 'GitHub DIRECT_URL').toLowerCase(),
+  'GitHub DIRECT_URL must point to the same database as Vercel DB_IDENTITY',
 );
 
 check(api.APP_ENV === appEnv, 'Incorrect API APP_ENV');
