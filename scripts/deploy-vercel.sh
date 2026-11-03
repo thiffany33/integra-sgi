@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cli="$RUNNER_TEMP/vercel-cli/node_modules/.bin/vercel"
-flags=()
-if [[ "$DEPLOY_BRANCH" == main ]]; then flags+=(--prod); fi
+deploy_flags=(--prebuilt --yes)
+if [[ "$DEPLOY_BRANCH" == main ]]; then
+  # Stage production without moving its domains until health checks pass.
+  deploy_flags+=(--skip-domain --prod)
+fi
 for project in api web; do
   cd "$GITHUB_WORKSPACE/$project-source"
   if [[ "$project" == api ]]; then
@@ -16,8 +19,7 @@ for project in api web; do
     export HEALTH_BYPASS_SECRET="${WEB_BYPASS_SECRET:-}"
     health_path=/
   fi
-  # Stage production without moving its domains until health checks pass.
-  url=$("$cli" deploy --prebuilt --yes --skip-domain "${flags[@]}" \
+  url=$("$cli" deploy "${deploy_flags[@]}" \
     --meta "githubCommitSha=$DEPLOY_SHA" --meta "githubCommitRef=$DEPLOY_BRANCH" \
     --token="$VERCEL_TOKEN")
   [[ "$url" =~ ^https://[a-zA-Z0-9.-]+$ ]]
