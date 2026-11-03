@@ -95,8 +95,8 @@ function Requirement9_3() {
       <RequirementNavigation
         previousLink="/requirement9_2"
         previousLabel="9.2 Auditoria Interna"
-        nextLink="/requirement"
-        nextLabel="Voltar ao guia de gestão"
+        nextLink="/requirement10"
+        nextLabel="Requisito 10 - Melhoria"
       />
     </>
   );

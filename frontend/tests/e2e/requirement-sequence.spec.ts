@@ -29,6 +29,9 @@ const sequence = [
   ['/requirement9_1', '9.1 Monitorização, Medição, Análise e Avaliação'],
   ['/requirement9_2', '9.2 Auditoria Interna'],
   ['/requirement9_3', '9.3 Revisão pela Gestão'],
+  ['/requirement10', 'Requisito 10 - Melhoria'],
+  ['/requirement10_1', '10.1 Generalidades'],
+  ['/requirement10_2', '10.2 Não conformidade e ação corretiva'],
 ] as const
 
 test.beforeEach(async ({ page }) => {
@@ -36,7 +39,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile, revision: 1, updatedAt: new Date().toISOString() } }))
 })
 
-test('os botões seguinte e anterior percorrem do 7 ao 9.3 pela ordem certa', async ({ page }) => {
+test('os botões seguinte e anterior percorrem do 7 ao 10.2 pela ordem certa', async ({ page }) => {
   const sequenceNav = page.getByRole('navigation', { name: 'Sequência do guia' })
   await page.goto(sequence[0][0])
   for (const [index, [path, title]] of sequence.entries()) {
@@ -66,7 +69,7 @@ test('o capítulo 8 aparece no guia, na lista de capítulos e nos sub-requisitos
   await page.goto('/requirement')
   await expect(page.getByRole('heading', { name: 'Operacionalização' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Começar requisito 8' })).toHaveAttribute('href', '/requirement8')
-  await expect(page.getByText('cobrem os requisitos 4 a 9')).toBeVisible()
+  await expect(page.getByText('cobrem os requisitos 4 a 10')).toBeVisible()
   await page.goto('/requirement8')
   await expect(page.getByRole('navigation', { name: 'Capítulos do guia' }).getByRole('link', { name: '8. Operacionalização' })).toHaveAttribute('aria-current', 'page')
   await page.getByRole('button', { name: 'Sub-requisitos' }).click()

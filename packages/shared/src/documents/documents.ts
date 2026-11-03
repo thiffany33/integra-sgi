@@ -21,6 +21,8 @@ export const filesManifest = [
   { id: 'audit-report', chapter: '9', title: 'Relatório de auditoria', format: 'DOCX', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', objectKey: 'templates/audit-report/9_2_modelo_relatorio_de_auditoria.docx', filename: '9_2_modelo_relatorio_de_auditoria.docx' },
   { id: 'audit-guide', chapter: '9', title: 'Guia de preenchimento do plano e relatório de auditoria', format: 'DOCX', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', objectKey: 'templates/audit-guide/9_2_guia_explicativo_plano_relatorio_auditoria.docx', filename: '9_2_guia_explicativo_plano_relatorio_auditoria.docx' },
   { id: 'management-review', chapter: '9', title: 'Relatório de revisão pela gestão', format: 'DOCX', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', objectKey: 'templates/management-review/9_3_modelo_revisao_pela_gestao.docx', filename: '9_3_modelo_revisao_pela_gestao.docx' },
+  { id: 'occurrence-register', chapter: '10', title: 'Lista de ocorrências e ações de melhoria', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/occurrence-register/10_1_modelo_lista_ocorrencia.xlsx', filename: '10_1_modelo_lista_ocorrencia.xlsx' },
+  { id: 'work-accident-report', chapter: '10', title: 'Relatório de acidente de trabalho', format: 'XLSX', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', objectKey: 'templates/work-accident-report/10_2_model_at.xlsx', filename: '10_2_model_at.xlsx' },
 ] as const;
 
 export type FileManifestEntry = (typeof filesManifest)[number];

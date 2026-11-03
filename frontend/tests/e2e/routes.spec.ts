@@ -13,6 +13,7 @@ const privateRoutes = [
   '/requirement8', '/requirement8_1', '/requirement8_2', '/requirement8_3', '/requirement8_4', '/requirement8_5',
   '/requirement8_6', '/requirement8_7', '/requirement8_8', '/requirement8_9',
   '/requirement9', '/requirement9_1', '/requirement9_2', '/requirement9_3',
+  '/requirement10', '/requirement10_1', '/requirement10_2',
 ]
 
 const routes = [...publicRoutes, ...privateRoutes]
