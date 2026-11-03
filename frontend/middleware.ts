@@ -13,6 +13,7 @@
 
 export const config = {
   matcher: '/api/v1/:path*',
+  runtime: 'nodejs',
 };
 
 export default async function middleware(request: Request): Promise<Response> {
