@@ -57,13 +57,9 @@ check(
 );
 check(web.VITE_API_URL === '/api/v1', 'VITE_API_URL must use the same-origin API proxy');
 check(Boolean(process.env.API_BYPASS_SECRET), 'GitHub API bypass secret is required');
-const lens = (o) => Object.entries(o).map(([k, v]) => `${k}:${String(v).length}`).sort().join(' ');
-console.log('web env:', lens(web));
-console.log('api env:', lens(api));
-check(
-  web.VERCEL_API_BYPASS_SECRET === process.env.API_BYPASS_SECRET,
-  'Web Vercel API bypass secret must match the GitHub Environment secret',
-);
+// The web project's VERCEL_API_BYPASS_SECRET is not readable via `vercel pull`
+// (it comes back empty), so it cannot be compared here. The post-deploy health
+// gate through the web domain validates the proxy bypass end to end.
 
 for (const key of [
   'DATABASE_URL',
