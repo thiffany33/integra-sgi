@@ -10,4 +10,12 @@ export default defineConfig({
     '@integra/shared/documents': fileURLToPath(new URL('../packages/shared/src/documents/documents.ts', import.meta.url)),
     '@integra/shared/requirements': fileURLToPath(new URL('../packages/shared/src/requirements/index.ts', import.meta.url)),
   } },
+  server: {
+    proxy: {
+      '/api/v1': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
 })
