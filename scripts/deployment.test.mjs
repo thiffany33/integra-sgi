@@ -67,7 +67,12 @@ test('failed API health blocks domain changes and frontend publication', () => {
 
 // `vercel pull` masks Sensitive variables, so the Vercel side exposes the migration
 // target through the non-sensitive DB_IDENTITY ("host/database"), not through URLs.
-function checkEnvironment(directUrl, { dbIdentity = 'db.example.test/app' } = {}) {
+function checkEnvironment(directUrl, {
+  dbIdentity = 'db.example.test/app',
+  publicWebUrl = 'https://integrasig.pt',
+  appUrl = publicWebUrl,
+  frontendUrl = publicWebUrl,
+} = {}) {
   const root = mkdtempSync(join(tmpdir(), 'integra-env-test-'));
   try {
     for (const project of ['api', 'web']) mkdirSync(join(root, `${project}-source/.vercel`), { recursive: true });
@@ -75,7 +80,7 @@ function checkEnvironment(directUrl, { dbIdentity = 'db.example.test/app' } = {}
       'APP_ENV=production', 'NODE_ENV=production',
       `DB_IDENTITY=${dbIdentity}`,
       'DATABASE_URL=fake',
-      'APP_URL=https://integra-sgi-web.vercel.app', 'FRONTEND_URL=https://integra-sgi-web.vercel.app',
+      `APP_URL=${appUrl}`, `FRONTEND_URL=${frontendUrl}`,
       ...['SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'AWS_ACCESS_KEY_ID',
         'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'].map(key => `${key}=fake`),
     ].join('\n'));
@@ -84,6 +89,7 @@ function checkEnvironment(directUrl, { dbIdentity = 'db.example.test/app' } = {}
     return spawnSync(process.execPath, [resolve('scripts/check-vercel-environment.mjs')], {
       encoding: 'utf8', env: { ...process.env, GITHUB_WORKSPACE: root, DEPLOY_BRANCH: 'main',
         API_DOMAIN: 'integra-sgi-api.vercel.app', WEB_DOMAIN: 'integra-sgi-web.vercel.app',
+        PUBLIC_WEB_URL: publicWebUrl,
         API_BYPASS_SECRET: 'fake-api-bypass', DIRECT_URL: directUrl },
     });
   } finally {
@@ -100,6 +106,33 @@ test('migration target must match the Vercel runtime configuration without leaki
 
 test('consistent production URLs and variables pass the migration gate', () => {
   assert.equal(checkEnvironment('postgresql://sensitive-password@db.example.test/app').status, 0);
+});
+
+test('custom public web origin can differ from the stable Vercel deployment alias', () => {
+  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
+    publicWebUrl: 'https://integrasig.pt',
+    appUrl: 'https://integrasig.pt',
+    frontendUrl: 'https://integrasig.pt',
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('APP_URL and FRONTEND_URL must match the configured public web origin', () => {
+  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
+    publicWebUrl: 'https://integrasig.pt',
+    appUrl: 'https://integra-sgi-web.vercel.app',
+    frontendUrl: 'https://integrasig.pt',
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /APP_URL and FRONTEND_URL must match PUBLIC_WEB_URL/);
+});
+
+test('public web URL must be an HTTPS origin without a path', () => {
+  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
+    publicWebUrl: 'https://integrasig.pt/select-systems',
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /PUBLIC_WEB_URL must be an HTTPS origin/);
 });
 
 test('pooled host and query string still match the same database', () => {

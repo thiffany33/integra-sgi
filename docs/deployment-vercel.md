@@ -66,10 +66,13 @@ ou build sobrescreva os settings, env ou `.vercel/output` do outro projeto.
 
 ## Domínios Vercel, autenticação e homologação estável
 
-O app pode usar os domínios Vercel dos projetos, sem configurar DNS próprio:
-`WEB_DOMAIN` aponta para o alias web e `API_DOMAIN` para o alias da API. Use
-aliases distintos entre `homolog` e `production`; o workflow atribui os aliases
-estáveis de homolog com `vercel alias set` e promove os de produção.
+`WEB_DOMAIN` e `API_DOMAIN` são aliases Vercel usados para publicação, proxy e
+health checks; mantenha-os como hostnames `*.vercel.app` distintos por ambiente.
+`PUBLIC_WEB_URL` é a origem que as pessoas usam no browser. Pode ser um domínio
+próprio, como `https://integrasig.pt`, e não precisa ser igual ao alias Vercel.
+Em homolog, teste pelo alias estável configurado em `WEB_DOMAIN`: URLs únicas de
+deploy Preview têm hosts diferentes e são rejeitadas pela validação estrita de
+origem da API.
 
 Os domínios `*.vercel.app` da web e da API são sites diferentes, e os cookies de
 sessão são `HttpOnly`, `Secure` e `SameSite=Lax`. Para manter a sessão, o web usa
@@ -118,9 +121,11 @@ Secrets **em cada Environment**, nunca em arquivos versionados:
 | `VERCEL_WEB_BYPASS_SECRET` | Opcional: bypass de proteção do web para health checks |
 
 Variáveis **em cada Environment**: `API_DOMAIN`, `WEB_DOMAIN` (somente hostname
-Vercel terminado em `.vercel.app`), `VERCEL_CLI_VERSION` (versão exata `X.Y.Z`,
-validada primeiro em homolog). Os IDs podem ser iguais entre Environments porque
-são dois projetos com Preview e Production; credenciais de banco devem ser diferentes.
+Vercel terminado em `.vercel.app`), `PUBLIC_WEB_URL` (origem HTTPS exata, sem
+caminho; por exemplo `https://integrasig.pt` em production e o alias web estável
+em homolog), e `VERCEL_CLI_VERSION` (versão exata `X.Y.Z`, validada primeiro em
+homolog). Os IDs podem ser iguais entre Environments porque são dois projetos
+com Preview e Production; credenciais de banco devem ser diferentes.
 
 ## Variáveis Vercel
 
@@ -134,7 +139,8 @@ Não adicionar segredos de produção ao Preview genérico.
 | API/storage | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT_URL_S3`, `AWS_REGION`; opcional `AWS_PUBLIC_ENDPOINT_URL_S3` |
 | Web | `VITE_API_URL=/api/v1`; `VERCEL_API_BYPASS_SECRET` igual ao bypass de automação criado no projeto API |
 
-`APP_URL` e `FRONTEND_URL` devem ser `https://<WEB_DOMAIN>` sem barra final.
+`APP_URL` e `FRONTEND_URL` devem ser iguais a `PUBLIC_WEB_URL`, sem barra final.
+`WEB_DOMAIN` continua sendo o alias Vercel e pode diferir da origem pública.
 O workflow gera a rota `/api/*` para `API_DOMAIN` do GitHub Environment.
 O secret `VERCEL_API_BYPASS_SECRET` precisa existir no ambiente correspondente
 do projeto web e coincidir com o secret de bypass `VERCEL_API_BYPASS_SECRET` do

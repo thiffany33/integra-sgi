@@ -46,14 +46,21 @@ check(
 
 check(api.APP_ENV === appEnv, 'Incorrect API APP_ENV');
 check(api.NODE_ENV === 'production', 'API NODE_ENV must be production');
-const expectedAppUrl = `https://${process.env.WEB_DOMAIN}`;
+const publicWebUrl = process.env.PUBLIC_WEB_URL;
+let publicWebUrlIsOrigin = false;
+try {
+  const parsedPublicWebUrl = new URL(publicWebUrl);
+  publicWebUrlIsOrigin = parsedPublicWebUrl.protocol === 'https:' && parsedPublicWebUrl.origin === publicWebUrl;
+} catch {
+  // The generic assertion below reports invalid/missing values without echoing configuration.
+}
 check(
-  api.APP_URL === expectedAppUrl,
-  `APP_URL must use the stable web domain (got "${api.APP_URL}", expected "${expectedAppUrl}")`,
+  publicWebUrlIsOrigin,
+  'PUBLIC_WEB_URL must be an HTTPS origin without a path',
 );
 check(
-  api.FRONTEND_URL === api.APP_URL,
-  `FRONTEND_URL must match APP_URL (got "${api.FRONTEND_URL}", APP_URL "${api.APP_URL}")`,
+  api.APP_URL === publicWebUrl && api.FRONTEND_URL === publicWebUrl,
+  'API APP_URL and FRONTEND_URL must match PUBLIC_WEB_URL',
 );
 check(web.VITE_API_URL === '/api/v1', 'VITE_API_URL must use the same-origin API proxy');
 check(Boolean(process.env.API_BYPASS_SECRET), 'GitHub API bypass secret is required');
