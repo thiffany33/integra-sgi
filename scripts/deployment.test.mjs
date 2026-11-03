@@ -72,7 +72,7 @@ function checkEnvironment(directUrl) {
     writeFileSync(join(root, 'api-source/.vercel/.env.production.local'), [
       'APP_ENV=production', 'NODE_ENV=production',
       'DIRECT_URL=postgresql://sensitive-password@db.example.test/app',
-      'DATABASE_URL=postgresql://pooled.example.test/app',
+      'DATABASE_URL=postgresql://db-pooler.example.test/app',
       'APP_URL=https://integra-sgi-web.vercel.app', 'FRONTEND_URL=https://integra-sgi-web.vercel.app',
       ...['SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'AWS_ACCESS_KEY_ID',
         'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'].map(key => `${key}=fake`),
@@ -92,7 +92,7 @@ function checkEnvironment(directUrl) {
 test('migration target must match the Vercel runtime configuration without leaking credentials', () => {
   const result = checkEnvironment('postgresql://other-sensitive-password@wrong.example.test/app');
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /GitHub and Vercel DIRECT_URL must match/);
+  assert.match(result.stderr, /GitHub DIRECT_URL must point to the same database as Vercel DATABASE_URL/);
   assert(!`${result.stdout}${result.stderr}`.includes('sensitive-password'));
 });
 
