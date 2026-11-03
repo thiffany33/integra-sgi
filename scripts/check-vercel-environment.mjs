@@ -46,8 +46,15 @@ check(
 
 check(api.APP_ENV === appEnv, 'Incorrect API APP_ENV');
 check(api.NODE_ENV === 'production', 'API NODE_ENV must be production');
-check(api.APP_URL === `https://${process.env.WEB_DOMAIN}`, 'APP_URL must use the stable web domain');
-check(api.FRONTEND_URL === api.APP_URL, 'FRONTEND_URL must match APP_URL');
+const expectedAppUrl = `https://${process.env.WEB_DOMAIN}`;
+check(
+  api.APP_URL === expectedAppUrl,
+  `APP_URL must use the stable web domain (got "${api.APP_URL}", expected "${expectedAppUrl}")`,
+);
+check(
+  api.FRONTEND_URL === api.APP_URL,
+  `FRONTEND_URL must match APP_URL (got "${api.FRONTEND_URL}", APP_URL "${api.APP_URL}")`,
+);
 check(web.VITE_API_URL === '/api/v1', 'VITE_API_URL must use the same-origin API proxy');
 check(Boolean(process.env.API_BYPASS_SECRET), 'GitHub API bypass secret is required');
 check(
