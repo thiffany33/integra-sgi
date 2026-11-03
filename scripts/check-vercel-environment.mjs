@@ -15,14 +15,16 @@ function check(condition, message) {
 
 // Reduces a Postgres URL to "host/database", ignoring credentials, query string
 // and Neon's "-pooler" suffix, so pooled and direct URLs of the same branch match.
-// Wrapped in try/catch because URL's error output can echo the raw (secret) input.
+// Uses a regex instead of new URL() so passwords with special characters, stray
+// quotes or whitespace do not break parsing. Errors never include the raw value.
 function dbIdentity(url, label) {
-  try {
-    const { hostname, pathname } = new URL(url);
-    return `${hostname.replace('-pooler', '')}${pathname}`;
-  } catch {
-    throw new assert.AssertionError({ message: `${label} is not a valid URL` });
+  const cleaned = String(url).trim().replace(/^['"]|['"]$/g, '');
+  const match = cleaned.match(/^postgres(?:ql)?:\/\/(?:.*@)?([^/:?#]+)(?::\d+)?\/([^?#]+)/);
+  if (!match) {
+    throw new assert.AssertionError({ message: `${label} is not a valid database URL` });
   }
+  const [, host, db] = match;
+  return `${host.replace('-pooler', '')}/${db}`;
 }
 
 check(Boolean(process.env.DIRECT_URL), 'GitHub DIRECT_URL is required');
