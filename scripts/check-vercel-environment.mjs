@@ -57,6 +57,9 @@ check(
 );
 check(web.VITE_API_URL === '/api/v1', 'VITE_API_URL must use the same-origin API proxy');
 check(Boolean(process.env.API_BYPASS_SECRET), 'GitHub API bypass secret is required');
+console.log('web bypass present:', Boolean(web.VERCEL_API_BYPASS_SECRET),
+  'len:', web.VERCEL_API_BYPASS_SECRET?.length ?? 0);
+console.log('github bypass len:', process.env.API_BYPASS_SECRET?.length ?? 0);
 check(
   web.VERCEL_API_BYPASS_SECRET === process.env.API_BYPASS_SECRET,
   'Web Vercel API bypass secret must match the GitHub Environment secret',
