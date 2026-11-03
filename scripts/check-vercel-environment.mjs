@@ -7,22 +7,58 @@ const appEnv = target === 'production' ? 'production' : 'homolog';
 const root = process.env.GITHUB_WORKSPACE;
 const api = parse(readFileSync(`${root}/api-source/.vercel/.env.${target}.local`));
 const web = parse(readFileSync(`${root}/web-source/.vercel/.env.${target}.local`));
+
 // Do not print values: assert.equal would include secrets in its failure output.
 function check(condition, message) {
   assert(condition, message);
 }
+
+// Reduces a Postgres URL to "host/database", ignoring credentials, query string
+// and Neon's "-pooler" suffix, so pooled and direct URLs of the same branch match.
+// Wrapped in try/catch because URL's error output can echo the raw (secret) input.
+function dbIdentity(url, label) {
+  try {
+    const { hostname, pathname } = new URL(url);
+    return `${hostname.replace('-pooler', '')}${pathname}`;
+  } catch {
+    throw new assert.AssertionError({ message: `${label} is not a valid URL` });
+  }
+}
+
 check(Boolean(process.env.DIRECT_URL), 'GitHub DIRECT_URL is required');
-check(api.DIRECT_URL === process.env.DIRECT_URL, 'GitHub and Vercel DIRECT_URL must match');
+check(Boolean(api.DATABASE_URL), 'Vercel DATABASE_URL is required');
+
+// Sensitive Vercel variables are never written by `vercel pull`, so we cannot
+// compare DIRECT_URL strings. Instead, verify that migrations (GitHub DIRECT_URL)
+// and the app (Vercel DATABASE_URL) point to the same Neon host + database.
+check(
+  dbIdentity(api.DATABASE_URL, 'Vercel DATABASE_URL') ===
+    dbIdentity(process.env.DIRECT_URL, 'GitHub DIRECT_URL'),
+  'GitHub DIRECT_URL must point to the same database as Vercel DATABASE_URL',
+);
+
 check(api.APP_ENV === appEnv, 'Incorrect API APP_ENV');
 check(api.NODE_ENV === 'production', 'API NODE_ENV must be production');
 check(api.APP_URL === `https://${process.env.WEB_DOMAIN}`, 'APP_URL must use the stable web domain');
 check(api.FRONTEND_URL === api.APP_URL, 'FRONTEND_URL must match APP_URL');
 check(web.VITE_API_URL === '/api/v1', 'VITE_API_URL must use the same-origin API proxy');
 check(Boolean(process.env.API_BYPASS_SECRET), 'GitHub API bypass secret is required');
-check(web.VERCEL_API_BYPASS_SECRET === process.env.API_BYPASS_SECRET,
-  'Web Vercel API bypass secret must match the GitHub Environment secret');
-for (const key of ['DATABASE_URL', 'SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM',
-  'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION']) {
+check(
+  web.VERCEL_API_BYPASS_SECRET === process.env.API_BYPASS_SECRET,
+  'Web Vercel API bypass secret must match the GitHub Environment secret',
+);
+
+for (const key of [
+  'DATABASE_URL',
+  'SESSION_SECRET',
+  'RESEND_API_KEY',
+  'EMAIL_FROM',
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'AWS_ENDPOINT_URL_S3',
+  'AWS_REGION',
+]) {
   check(Boolean(api[key]), `Missing API variable: ${key}`);
 }
+
 console.log('Deployment environment and migration target are consistent');
