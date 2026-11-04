@@ -39,7 +39,12 @@ export class CustomersService {
   async getAvatar(userId: string): Promise<{ photoUrl: string | null }> {
     const key = await this.repository.getAvatarObjectKey(userId);
     if (!key) return { photoUrl: null };
-    return { photoUrl: await this.storage.getSignedReadUrl({ key, expiresInSeconds: AVATAR_URL_TTL_SECONDS }) };
+    try {
+      return { photoUrl: await this.storage.getSignedReadUrl({ key, expiresInSeconds: AVATAR_URL_TTL_SECONDS }) };
+    } catch (error) {
+      this.logStorageFailure('sign read URL', error);
+      throw this.storageUnavailable();
+    }
   }
 
   async uploadAvatar(userId: string, photo: { buffer: Buffer; size: number } | undefined): Promise<{ photoUrl: string }> {
@@ -103,7 +108,8 @@ export class CustomersService {
     if (!changed) throw this.avatarConflict();
     try {
       await this.storage.deleteObject({ key });
-    } catch {
+    } catch (error) {
+      this.logStorageFailure('delete', error);
       try { await this.repository.compareAndSwapAvatarObjectKey(userId, null, key); } catch { /* best-effort reference recovery */ }
       throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, {
         code: 'PROFILE_PHOTO_DELETE_FAILED', message: 'Unable to remove profile photo. Please try again.',
@@ -128,7 +134,7 @@ export class CustomersService {
     const metadata = typeof record.$metadata === 'object' && record.$metadata !== null
       ? record.$metadata as Record<string, unknown>
       : {};
-    const errorName = typeof record.name === 'string' ? record.name : 'UnknownError';
+    const errorName = typeof record.name === 'string' ? record.name : (error instanceof Error ? error.name : 'UnknownError');
     const statusCode = typeof metadata.httpStatusCode === 'number' ? `, HTTP ${metadata.httpStatusCode}` : '';
     const requestId = typeof metadata.requestId === 'string' ? `, request ${metadata.requestId}` : '';
     this.logger.error(`Profile photo storage ${operation} failed (${errorName}${statusCode}${requestId}).`);

@@ -37,16 +37,25 @@ describe('platform administrator HTTP flow', () => {
     configureApp(app);
     await app.init();
     prisma = app.get(PrismaService);
-    const register = async (name: string, email: string) => request(app.getHttpServer())
-      .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile });
-    const admin = await register('Administrator', `admin-${marker}@example.pt`);
-    const customer = await register('Searchable Customer', `customer-${marker}@example.pt`);
-    expect(admin.status).toBe(201);
-    expect(customer.status).toBe(201);
-    adminId = admin.body.user.id;
-    customerId = customer.body.user.id;
-    adminCookie = (admin.headers['set-cookie'] as string[])[0].split(';')[0];
-    customerCookie = (customer.headers['set-cookie'] as string[])[0].split(';')[0];
+    const registerAndLogin = async (name: string, email: string) => {
+      const registration = await request(app.getHttpServer())
+        .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile });
+      expect(registration.status).toBe(201);
+      const user = await prisma.user.update({
+        where: { email },
+        data: { emailVerifiedAt: new Date() },
+      });
+      const login = await request(app.getHttpServer())
+        .post('/api/v1/auth/login').send({ email, password: 'correct-horse-battery' }).expect(200);
+      const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+      return { id: user.id, cookie };
+    };
+    const admin = await registerAndLogin('Administrator', `admin-${marker}@example.pt`);
+    const customer = await registerAndLogin('Searchable Customer', `customer-${marker}@example.pt`);
+    adminId = admin.id;
+    customerId = customer.id;
+    adminCookie = admin.cookie;
+    customerCookie = customer.cookie;
     await prisma.user.update({ where: { id: adminId }, data: { role: 'PLATFORM_ADMIN' } });
   }, 30_000);
 
@@ -80,10 +89,12 @@ describe('platform administrator HTTP flow', () => {
   });
 
   it('returns the next customer page using an opaque cursor', async () => {
-    const extra = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      name: 'Second customer', email: `second-${marker}@example.pt`, password: 'correct-horse-battery', profile,
+    const extraEmail = `second-${marker}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Second customer', email: extraEmail, password: 'correct-horse-battery', profile,
     }).expect(201);
-    const extraId = extra.body.user.id as string;
+    const extraUser = await prisma.user.findUniqueOrThrow({ where: { email: extraEmail } });
+    const extraId = extraUser.id;
     try {
       const first = await request(app.getHttpServer()).get(`/api/v1/admin/customers?search=${marker}&limit=1`)
         .set('Cookie', adminCookie).expect(200);
@@ -120,12 +131,19 @@ describe('platform administrator HTTP flow', () => {
   });
 
   it('accepts exactly one of two simultaneous administrators and audits only the winning change', async () => {
-    const secondAdmin = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      name: 'Second administrator', email: `second-admin-${marker}@example.pt`, password: 'correct-horse-battery', profile,
+    const secondAdminEmail = `second-admin-${marker}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Second administrator', email: secondAdminEmail, password: 'correct-horse-battery', profile,
     }).expect(201);
-    const secondAdminId = secondAdmin.body.user.id as string;
-    const secondAdminCookie = (secondAdmin.headers['set-cookie'] as string[])[0].split(';')[0];
-    await prisma.user.update({ where: { id: secondAdminId }, data: { role: 'PLATFORM_ADMIN' } });
+    const secondAdminUser = await prisma.user.update({
+      where: { email: secondAdminEmail },
+      data: { emailVerifiedAt: new Date(), role: 'PLATFORM_ADMIN' },
+    });
+    const secondAdminId = secondAdminUser.id;
+    const secondAdminLogin = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+      email: secondAdminEmail, password: 'correct-horse-battery',
+    }).expect(200);
+    const secondAdminCookie = (secondAdminLogin.headers['set-cookie'] as string[])[0].split(';')[0];
 
     try {
       const before = await prisma.customerProfile.findUniqueOrThrow({ where: { userId: customerId } });

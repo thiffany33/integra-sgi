@@ -188,14 +188,23 @@ describe('customer avatar HTTP flow', () => {
     expect(deleteObject).toHaveBeenCalledWith({ key: putObject.mock.calls[0]?.[0].key });
   });
 
-  it('does not update the database when object storage rejects the upload', async () => {
+  it('does not update the database and returns 503 when object storage rejects the upload', async () => {
     putObject.mockRejectedValueOnce(new Error('storage unavailable'));
     const repository = app.get(CustomersRepository);
     const update = vi.spyOn(repository, 'compareAndSwapAvatarObjectKey');
-    await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
-      .attach('photo', png, { filename: 'new.png', contentType: 'image/png' }).expect(500);
+    const response = await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
+      .attach('photo', png, { filename: 'new.png', contentType: 'image/png' }).expect(503);
+    expect(response.body.error.code).toBe('PROFILE_PHOTO_STORAGE_UNAVAILABLE');
     expect(update).not.toHaveBeenCalled();
     expect(profiles.get('customer-a')).toBeUndefined();
+  });
+
+  it('returns 503 when signing the avatar URL fails', async () => {
+    profiles.set('customer-a', 'avatars/customer-a/old.png');
+    getSignedReadUrl.mockRejectedValueOnce(new Error('signer unavailable'));
+    const response = await request(app.getHttpServer()).get('/api/v1/customers/me/avatar')
+      .set('x-test-user', 'customer-a').expect(503);
+    expect(response.body.error.code).toBe('PROFILE_PHOTO_STORAGE_UNAVAILABLE');
   });
 
   it('requires a signed-in user', async () => {

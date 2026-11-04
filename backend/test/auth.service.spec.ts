@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { AuthRepository } from '../src/modules/auth/auth.repository';
@@ -43,6 +44,7 @@ function makeService() {
     sendVerification: vi.fn().mockResolvedValue(undefined),
     prepareVerification: vi.fn().mockReturnValue({ token: 'prepared-token', tokenHash: 'prepared-hash', expiresAt: new Date('2030-01-01') }),
     sendPreparedVerification: vi.fn().mockResolvedValue(undefined),
+    resendVerification: vi.fn().mockResolvedValue(undefined),
     requestPasswordReset: vi.fn().mockResolvedValue(undefined),
     verifyEmail: vi.fn().mockResolvedValue(true),
   };
@@ -77,6 +79,45 @@ describe('AuthService', () => {
     expect(result.message).toContain('Check your email');
     expect(repository.createSession).not.toHaveBeenCalled();
     expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'ana@example.pt', 'pt-PT');
+  });
+
+  it('rejects login when the email is not verified', async () => {
+    const { service, repository, passwords } = makeService();
+    passwords.verify.mockResolvedValue(true);
+    repository.findUserForLogin.mockResolvedValue({
+      user: { ...publicUser, emailVerifiedAt: null },
+      passwordHash: '$argon2id$stored-hash',
+      profile,
+    });
+
+    await expect(service.login({ email: 'ANA@EXAMPLE.PT', password: 'valid-password' }, '127.0.0.1'))
+      .rejects.toMatchObject({
+        response: { error: { code: 'EMAIL_NOT_VERIFIED', message: 'Confirm your email address before signing in.' } },
+      });
+    expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('rejects session validation when the user email is not verified', async () => {
+    const { service, repository } = makeService();
+    repository.findSessionByTokenHash.mockResolvedValue({
+      userId: 'user-1',
+      role: 'CUSTOMER',
+      expiresAt: new Date(Date.now() + 60_000),
+      revokedAt: null,
+      emailVerifiedAt: null,
+    });
+
+    expect(await service.validateSession('some-token')).toBeNull();
+  });
+
+  it('resends verification without exposing whether the email exists', async () => {
+    const { service, rateLimit, authEmail } = makeService();
+
+    const result = await service.resendVerification(' ANA@EXAMPLE.PT ', '127.0.0.1');
+
+    expect(rateLimit.consume).toHaveBeenCalledWith('resend-verification', '127.0.0.1', 'ana@example.pt', 5, 3600);
+    expect(authEmail.resendVerification).toHaveBeenCalledWith('ana@example.pt');
+    expect(result.message).toContain('If the account needs email verification');
   });
 
   it('uses the same invalid-credentials error for an incorrect password', async () => {

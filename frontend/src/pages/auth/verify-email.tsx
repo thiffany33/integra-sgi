@@ -13,12 +13,14 @@ export default function VerifyEmail() {
   const { t } = useTranslation('auth');
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
-  const returnTo = safeReturnTo(params.get('returnTo'));
+  const rawReturnTo = params.get('returnTo');
+  const returnTo = rawReturnTo ? safeReturnTo(rawReturnTo) : null;
   const [email, setEmail] = useState(params.get('email') ?? '');
   const [message, setMessage] = useState(token ? t('verifying') : params.get('email') ? t('verificationInstructions') : t('missingToken'));
   const [failed, setFailed] = useState(!token && !params.get('email'));
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
+
   useEffect(() => {
     if (!token) return;
     void authApi.verifyEmail(token).then(() => setMessage(t('verified'))).catch(() => {
@@ -41,9 +43,24 @@ export default function VerifyEmail() {
   }
 
   const showResend = failed || !token;
+  const loginDestination = returnTo && returnTo !== '/dashboard' ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login';
+
   return <div className="mx-auto max-w-2xl"><PageHeading title={t('verifyTitle')} description={t('verifyDescription')} />
-    <Card className="shadow-none"><CardContent className="space-y-5"><p role={failed ? 'alert' : 'status'}>{message}</p>
-      {showResend && <form className="space-y-4" onSubmit={event => void resend(event)}><div className="field"><Label htmlFor="verification-email">{t('email')}</Label><Input id="verification-email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} /></div><Button type="submit" disabled={resending}>{resending ? t('resendingVerification') : t('resendVerification')}</Button>{resendMessage && <p role="status">{resendMessage}</p>}</form>}
-      <Link className="text-link" to={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login'}>{t('goToLogin')}</Link></CardContent></Card>
+    <Card className="shadow-none"><CardContent className="space-y-5">
+      <p role={failed ? 'alert' : 'status'} className={failed ? 'text-destructive font-medium' : ''}>{message}</p>
+      {showResend && <form className="space-y-4" onSubmit={event => void resend(event)}>
+        <div className="field">
+          <Label htmlFor="verification-email">{t('email')}</Label>
+          <Input id="verification-email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} />
+        </div>
+        <Button type="submit" disabled={resending}>{resending ? t('resendingVerification') : t('resendVerification')}</Button>
+        {resendMessage && <p role="status" className="rounded-lg border border-primary/30 bg-secondary/50 px-4 py-3 text-base text-secondary-foreground">{resendMessage}</p>}
+      </form>}
+      <div>
+        <Button asChild variant={showResend ? 'outline' : 'default'}>
+          <Link to={loginDestination}>{t('goToLogin')}</Link>
+        </Button>
+      </div>
+    </CardContent></Card>
   </div>;
 }

@@ -71,7 +71,7 @@ export default function Login() {
         <div className="field"><Label htmlFor="login-email">{t('email')}</Label><Input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
         <div className="field"><Label htmlFor="login-password">{t('password')}</Label><Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></div>
         {error && <p role="alert" className="text-base text-destructive">{error}</p>}
-        {needsVerification && <div className="space-y-3 rounded-lg border p-4"><Button type="button" variant="outline" disabled={resending || !email} onClick={() => void resendVerification()}>{resending ? t('resendingVerification') : t('resendVerification')}</Button>{resendMessage && <p role="status">{resendMessage}</p>}</div>}
+        {needsVerification && <div className="space-y-3 rounded-lg border p-4"><Button type="button" variant="outline" disabled={resending || !email} onClick={() => void resendVerification()}>{resending ? t('resendingVerification') : t('resendVerification')}</Button>{resendMessage && <p role="status" className="rounded-lg border border-primary/30 bg-secondary/50 px-4 py-3 text-base text-secondary-foreground">{resendMessage}</p>}</div>}
         <Button type="submit" disabled={busy || auth.status === 'loading'}>{busy ? t('loggingIn') : t('login')}<ArrowRight aria-hidden="true" /></Button>
       </form>
       <p className="text-base"><Link className="text-link" to="/forgot-password">{t('forgot')}</Link></p>

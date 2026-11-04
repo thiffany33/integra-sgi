@@ -8,7 +8,6 @@ import { EMAIL_SERVICE } from '../src/modules/email/email.service';
 import { configureApp } from '../src/configure-app';
 import { PrismaService } from '../src/infra/prisma/prisma.service';
 import { AuthRepository } from '../src/modules/auth/auth.repository';
-import { AuthEmailService } from '../src/modules/auth/auth-email.service';
 
 const databaseUrl = 'postgresql://postgres:postgres@localhost:5432/integra_sgi';
 const sessionSecret = 'test-session-secret-with-at-least-thirty-two-characters';
@@ -56,11 +55,8 @@ describe('authentication HTTP flow', () => {
     registrationResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
       .send({ name: 'Ana Silva', email: email.toUpperCase(), password, locale: 'pt-PT', profile });
-    registrationUserId = registrationResponse.body.user.id as string;
-
-    const setCookie = registrationResponse.headers['set-cookie'] as string[] | undefined;
-    sessionCookie = setCookie?.[0]?.split(';')[0] ?? '';
-    rawSessionToken = sessionCookie.split('=')[1] ?? '';
+    const storedUser = await prisma.user.findUniqueOrThrow({ where: { email } });
+    registrationUserId = storedUser.id;
   }, 30_000);
 
   afterAll(async () => {
@@ -68,30 +64,77 @@ describe('authentication HTTP flow', () => {
     if (app) await app.close();
   });
 
-  it('registers an account and returns no password hash', () => {
+  it('registers an account without returning credentials or setting a session cookie', () => {
     expect(registrationResponse.status).toBe(201);
-    expect(registrationResponse.body.user.email).toBe(email);
-    expect(registrationResponse.body.user.role).toBe('CUSTOMER');
-    expect(registrationResponse.body).not.toHaveProperty('user.passwordHash');
-    expect(registrationResponse.body.profile).toEqual(profile);
+    expect(registrationResponse.body.message).toContain('Check your email');
+    expect(registrationResponse.body).not.toHaveProperty('user');
+    expect(registrationResponse.body).not.toHaveProperty('profile');
+    expect(registrationResponse.headers['set-cookie']).toBeUndefined();
   });
 
-  it('stores the profile and only a hash of the HTTP-only session cookie', async () => {
-    const cookieHeader = registrationResponse.headers['set-cookie']?.[0] as string;
+  it('stores the profile and password hash, but leaves email unverified and creates no session', async () => {
     const storedUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, role: true, passwordHash: true, customerProfile: { select: { data: true } } },
+      select: { id: true, role: true, passwordHash: true, emailVerifiedAt: true, customerProfile: { select: { data: true } } },
     });
     const session = await prisma.session.findFirst({ where: { userId: storedUser!.id } });
 
+    expect(storedUser?.passwordHash).not.toBe(password);
+    expect(storedUser?.role).toBe('CUSTOMER');
+    expect(storedUser?.emailVerifiedAt).toBeNull();
+    expect(storedUser?.customerProfile?.data).toEqual(profile);
+    expect(session).toBeNull();
+  });
+
+  it('rejects login when the email address has not been confirmed', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email, password })
+      .expect(403);
+    expect(login.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+  });
+
+  it('resends verification without exposing whether the email exists', async () => {
+    const known = await request(app.getHttpServer())
+      .post('/api/v1/auth/resend-verification')
+      .send({ email })
+      .expect(200);
+    const unknown = await request(app.getHttpServer())
+      .post('/api/v1/auth/resend-verification')
+      .send({ email: `unknown-${randomUUID()}@example.pt` })
+      .expect(200);
+    expect(known.body).toEqual(unknown.body);
+    expect(known.body.message).toContain('If the account needs email verification');
+  });
+
+  it('confirms email with valid token and enables sign-in with HTTP-only session cookie', async () => {
+    const verificationEmail = sentEmails.findLast((message) => message.to === email && message.subject === 'Confirme o seu email')!;
+    const verificationUrl = new URL(verificationEmail.html.match(/href="([^"]+)"/)![1]);
+    const token = verificationUrl.searchParams.get('token')!;
+    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(200);
+
+    const verifiedUser = await prisma.user.findUniqueOrThrow({ where: { email } });
+    expect(verifiedUser.emailVerifiedAt).toBeInstanceOf(Date);
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: email.toUpperCase(), password })
+      .expect(200);
+    expect(loginResponse.body.user.email).toBe(email);
+    expect(loginResponse.body.user.role).toBe('CUSTOMER');
+    expect(loginResponse.body.profile).toEqual(profile);
+    expect(loginResponse.body.user).not.toHaveProperty('passwordHash');
+
+    const cookieHeader = (loginResponse.headers['set-cookie'] as string[])[0];
     expect(cookieHeader).toContain('HttpOnly');
     expect(cookieHeader).toContain('SameSite=Lax');
     expect(cookieHeader).not.toContain('Secure');
-    expect(storedUser?.passwordHash).not.toBe(password);
-    expect(storedUser?.role).toBe('CUSTOMER');
-    expect(storedUser?.customerProfile?.data).toEqual(profile);
+
+    sessionCookie = cookieHeader.split(';')[0];
+    rawSessionToken = sessionCookie.split('=')[1];
+
+    const session = await prisma.session.findFirst({ where: { userId: verifiedUser.id, revokedAt: null } });
     expect(session?.tokenHash).toBe(createHash('sha256').update(rawSessionToken).digest('hex'));
-    expect(session?.tokenHash).not.toBe(rawSessionToken);
   });
 
   it('backfills the address of an outstanding legacy verification link', async () => {
@@ -287,26 +330,38 @@ describe('authentication HTTP flow', () => {
       .send({ email, password: 'new-correct-horse-battery' }).expect(200);
   });
 
-  it('verifies email once and stores only a verification token hash', async () => {
-    const verificationEmail = sentEmails.find((message) => message.subject === 'Confirme o seu email');
-    const verificationUrl = new URL(verificationEmail!.html.match(/href="([^"]+)"/)![1]);
-    const token = verificationUrl.searchParams.get('token')!;
-    const tokenHash = createHash('sha256').update(token).digest('hex');
-    expect(await prisma.emailVerificationToken.findUnique({ where: { tokenHash } })).toMatchObject({ tokenHash });
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(200);
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(400);
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
-      .send({ token: randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '') }).expect(400);
-    const expiredRawToken = randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '');
-    const user = await prisma.user.findUniqueOrThrow({ where: { email }, select: { id: true } });
-    await prisma.emailVerificationToken.create({ data: {
-      userId: user.id,
-      tokenHash: createHash('sha256').update(expiredRawToken).digest('hex'),
-      expiresAt: new Date(Date.now() - 1000),
-    } });
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token: expiredRawToken }).expect(400);
-    const verifiedUser = await prisma.user.findUnique({ where: { email } });
-    expect(verifiedUser?.emailVerifiedAt).toBeInstanceOf(Date);
+  it('verifies email once, rejects expired tokens, and stores only a verification token hash', async () => {
+    const testVerifyEmail = `verify-${randomUUID()}@example.pt`;
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({ name: 'Verify Test', email: testVerifyEmail, password: 'correct-horse-battery-staple', locale: 'pt-PT', profile })
+      .expect(201);
+    const verifyUser = await prisma.user.findUniqueOrThrow({ where: { email: testVerifyEmail } });
+    try {
+      const emailMsg = sentEmails.findLast((m) => m.to === testVerifyEmail && m.subject === 'Confirme o seu email')!;
+      const token = new URL(emailMsg.html.match(/href="([^"]+)"/)![1]).searchParams.get('token')!;
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      expect(await prisma.emailVerificationToken.findUnique({ where: { tokenHash } })).toMatchObject({ tokenHash });
+
+      const expiredRawToken = randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '');
+      await prisma.emailVerificationToken.create({ data: {
+        userId: verifyUser.id,
+        email: testVerifyEmail,
+        tokenHash: createHash('sha256').update(expiredRawToken).digest('hex'),
+        expiresAt: new Date(Date.now() - 1000),
+      } });
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token: expiredRawToken }).expect(400);
+
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(200);
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token }).expect(400);
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+        .send({ token: randomUUID().replaceAll('-', '') + randomUUID().replaceAll('-', '') }).expect(400);
+
+      const verifiedUser = await prisma.user.findUnique({ where: { id: verifyUser.id } });
+      expect(verifiedUser?.emailVerifiedAt).toBeInstanceOf(Date);
+    } finally {
+      await prisma.user.delete({ where: { id: verifyUser.id } });
+    }
   });
 
   it('updates the authenticated account language and reports it from /auth/me', async () => {
@@ -322,7 +377,7 @@ describe('authentication HTTP flow', () => {
       .expect(({ body }) => expect(body.user.locale).toBe('de'));
   });
 
-  it('updates account details, rejects duplicate emails, and sends fresh verification to the new address', async () => {
+  it('updates account details, rejects duplicate emails, and revokes sessions until the new address is verified', async () => {
     const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
       .send({ email, password: 'new-correct-horse-battery' }).expect(200);
     const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
@@ -350,65 +405,54 @@ describe('authentication HTTP flow', () => {
     expect(stored.emailVerifiedAt).toBeNull();
     const verification = sentEmails.findLast((message) => message.to === newEmail && message.html.includes('/verify-email?token='));
     expect(verification).toBeDefined();
-    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200)
+
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(401)
+      .expect(({ body }) => expect(body.error.code).toBe('UNAUTHENTICATED'));
+
+    await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email: newEmail, password: 'new-correct-horse-battery' }).expect(403)
+      .expect(({ body }) => expect(body.error.code).toBe('EMAIL_NOT_VERIFIED'));
+
+    const newVerificationUrl = new URL(verification!.html.match(/href="([^"]+)"/)![1]);
+    const newToken = newVerificationUrl.searchParams.get('token')!;
+    await request(app.getHttpServer()).post('/api/v1/auth/verify-email').send({ token: newToken }).expect(200);
+
+    const reLogin = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email: newEmail, password: 'new-correct-horse-battery' }).expect(200);
+    accountCookie = (reLogin.headers['set-cookie'] as string[])[0].split(';')[0];
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', accountCookie).expect(200)
       .expect(({ body }) => expect(body.user.email).toBe(newEmail));
     email = newEmail;
   });
 
-  it('rejects a stale verification token even when its email is sent after a newer account update', async () => {
-    const intermediateEmail = `intermediate-${email}`;
-    const finalEmail = `final-${email}`;
-    let signalStarted!: () => void;
-    const started = new Promise<void>((resolve) => { signalStarted = resolve; });
-    let releaseSend!: () => void;
-    const waitForRelease = new Promise<void>((resolve) => { releaseSend = resolve; });
-    const emailService = app.get(AuthEmailService);
-    const originalSend = emailService.sendVerification.bind(emailService);
-    const preparedEmailService = emailService as AuthEmailService & {
-      sendPreparedVerification?: (address: string, locale: string, token: string) => Promise<void>;
-    };
-    const originalPreparedSend = preparedEmailService.sendPreparedVerification?.bind(emailService);
-    const waitIfIntermediate = async (address: string) => {
-      if (address === intermediateEmail) {
-        signalStarted();
-        await waitForRelease;
-      }
-    };
-    emailService.sendVerification = async (userId, address, locale) => {
-      await waitIfIntermediate(address);
-      return originalSend(userId, address, locale);
-    };
-    if (originalPreparedSend) {
-      preparedEmailService.sendPreparedVerification = async (address, locale, token) => {
-        await waitIfIntermediate(address);
-        return originalPreparedSend(address, locale, token);
-      };
-    }
-    const firstRequest = request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', accountCookie)
-      .send({ name: 'Ana Maria', email: intermediateEmail }).then((response) => response);
-    await started;
-    let secondResponse: request.Response;
+  it('rejects a stale verification token when a newer verification is requested', async () => {
+    const raceEmail = `race-${randomUUID()}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Race Account', email: raceEmail, password: 'correct-horse-battery', profile,
+    }).expect(201);
+    const raceUser = await prisma.user.findUniqueOrThrow({ where: { email: raceEmail } });
     try {
-      secondResponse = await request(app.getHttpServer()).patch('/api/v1/auth/me').set('Cookie', accountCookie)
-        .send({ name: 'Ana Maria', email: finalEmail });
+      const firstMsg = sentEmails.findLast((m) => m.to === raceEmail && m.subject === 'Confirme o seu email')!;
+      const firstToken = new URL(firstMsg.html.match(/href="([^"]+)"/)![1]).searchParams.get('token')!;
+
+      await request(app.getHttpServer()).post('/api/v1/auth/resend-verification')
+        .send({ email: raceEmail }).expect(200);
+
+      const secondMsg = sentEmails.findLast((m) => m.to === raceEmail && m.subject === 'Confirme o seu email')!;
+      const secondToken = new URL(secondMsg.html.match(/href="([^"]+)"/)![1]).searchParams.get('token')!;
+      expect(secondToken).not.toBe(firstToken);
+
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+        .send({ token: firstToken }).expect(400);
+
+      await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
+        .send({ token: secondToken }).expect(200);
+
+      const user = await prisma.user.findUniqueOrThrow({ where: { id: raceUser.id } });
+      expect(user.emailVerifiedAt).toBeInstanceOf(Date);
     } finally {
-      releaseSend();
-      emailService.sendVerification = originalSend;
-      if (originalPreparedSend) preparedEmailService.sendPreparedVerification = originalPreparedSend;
+      await prisma.user.delete({ where: { id: raceUser.id } });
     }
-    expect(secondResponse!.status).toBe(200);
-    expect((await firstRequest).status).toBe(200);
-    const intermediateMessage = sentEmails.findLast((message) => message.to === intermediateEmail)!;
-    const finalMessage = sentEmails.findLast((message) => message.to === finalEmail)!;
-    const intermediateToken = new URL(intermediateMessage.html.match(/href="([^"]+)"/)![1]).searchParams.get('token');
-    const finalToken = new URL(finalMessage.html.match(/href="([^"]+)"/)![1]).searchParams.get('token');
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
-      .send({ token: intermediateToken }).expect(400);
-    await request(app.getHttpServer()).post('/api/v1/auth/verify-email')
-      .send({ token: finalToken }).expect(200);
-    const user = await prisma.user.findUniqueOrThrow({ where: { email: finalEmail } });
-    expect(user.emailVerifiedAt).toBeInstanceOf(Date);
-    email = finalEmail;
   });
 
   it('rolls back the email update if the verification token cannot be stored', async () => {
