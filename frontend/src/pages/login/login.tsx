@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import axios from 'axios';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Info } from 'lucide-react';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
@@ -11,6 +12,7 @@ import { useAuth } from '@/contexts/auth-context-value';
 import { safeReturnTo } from '@/lib/return-to';
 import { useTranslation } from 'react-i18next';
 import { AccessTabs } from './access-tabs';
+import { authApi } from '@/api/auth.api';
 
 export default function Login() {
   const auth = useAuth();
@@ -21,19 +23,40 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const [resending, setResending] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError('');
+    setNeedsVerification(false);
+    setResendMessage('');
     try {
       await auth.login(email, password);
       navigate(returnTo, { replace: true });
-    } catch {
-      setError(t('invalidCredentials'));
+    } catch (requestError) {
+      const response = axios.isAxiosError(requestError) ? requestError.response?.data as { error?: { code?: string } } | undefined : undefined;
+      const emailNeedsVerification = response?.error?.code === 'EMAIL_NOT_VERIFIED';
+      setNeedsVerification(emailNeedsVerification);
+      setError(t(emailNeedsVerification ? 'emailNotVerified' : 'invalidCredentials'));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function resendVerification() {
+    setResending(true);
+    setResendMessage('');
+    try {
+      await authApi.resendVerification(email);
+      setResendMessage(t('verificationSent'));
+    } catch {
+      setResendMessage(t('verificationResendError'));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -48,6 +71,7 @@ export default function Login() {
         <div className="field"><Label htmlFor="login-email">{t('email')}</Label><Input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
         <div className="field"><Label htmlFor="login-password">{t('password')}</Label><Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></div>
         {error && <p role="alert" className="text-base text-destructive">{error}</p>}
+        {needsVerification && <div className="space-y-3 rounded-lg border p-4"><Button type="button" variant="outline" disabled={resending || !email} onClick={() => void resendVerification()}>{resending ? t('resendingVerification') : t('resendVerification')}</Button>{resendMessage && <p role="status">{resendMessage}</p>}</div>}
         <Button type="submit" disabled={busy || auth.status === 'loading'}>{busy ? t('loggingIn') : t('login')}<ArrowRight aria-hidden="true" /></Button>
       </form>
       <p className="text-base"><Link className="text-link" to="/forgot-password">{t('forgot')}</Link></p>

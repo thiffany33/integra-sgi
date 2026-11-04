@@ -49,7 +49,9 @@ export default function SelectSystems() {
           selectedSystems,
         },
       });
-      navigate(returnTo || "/dashboard", { replace: true });
+      const verificationParams = new URLSearchParams({ email: organization.email });
+      if (returnTo) verificationParams.set('returnTo', returnTo);
+      navigate(`/verify-email?${verificationParams.toString()}`, { replace: true });
     } catch {
       setError(t('registrationError'));
     } finally {

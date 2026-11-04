@@ -58,8 +58,12 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
     try {
       setPhotoUrl(await profileApi.uploadPhoto(file));
       setPhotoMessage({ kind: 'success', text: t('photoSaved') });
-    } catch {
-      setPhotoMessage({ kind: 'error', text: t('photoUploadError') });
+    } catch (error) {
+      const code = errorCode(error);
+      const message = code === 'INVALID_PROFILE_PHOTO' ? 'photoUploadError'
+        : code === 'PROFILE_PHOTO_STORAGE_UNAVAILABLE' ? 'photoStorageError'
+          : 'photoSaveError';
+      setPhotoMessage({ kind: 'error', text: t(message) });
     } finally {
       input.value = '';
       setPhotoBusy(false);

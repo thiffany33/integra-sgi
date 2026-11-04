@@ -33,14 +33,12 @@ export class AuthRepository {
     return user !== null;
   }
 
-  async createUserWithProfileAndSession(input: {
+  async createUserWithProfile(input: {
     name: string;
     email: string;
     passwordHash: string;
     locale: SupportedLocale;
     profile: CustomerProfileInput;
-    tokenHash: string;
-    expiresAt: Date;
   }): Promise<{ user: PublicUserRecord; profile: Prisma.JsonValue }> {
     return this.prisma.$transaction(async (transaction) => {
       const user = await transaction.user.create({
@@ -59,14 +57,6 @@ export class AuthRepository {
         },
         select: { data: true },
       });
-      await transaction.session.create({
-        data: {
-          userId: user.id,
-          tokenHash: input.tokenHash,
-          expiresAt: input.expiresAt,
-        },
-      });
-
       return { user, profile: profile.data };
     });
   }
@@ -109,13 +99,20 @@ export class AuthRepository {
     role: UserRole;
     expiresAt: Date;
     revokedAt: Date | null;
+    emailVerifiedAt: Date | null;
   } | null> {
     const session = await this.prisma.session.findUnique({
       where: { tokenHash },
-      select: { userId: true, expiresAt: true, revokedAt: true, user: { select: { role: true } } },
+      select: { userId: true, expiresAt: true, revokedAt: true, user: { select: { role: true, emailVerifiedAt: true } } },
     });
     if (!session) return null;
-    return { userId: session.userId, role: session.user.role, expiresAt: session.expiresAt, revokedAt: session.revokedAt };
+    return {
+      userId: session.userId,
+      role: session.user.role,
+      expiresAt: session.expiresAt,
+      revokedAt: session.revokedAt,
+      emailVerifiedAt: session.user.emailVerifiedAt,
+    };
   }
 
   async revokeSession(tokenHash: string, revokedAt: Date): Promise<void> {
@@ -147,8 +144,8 @@ export class AuthRepository {
     };
   }
 
-  async findEmailAccount(email: string): Promise<{ id: string; locale: string } | null> {
-    return this.prisma.user.findUnique({ where: { email }, select: { id: true, locale: true } });
+  async findEmailAccount(email: string): Promise<{ id: string; locale: string; emailVerifiedAt: Date | null } | null> {
+    return this.prisma.user.findUnique({ where: { email }, select: { id: true, locale: true, emailVerifiedAt: true } });
   }
 
   async updateLocale(userId: string, locale: SupportedLocale): Promise<PublicUserRecord | null> {
@@ -178,6 +175,9 @@ export class AuthRepository {
         select: publicUserSelect,
       });
       if (emailChanged) {
+        await transaction.session.updateMany({
+          where: { userId, revokedAt: null }, data: { revokedAt: new Date() },
+        });
         await transaction.emailVerificationToken.updateMany({
           where: { userId, usedAt: null }, data: { usedAt: new Date() },
         });
@@ -247,7 +247,7 @@ export class AuthRepository {
   async createVerificationToken(userId: string, email: string, tokenHash: string, expiresAt: Date): Promise<boolean> {
     return this.prisma.$transaction(async (transaction) => {
       const current = await transaction.user.updateMany({
-        where: { id: userId, email }, data: { email },
+        where: { id: userId, email, emailVerifiedAt: null }, data: { email },
       });
       if (current.count !== 1) return false;
       await transaction.emailVerificationToken.updateMany({

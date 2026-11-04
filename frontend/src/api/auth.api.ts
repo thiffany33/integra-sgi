@@ -28,9 +28,8 @@ export const authApi = {
     password: string;
     locale: SupportedLocale;
     profile: CustomerProfileInput;
-  }): Promise<AuthPayload> {
-    const { data } = await api.post<AuthPayload>('/auth/register', input);
-    return data;
+  }): Promise<void> {
+    await api.post('/auth/register', input);
   },
   async logout(): Promise<void> {
     await api.post('/auth/logout');
@@ -43,6 +42,9 @@ export const authApi = {
   },
   async verifyEmail(token: string): Promise<void> {
     await api.post('/auth/verify-email', { token });
+  },
+  async resendVerification(email: string): Promise<void> {
+    await api.post('/auth/resend-verification', { email });
   },
   async updateLocale(locale: SupportedLocale): Promise<AuthUser> {
     const { data } = await api.patch<{ user: AuthUser }>('/auth/me/locale', { locale });

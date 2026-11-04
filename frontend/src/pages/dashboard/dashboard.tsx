@@ -73,7 +73,7 @@ export default function Dashboard() {
   return <>
     <header className="mb-8 space-y-2">
       <p className="eyebrow">{t('home:dashboardEyebrow')}</p>
-      <h1 className="text-3xl sm:text-4xl">{auth.status === 'authenticated' ? t('home:dashboardGreeting', { name: auth.user.name.trim().split(/\s+/)[0] }) : t('home:dashboardTitle')}</h1>
+      <h1 className="text-3xl sm:text-4xl">{auth.status === 'authenticated' ? t('home:dashboardGreeting', { name: auth.profile.organization.name.trim() || auth.user.name.trim() }) : t('home:dashboardTitle')}</h1>
       <p className="max-w-2xl text-lg text-muted-foreground">{t('home:dashboardSummary')}</p>
     </header>
     <div className="space-y-10">

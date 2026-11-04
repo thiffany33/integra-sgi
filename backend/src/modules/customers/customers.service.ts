@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { UpdateCustomerProfileInput } from '@integra/shared/auth';
 import { ApiException } from '../../utils/api-exception';
@@ -15,6 +15,8 @@ const imageFormats = [
 
 @Injectable()
 export class CustomersService {
+  private readonly logger = new Logger(CustomersService.name);
+
   constructor(private readonly repository: CustomersRepository, private readonly storage: ObjectStorageService) {}
 
   async getMe(userId: string) {
@@ -47,7 +49,12 @@ export class CustomersService {
 
     const previousKey = await this.repository.getAvatarObjectKey(userId);
     const key = `avatars/${userId}/${randomUUID()}.${format.extension}`;
-    await this.storage.putObject({ key, body: photo.buffer, contentType: format.contentType });
+    try {
+      await this.storage.putObject({ key, body: photo.buffer, contentType: format.contentType });
+    } catch (error) {
+      this.logStorageFailure('upload', error);
+      throw this.storageUnavailable();
+    }
     let changed: boolean;
     try {
       changed = await this.repository.compareAndSwapAvatarObjectKey(userId, previousKey, key);
@@ -76,7 +83,12 @@ export class CustomersService {
         });
       }
     }
-    return { photoUrl: await this.storage.getSignedReadUrl({ key, expiresInSeconds: AVATAR_URL_TTL_SECONDS }) };
+    try {
+      return { photoUrl: await this.storage.getSignedReadUrl({ key, expiresInSeconds: AVATAR_URL_TTL_SECONDS }) };
+    } catch (error) {
+      this.logStorageFailure('sign read URL', error);
+      throw this.storageUnavailable();
+    }
   }
 
   async deleteAvatar(userId: string): Promise<void> {
@@ -103,6 +115,23 @@ export class CustomersService {
     return new ApiException(HttpStatus.BAD_REQUEST, {
       code: 'INVALID_PROFILE_PHOTO', message: 'Choose a JPEG, PNG or WebP image up to 5 MiB.',
     });
+  }
+
+  private storageUnavailable() {
+    return new ApiException(HttpStatus.SERVICE_UNAVAILABLE, {
+      code: 'PROFILE_PHOTO_STORAGE_UNAVAILABLE', message: 'Profile photo storage is temporarily unavailable.',
+    });
+  }
+
+  private logStorageFailure(operation: string, error: unknown): void {
+    const record = typeof error === 'object' && error !== null ? error as Record<string, unknown> : {};
+    const metadata = typeof record.$metadata === 'object' && record.$metadata !== null
+      ? record.$metadata as Record<string, unknown>
+      : {};
+    const errorName = typeof record.name === 'string' ? record.name : 'UnknownError';
+    const statusCode = typeof metadata.httpStatusCode === 'number' ? `, HTTP ${metadata.httpStatusCode}` : '';
+    const requestId = typeof metadata.requestId === 'string' ? `, request ${metadata.requestId}` : '';
+    this.logger.error(`Profile photo storage ${operation} failed (${errorName}${statusCode}${requestId}).`);
   }
 
   private avatarConflict() {

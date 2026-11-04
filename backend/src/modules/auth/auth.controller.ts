@@ -40,11 +40,8 @@ export class AuthController {
   async register(
     @Body(new ZodValidationPipe(registerSchema)) body: RegisterInput,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
   ) {
-    const result = await this.authService.register(body, request.ip);
-    response.cookie(SESSION_COOKIE_NAME, result.sessionToken, sessionCookieOptions(this.appEnv));
-    return { user: result.user, profile: result.profile };
+    return this.authService.register(body, request.ip);
   }
 
   @Post('login')
@@ -77,6 +74,15 @@ export class AuthController {
     @Req() request: Request,
   ) {
     return this.authService.forgotPassword(body.email, request.ip);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  resendVerification(
+    @Body(new ZodValidationPipe(forgotPasswordSchema)) body: { email: string },
+    @Req() request: Request,
+  ) {
+    return this.authService.resendVerification(body.email, request.ip);
   }
 
   @Post('reset-password')

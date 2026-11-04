@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { AuthRepository } from '../src/modules/auth/auth.repository';
@@ -25,7 +24,7 @@ const publicUser = {
 function makeService() {
   const repository = {
     findUserByEmail: vi.fn().mockResolvedValue(null),
-    createUserWithProfileAndSession: vi.fn().mockResolvedValue({ user: publicUser, profile }),
+    createUserWithProfile: vi.fn().mockResolvedValue({ user: publicUser, profile }),
     findUserForLogin: vi.fn(),
     createSession: vi.fn(),
     findSessionByTokenHash: vi.fn(),
@@ -58,7 +57,7 @@ function makeService() {
 }
 
 describe('AuthService', () => {
-  it('normalizes email, hashes the password, and stores only a session hash on registration', async () => {
+  it('normalizes email, hashes the password, and sends verification without creating a session', async () => {
     const { service, repository, passwords, rateLimit, authEmail } = makeService();
 
     const result = await service.register({
@@ -69,16 +68,14 @@ describe('AuthService', () => {
       profile,
     }, '127.0.0.1');
 
-    const [created] = repository.createUserWithProfileAndSession.mock.calls[0] as [Record<string, unknown>];
+    const [created] = repository.createUserWithProfile.mock.calls[0] as [Record<string, unknown>];
     expect(rateLimit.consume).toHaveBeenCalledWith('register', '127.0.0.1', 'ana@example.pt', 5, 3600);
     expect(passwords.hash).toHaveBeenCalledWith('correct-horse-battery-staple');
     expect(created.email).toBe('ana@example.pt');
     expect(created.passwordHash).toBe('$argon2id$hashed-value');
     expect(created.passwordHash).not.toBe('correct-horse-battery-staple');
-    expect(created.tokenHash).toBe(createHash('sha256').update(result.sessionToken).digest('hex'));
-    expect(result.user).not.toHaveProperty('passwordHash');
-    expect(result.user.role).toBe('CUSTOMER');
-    expect(result).toHaveProperty('profile', profile);
+    expect(result.message).toContain('Check your email');
+    expect(repository.createSession).not.toHaveBeenCalled();
     expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'ana@example.pt', 'pt-PT');
   });
 
@@ -100,8 +97,8 @@ describe('AuthService', () => {
 
   it('returns the current persisted role on login and session validation', async () => {
     const { service, repository } = makeService();
-    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, role: 'PLATFORM_ADMIN' }, passwordHash: 'stored', profile });
-    repository.findSessionByTokenHash.mockResolvedValue({ userId: 'user-1', role: 'PLATFORM_ADMIN', expiresAt: new Date(Date.now() + 60_000), revokedAt: null });
+    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, role: 'PLATFORM_ADMIN', emailVerifiedAt: new Date() }, passwordHash: 'stored', profile });
+    repository.findSessionByTokenHash.mockResolvedValue({ userId: 'user-1', role: 'PLATFORM_ADMIN', expiresAt: new Date(Date.now() + 60_000), revokedAt: null, emailVerifiedAt: new Date() });
     const login = await service.login({ email: 'ana@example.pt', password: 'valid-password' });
     expect(login.user.role).toBe('PLATFORM_ADMIN');
     expect(await service.validateSession(login.sessionToken)).toEqual({ userId: 'user-1', role: 'PLATFORM_ADMIN' });

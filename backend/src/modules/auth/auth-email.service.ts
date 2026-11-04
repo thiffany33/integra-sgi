@@ -50,6 +50,14 @@ export class AuthEmailService {
     await this.sendBestEffort(email, account.locale, 'reset', url.toString());
   }
 
+  async resendVerification(email: string): Promise<void> {
+    const account = await this.repository.findEmailAccount(email);
+    if (!account || account.emailVerifiedAt) return;
+    const prepared = this.prepareVerification();
+    if (!(await this.repository.createVerificationToken(account.id, email, prepared.tokenHash, prepared.expiresAt))) return;
+    await this.sendPreparedVerification(email, account.locale, prepared.token);
+  }
+
   verifyEmail(token: string): Promise<boolean> {
     return this.repository.verifyEmail(this.hashToken(token), new Date());
   }

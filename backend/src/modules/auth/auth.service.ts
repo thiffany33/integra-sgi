@@ -34,7 +34,7 @@ export class AuthService {
     private readonly authEmail: AuthEmailService,
   ) {}
 
-  async register(input: RegisterInput, ipAddress?: string): Promise<AuthResult> {
+  async register(input: RegisterInput, ipAddress?: string): Promise<{ message: string }> {
     const registration = registerSchema.parse(input);
     await this.rateLimit.consume('register', ipAddress, registration.email, 5, 3600);
 
@@ -46,25 +46,16 @@ export class AuthService {
     }
 
     const passwordHash = await this.passwords.hash(registration.password);
-    const sessionToken = randomBytes(32).toString('base64url');
-    const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000);
-
     try {
-      const created = await this.repository.createUserWithProfileAndSession({
+      const created = await this.repository.createUserWithProfile({
         name: registration.name,
         email: registration.email,
         passwordHash,
         locale: registration.locale,
         profile: registration.profile,
-        tokenHash: this.hashSessionToken(sessionToken),
-        expiresAt,
       });
       await this.authEmail.sendVerification(created.user.id, created.user.email, created.user.locale);
-      return {
-        user: this.publicUser(created.user),
-        profile: created.profile as CustomerProfileInput,
-        sessionToken,
-      };
+      return { message: 'Account created. Check your email to verify the account before signing in.' };
     } catch (error) {
       if (this.isUniqueViolation(error)) {
         throw new ApiException(HttpStatus.CONFLICT, {
@@ -85,6 +76,13 @@ export class AuthService {
       throw new ApiException(HttpStatus.UNAUTHORIZED, {
         code: 'INVALID_CREDENTIALS',
         message: 'Invalid email or password.',
+      });
+    }
+
+    if (!found.user.emailVerifiedAt) {
+      throw new ApiException(HttpStatus.FORBIDDEN, {
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Confirm your email address before signing in.',
       });
     }
 
@@ -110,7 +108,7 @@ export class AuthService {
 
   async validateSession(sessionToken: string): Promise<{ userId: string; role: UserRole } | null> {
     const session = await this.repository.findSessionByTokenHash(this.hashSessionToken(sessionToken));
-    if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now()) return null;
+    if (!session || !session.emailVerifiedAt || session.revokedAt || session.expiresAt.getTime() <= Date.now()) return null;
     return { userId: session.userId, role: session.role };
   }
 
@@ -156,6 +154,13 @@ export class AuthService {
       });
     }
     return { message: 'Email address verified.' };
+  }
+
+  async resendVerification(email: string, ipAddress?: string): Promise<{ message: string }> {
+    const normalizedEmail = loginSchema.shape.email.parse(email);
+    await this.rateLimit.consume('resend-verification', ipAddress, normalizedEmail, 5, 3600);
+    await this.authEmail.resendVerification(normalizedEmail);
+    return { message: 'If the account needs email verification, a new link has been sent.' };
   }
 
   async updateLocale(userId: string, locale: SupportedLocale): Promise<{ user: PublicAuthUser }> {

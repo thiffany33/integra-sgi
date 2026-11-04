@@ -43,8 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [accept]);
 
   const register = useCallback(async (input: { name: string; email: string; password: string; locale: SupportedLocale; profile: CustomerProfileInput }) => {
-    await accept(await authApi.register(input));
-  }, [accept]);
+    await authApi.register(input);
+    setState({ status: 'anonymous', user: null, profile: null, error: null });
+  }, []);
 
   const logout = useCallback(async () => {
     await authApi.logout();
@@ -60,9 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateAccount = useCallback(async (input: UpdateAccountInput) => {
     if (state.status !== 'authenticated') throw new Error('Sign in to update your account.');
     const user = await profileApi.updateAccount(input);
-    setState(current => current.status === 'authenticated' ? { ...current, user } : current);
+    setState(current => current.status === 'authenticated'
+      ? user.email !== current.user.email
+        ? { status: 'anonymous', user: null, profile: null, error: null }
+        : { ...current, user }
+      : current);
     return user;
-  }, [state.status]);
+  }, [state]);
 
   const updateOrganization = useCallback(async (profile: UpdateCustomerProfileInput['profile']) => {
     if (state.status !== 'authenticated') throw new Error('Sign in to update your organization.');
