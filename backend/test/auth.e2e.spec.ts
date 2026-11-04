@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { EMAIL_SERVICE } from '../src/modules/email/email.service';
 import { configureApp } from '../src/configure-app';
 import { PrismaService } from '../src/infra/prisma/prisma.service';
@@ -62,6 +62,10 @@ describe('authentication HTTP flow', () => {
   afterAll(async () => {
     if (prisma && registrationUserId) await prisma.user.deleteMany({ where: { id: registrationUserId } });
     if (app) await app.close();
+  });
+
+  beforeEach(async () => {
+    if (prisma) await prisma.$executeRawUnsafe('DELETE FROM "AuthRateLimitBucket"');
   });
 
   it('registers an account without returning credentials or setting a session cookie', () => {

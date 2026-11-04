@@ -37,6 +37,7 @@ describe('platform administrator HTTP flow', () => {
     configureApp(app);
     await app.init();
     prisma = app.get(PrismaService);
+    await prisma.$executeRawUnsafe('DELETE FROM "AuthRateLimitBucket"');
     const registerAndLogin = async (name: string, email: string) => {
       const registration = await request(app.getHttpServer())
         .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile });
