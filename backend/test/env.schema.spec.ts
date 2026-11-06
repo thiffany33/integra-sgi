@@ -26,6 +26,13 @@ describe('envSchema', () => {
     expect(result.TRUST_PROXY_HOPS).toBe(0);
   });
 
+  it('defaults the storage bucket to sgi and accepts a configured bucket name', () => {
+    expect(envSchema.parse({ ...developmentEnv, ...storageEnv }).AWS_BUCKET_NAME).toBe('sgi');
+    expect(envSchema.parse({ ...developmentEnv, ...storageEnv, AWS_BUCKET_NAME: '' }).AWS_BUCKET_NAME).toBe('sgi');
+    expect(envSchema.parse({ ...developmentEnv, ...storageEnv, AWS_BUCKET_NAME: 'assets' }).AWS_BUCKET_NAME).toBe('assets');
+    expect(envSchema.safeParse({ ...developmentEnv, ...storageEnv, AWS_BUCKET_NAME: 'Invalid_Bucket' }).success).toBe(false);
+  });
+
   it('allows local development to leave Resend unconfigured', () => {
     expect(envSchema.parse({ ...developmentEnv, RESEND_API_KEY: '' }).RESEND_API_KEY).toBeUndefined();
   });

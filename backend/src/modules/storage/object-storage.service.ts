@@ -9,12 +9,13 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { Environment } from '../../config/env.schema';
 
-const BUCKET = 'sgi';
+const DEFAULT_BUCKET = 'sgi';
 
 @Injectable()
 export class ObjectStorageService {
   private readonly client: S3Client | null;
   private readonly signer: S3Client | null;
+  private readonly bucket: string;
 
   // Explicit token: scripts run through tsx, which does not emit decorator metadata.
   constructor(@Inject(ConfigService) config: ConfigService<Environment, true>) {
@@ -23,6 +24,7 @@ export class ObjectStorageService {
     const endpoint = config.get('AWS_ENDPOINT_URL_S3');
     const region = config.get('AWS_REGION');
     const publicEndpoint = config.get('AWS_PUBLIC_ENDPOINT_URL_S3');
+    this.bucket = config.get('AWS_BUCKET_NAME') || DEFAULT_BUCKET;
     const clientFor = (url: string) => new S3Client({
       endpoint: url,
       region,
@@ -38,7 +40,7 @@ export class ObjectStorageService {
   }
 
   async putObject({ key, body, contentType }: { key: string; body: Uint8Array; contentType: string }): Promise<void> {
-    await this.requireClient().send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType }));
+    await this.requireClient().send(new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: contentType }));
   }
 
   async getSignedReadUrl({ key, expiresInSeconds }: { key: string; expiresInSeconds: number }): Promise<string> {
@@ -46,13 +48,13 @@ export class ObjectStorageService {
       throw new RangeError('Signed read URL lifetime must be between 1 and 3600 seconds.');
     }
     const client = this.requireClient();
-    return getSignedUrl(this.signer ?? client, new GetObjectCommand({ Bucket: BUCKET, Key: key }), {
+    return getSignedUrl(this.signer ?? client, new GetObjectCommand({ Bucket: this.bucket, Key: key }), {
       expiresIn: expiresInSeconds,
     });
   }
 
   async deleteObject({ key }: { key: string }): Promise<void> {
-    await this.requireClient().send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
+    await this.requireClient().send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 
   private requireClient(): S3Client {

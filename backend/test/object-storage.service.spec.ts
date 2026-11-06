@@ -90,6 +90,18 @@ describe('ObjectStorageService', () => {
     } }));
   });
 
+  it('uses the configured bucket name when one is provided', async () => {
+    const body = new Uint8Array([1]);
+    const storage = service({ AWS_BUCKET_NAME: 'assets' });
+    await storage.putObject({ key: 'avatars/user/photo.png', body, contentType: 'image/png' });
+    await storage.getSignedReadUrl({ key: 'templates/one/file.pdf', expiresInSeconds: 60 });
+    await storage.deleteObject({ key: 'avatars/user/photo.png' });
+    expect(s3Mocks.send).toHaveBeenNthCalledWith(1, expect.objectContaining({ input: expect.objectContaining({ Bucket: 'assets' }) }));
+    expect(s3Mocks.signedUrl).toHaveBeenCalledWith(expect.anything(),
+      expect.objectContaining({ input: { Bucket: 'assets', Key: 'templates/one/file.pdf' } }), { expiresIn: 60 });
+    expect(s3Mocks.send).toHaveBeenNthCalledWith(2, expect.objectContaining({ input: { Bucket: 'assets', Key: 'avatars/user/photo.png' } }));
+  });
+
   it('propagates upload failures to callers so they can clean up database state', async () => {
     s3Mocks.send.mockRejectedValueOnce(new Error('storage unavailable'));
     await expect(service().putObject({ key: 'avatars/user/photo.png', body: new Uint8Array(), contentType: 'image/png' }))
