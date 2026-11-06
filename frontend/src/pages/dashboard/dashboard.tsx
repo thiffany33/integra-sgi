@@ -111,10 +111,10 @@ export default function Dashboard() {
       <section aria-labelledby="shortcuts-title" className="space-y-4">
         <h2 id="shortcuts-title">{t('home:shortcutsTitle')}</h2>
         <div className="flex flex-wrap gap-4">
-          <Button asChild variant="outline"><Link to="/requirement4"><BookOpen aria-hidden="true" />{t('home:shortcutRequirement4')}</Link></Button>
-          <Button asChild variant="outline"><Link to="/requirement"><BookOpen aria-hidden="true" />{t('home:allGuide')}</Link></Button>
-          <Button asChild variant="outline"><Link to="/downloads"><Download aria-hidden="true" />{t('home:viewTemplates')}</Link></Button>
-          <Button asChild variant="outline"><Link to="/contact"><LifeBuoy aria-hidden="true" />{t('home:shortcutHelp')}</Link></Button>
+          <Button asChild variant="outline" className="max-w-full"><Link to="/requirement4"><BookOpen aria-hidden="true" />{t('home:shortcutRequirement4')}</Link></Button>
+          <Button asChild variant="outline" className="max-w-full"><Link to="/requirement"><BookOpen aria-hidden="true" />{t('home:allGuide')}</Link></Button>
+          <Button asChild variant="outline" className="max-w-full"><Link to="/downloads"><Download aria-hidden="true" />{t('home:viewTemplates')}</Link></Button>
+          <Button asChild variant="outline" className="max-w-full"><Link to="/contact"><LifeBuoy aria-hidden="true" />{t('home:shortcutHelp')}</Link></Button>
         </div>
       </section>
     </div>
