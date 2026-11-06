@@ -56,6 +56,7 @@ jobs:
       - name: Validate configuration and reject superseded commits
         env:
           GH_TOKEN: ${{ github.token }}
+          VERCEL_API_BYPASS_SECRET: ${{ secrets.VERCEL_API_BYPASS_SECRET }}
         run: |
           set -euo pipefail
           for key in VERCEL_ORG_ID VERCEL_TOKEN VERCEL_API_BYPASS_SECRET API_PROJECT_ID WEB_PROJECT_ID API_DOMAIN WEB_DOMAIN PUBLIC_WEB_URL VERCEL_CLI_VERSION; do
@@ -94,6 +95,7 @@ jobs:
       - name: Recheck branch head before migrating
         env:
           GH_TOKEN: ${{ github.token }}
+          VERCEL_API_BYPASS_SECRET: ${{ secrets.VERCEL_API_BYPASS_SECRET }}
         run: |
           set -euo pipefail
           current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$DEPLOY_BRANCH" --jq '.object.sha')

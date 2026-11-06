@@ -67,11 +67,14 @@ test('failed API health blocks domain changes and frontend publication', () => {
 
 // `vercel pull` masks Sensitive variables, so the Vercel side exposes the migration
 // target through the non-sensitive DB_IDENTITY ("host/database"), not through URLs.
+// APP_URL/FRONTEND_URL in Vercel must equal the PUBLIC_WEB_URL configured in GitHub.
+const STABLE_WEB_URL = 'https://integra-sgi-web.vercel.app';
+const VALID_DIRECT_URL = 'postgresql://sensitive-password@db.example.test/app';
+
 function checkEnvironment(directUrl, {
   dbIdentity = 'db.example.test/app',
-  publicWebUrl = 'https://integrasig.pt',
-  appUrl = publicWebUrl,
-  frontendUrl = publicWebUrl,
+  publicWebUrl = STABLE_WEB_URL,
+  appUrl = STABLE_WEB_URL,
 } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'integra-env-test-'));
   try {
@@ -80,7 +83,7 @@ function checkEnvironment(directUrl, {
       'APP_ENV=production', 'NODE_ENV=production',
       `DB_IDENTITY=${dbIdentity}`,
       'DATABASE_URL=fake',
-      `APP_URL=${appUrl}`, `FRONTEND_URL=${frontendUrl}`,
+      `APP_URL=${appUrl}`, `FRONTEND_URL=${appUrl}`,
       ...['SESSION_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'AWS_ACCESS_KEY_ID',
         'AWS_SECRET_ACCESS_KEY', 'AWS_ENDPOINT_URL_S3', 'AWS_REGION'].map(key => `${key}=fake`),
     ].join('\n'));
@@ -105,34 +108,7 @@ test('migration target must match the Vercel runtime configuration without leaki
 });
 
 test('consistent production URLs and variables pass the migration gate', () => {
-  assert.equal(checkEnvironment('postgresql://sensitive-password@db.example.test/app').status, 0);
-});
-
-test('custom public web origin can differ from the stable Vercel deployment alias', () => {
-  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
-    publicWebUrl: 'https://integrasig.pt',
-    appUrl: 'https://integrasig.pt',
-    frontendUrl: 'https://integrasig.pt',
-  });
-  assert.equal(result.status, 0, result.stderr);
-});
-
-test('APP_URL and FRONTEND_URL must match the configured public web origin', () => {
-  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
-    publicWebUrl: 'https://integrasig.pt',
-    appUrl: 'https://integra-sgi-web.vercel.app',
-    frontendUrl: 'https://integrasig.pt',
-  });
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /APP_URL and FRONTEND_URL must match PUBLIC_WEB_URL/);
-});
-
-test('public web URL must be an HTTPS origin without a path', () => {
-  const result = checkEnvironment('postgresql://sensitive-password@db.example.test/app', {
-    publicWebUrl: 'https://integrasig.pt/select-systems',
-  });
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /PUBLIC_WEB_URL must be an HTTPS origin/);
+  assert.equal(checkEnvironment(VALID_DIRECT_URL).status, 0);
 });
 
 test('pooled host and query string still match the same database', () => {
@@ -151,4 +127,23 @@ test('invalid DIRECT_URL fails without leaking its value', () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /GitHub DIRECT_URL is not a valid database URL/);
   assert(!`${result.stdout}${result.stderr}`.includes('secret-value'));
+});
+
+test('PUBLIC_WEB_URL must be an HTTPS origin without a path', () => {
+  for (const publicWebUrl of ['', 'http://integrasig.pt', 'https://integrasig.pt/', 'https://integrasig.pt/app']) {
+    const result = checkEnvironment(VALID_DIRECT_URL, { publicWebUrl, appUrl: publicWebUrl });
+    assert.notEqual(result.status, 0, `expected failure for "${publicWebUrl}"`);
+    assert.match(result.stderr, /PUBLIC_WEB_URL must be an HTTPS origin without a path/);
+  }
+});
+
+test('APP_URL and FRONTEND_URL must match PUBLIC_WEB_URL', () => {
+  const result = checkEnvironment(VALID_DIRECT_URL, { publicWebUrl: 'https://integrasig.pt' });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /API APP_URL and FRONTEND_URL must match PUBLIC_WEB_URL/);
+});
+
+test('custom domain passes when APP_URL and FRONTEND_URL match PUBLIC_WEB_URL', () => {
+  const url = 'https://integrasig.pt';
+  assert.equal(checkEnvironment(VALID_DIRECT_URL, { publicWebUrl: url, appUrl: url }).status, 0);
 });
