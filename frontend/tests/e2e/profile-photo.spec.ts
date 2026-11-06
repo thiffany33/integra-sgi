@@ -49,5 +49,19 @@ test('shows an accessible error when photo upload fails', async ({ page }) => {
     : route.fulfill({ json: { photoUrl: null } }));
   await page.goto('/profile');
   await page.getByLabel('Escolher fotografia de perfil').setInputFiles({ name: 'not-image.txt', mimeType: 'text/plain', buffer: Buffer.from('invalid') });
-  await expect(page.getByRole('alert')).toContainText('Escolha uma imagem JPEG, PNG ou WebP até 5 MiB.');
+  await expect(page.getByRole('alert')).toContainText('Escolha uma imagem JPEG, PNG ou WebP até 4 MiB.');
+});
+
+test('rejects photos above the 4 MiB limit before uploading', async ({ page }) => {
+  let posts = 0;
+  await page.route('**/api/v1/customers/me/avatar', async route => {
+    if (route.request().method() === 'POST') posts++;
+    await route.fulfill({ json: { photoUrl: null } });
+  });
+  await page.goto('/profile');
+  await page.getByLabel('Escolher fotografia de perfil').setInputFiles({
+    name: 'large.png', mimeType: 'image/png', buffer: Buffer.alloc(4 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByRole('alert')).toContainText('Escolha uma imagem JPEG, PNG ou WebP até 4 MiB.');
+  expect(posts).toBe(0);
 });

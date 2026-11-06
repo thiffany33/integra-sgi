@@ -88,13 +88,13 @@ describe('customer avatar HTTP flow', () => {
     expect(putObject).not.toHaveBeenCalled();
   });
 
-  it('accepts exactly 5 MiB and rejects larger uploads before storage', async () => {
-    const exact = Buffer.concat([png, Buffer.alloc(5 * 1024 * 1024 - png.length)]);
+  it('accepts exactly 4 MiB and rejects larger uploads before storage', async () => {
+    const exact = Buffer.concat([png, Buffer.alloc(4 * 1024 * 1024 - png.length)]);
     await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
       .attach('photo', exact, { filename: 'large.png', contentType: 'image/png' }).expect(201);
     expect(putObject).toHaveBeenCalledTimes(1);
     putObject.mockClear();
-    const tooLarge = Buffer.concat([png, Buffer.alloc(5 * 1024 * 1024 - png.length + 1)]);
+    const tooLarge = Buffer.concat([png, Buffer.alloc(4 * 1024 * 1024 - png.length + 1)]);
     await request(app.getHttpServer()).post('/api/v1/customers/me/avatar').set('x-test-user', 'customer-a')
       .attach('photo', tooLarge, { filename: 'too-large.png', contentType: 'image/png' }).expect(413);
     expect(putObject).not.toHaveBeenCalled();

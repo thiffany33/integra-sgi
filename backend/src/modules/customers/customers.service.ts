@@ -1,11 +1,11 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { UpdateCustomerProfileInput } from '@integra/shared/auth';
+import { MAX_PROFILE_PHOTO_BYTES } from '@integra/shared/profile';
 import { ApiException } from '../../utils/api-exception';
 import { ObjectStorageService } from '../storage/object-storage.service';
 import { CustomersRepository } from './customers.repository';
 
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 const AVATAR_URL_TTL_SECONDS = 120;
 const imageFormats = [
   { extension: 'jpeg', contentType: 'image/jpeg', matches: (bytes: Buffer) => bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff },
@@ -48,7 +48,7 @@ export class CustomersService {
   }
 
   async uploadAvatar(userId: string, photo: { buffer: Buffer; size: number } | undefined): Promise<{ photoUrl: string }> {
-    if (!photo || photo.size < 1 || photo.size > MAX_AVATAR_SIZE) throw this.invalidPhoto();
+    if (!photo || photo.size < 1 || photo.size > MAX_PROFILE_PHOTO_BYTES) throw this.invalidPhoto();
     const format = imageFormats.find((candidate) => candidate.matches(photo.buffer));
     if (!format) throw this.invalidPhoto();
 
@@ -119,7 +119,7 @@ export class CustomersService {
 
   private invalidPhoto() {
     return new ApiException(HttpStatus.BAD_REQUEST, {
-      code: 'INVALID_PROFILE_PHOTO', message: 'Choose a JPEG, PNG or WebP image up to 5 MiB.',
+      code: 'INVALID_PROFILE_PHOTO', message: 'Choose a JPEG, PNG or WebP image up to 4 MiB.',
     });
   }
 

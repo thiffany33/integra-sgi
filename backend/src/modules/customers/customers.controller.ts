@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, Req, Up
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { updateCustomerProfileSchema, type UpdateCustomerProfileInput } from '@integra/shared/auth';
+import { MAX_PROFILE_PHOTO_BYTES } from '@integra/shared/profile';
 import { ZodValidationPipe } from '../../middlewares/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';
 import { CustomersService } from './customers.service';
@@ -25,7 +26,7 @@ export class CustomersController {
   }
 
   @Post('avatar')
-  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: 5 * 1024 * 1024, files: 1 } }))
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: MAX_PROFILE_PHOTO_BYTES, files: 1 } }))
   uploadAvatar(@Req() request: Request, @UploadedFile() photo: { buffer: Buffer; size: number } | undefined) {
     return this.customers.uploadAvatar(request.userId!, photo);
   }

@@ -9,6 +9,7 @@ export default defineConfig({
     '@': fileURLToPath(new URL('./src', import.meta.url)),
     '@integra/shared/documents': fileURLToPath(new URL('../packages/shared/src/documents/documents.ts', import.meta.url)),
     '@integra/shared/requirements': fileURLToPath(new URL('../packages/shared/src/requirements/index.ts', import.meta.url)),
+    '@integra/shared/profile': fileURLToPath(new URL('../packages/shared/src/profile/index.ts', import.meta.url)),
   } },
   server: {
     proxy: {

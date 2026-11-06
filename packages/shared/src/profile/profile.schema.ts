@@ -37,3 +37,6 @@ export const customerProfileSchema = z
       });
     }
   });
+
+// Vercel Functions reject request bodies above 4.5 MB, so uploads stay below that platform limit.
+export const MAX_PROFILE_PHOTO_BYTES = 4 * 1024 * 1024;

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LockKeyhole, UserRound, Building2, Camera, Trash2 } from 'lucide-react';
 import type { UpdateCustomerProfileInput } from '@integra/shared/auth';
+import { MAX_PROFILE_PHOTO_BYTES } from '@integra/shared/profile';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,13 +55,19 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
 
   async function uploadPhoto(file: File | undefined, input: HTMLInputElement) {
     if (!file) return;
+    if (file.size > MAX_PROFILE_PHOTO_BYTES) {
+      input.value = '';
+      setPhotoMessage({ kind: 'error', text: t('photoUploadError') });
+      return;
+    }
     setPhotoBusy(true); setPhotoMessage(null);
     try {
       setPhotoUrl(await profileApi.uploadPhoto(file));
       setPhotoMessage({ kind: 'success', text: t('photoSaved') });
     } catch (error) {
       const code = errorCode(error);
-      const message = code === 'INVALID_PROFILE_PHOTO' ? 'photoUploadError'
+      const tooLarge = axios.isAxiosError(error) && error.response?.status === 413;
+      const message = code === 'INVALID_PROFILE_PHOTO' || tooLarge ? 'photoUploadError'
         : code === 'PROFILE_PHOTO_STORAGE_UNAVAILABLE' ? 'photoStorageError'
           : 'photoSaveError';
       setPhotoMessage({ kind: 'error', text: t(message) });
