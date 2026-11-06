@@ -404,7 +404,7 @@ test('a completed discovery can be edited from the dashboard and stays completed
 test('signed-in pages use a side menu instead of the public header', async ({ page }) => {
   await mockFlow(page);
   await page.goto('/dashboard');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Olá, Maria');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Olá, Cooperativa Exemplo');
   const nav = page.getByRole('navigation', { name: 'Navegação principal' });
   await expect(nav.getByRole('link', { name: 'Início' })).toHaveCount(0);
   await expect(nav.getByRole('link', { name: 'Meu plano' })).toHaveAttribute('aria-current', 'page');

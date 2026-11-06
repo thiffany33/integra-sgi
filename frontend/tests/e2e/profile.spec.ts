@@ -26,8 +26,8 @@ test.beforeEach(async ({ page }) => {
 test('carrega o perfil e guarda os dados da conta sem escrever no armazenamento do navegador', async ({ page }) => {
   await page.route('**/api/v1/auth/me', async route => {
     if (route.request().method() === 'PATCH') {
-      expect(route.request().postDataJSON()).toEqual({ name: 'Maria Costa', email: 'maria.costa@example.pt' });
-      await route.fulfill({ json: { user: { ...user, name: 'Maria da Costa', email: 'maria.costa@example.pt' } } });
+      expect(route.request().postDataJSON()).toEqual({ name: 'Maria Costa', email: 'maria@example.pt' });
+      await route.fulfill({ json: { user: { ...user, name: 'Maria da Costa' } } });
       return;
     }
     await route.fulfill({ json: { user, profile } });
@@ -36,11 +36,27 @@ test('carrega o perfil e guarda os dados da conta sem escrever no armazenamento 
   await expect(page.getByRole('heading', { level: 1, name: 'O meu perfil' })).toBeVisible();
   await expect(page.getByLabel('Nome da conta')).toHaveValue('Maria Silva');
   await page.getByLabel('Nome da conta').fill('Maria Costa');
-  await page.getByLabel('Email da conta').fill('Maria.Costa@Example.PT');
   await page.getByRole('button', { name: 'Guardar dados da conta' }).click();
   await expect(page.getByRole('status')).toContainText('Dados da conta guardados');
   await expect(page.getByLabel('Nome da conta')).toHaveValue('Maria da Costa');
-  await expect(page.getByLabel('Email da conta')).toHaveValue('maria.costa@example.pt');
+  await expect(page.getByLabel('Email da conta')).toHaveValue('maria@example.pt');
+  expect(await page.evaluate(() => [localStorage.length, sessionStorage.length, (window as Window & { profileStorageWrites: string[] }).profileStorageWrites.length])).toEqual([0, 0, 0]);
+});
+
+test('alterar o email da conta encerra a sessão até o novo endereço ser confirmado', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', async route => {
+    if (route.request().method() === 'PATCH') {
+      expect(route.request().postDataJSON()).toEqual({ name: 'Maria Silva', email: 'maria.costa@example.pt' });
+      await route.fulfill({ json: { user: { ...user, email: 'maria.costa@example.pt' } } });
+      return;
+    }
+    await route.fulfill({ json: { user, profile } });
+  });
+  await page.goto('/profile');
+  await page.getByLabel('Email da conta').fill('Maria.Costa@Example.PT');
+  await page.getByRole('button', { name: 'Guardar dados da conta' }).click();
+  await expect(page).toHaveURL(/\/login\?returnTo=%2Fprofile$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Aceda à sua conta' })).toBeVisible();
   expect(await page.evaluate(() => [localStorage.length, sessionStorage.length, (window as Window & { profileStorageWrites: string[] }).profileStorageWrites.length])).toEqual([0, 0, 0]);
 });
 

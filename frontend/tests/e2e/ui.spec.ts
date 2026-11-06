@@ -53,7 +53,8 @@ test('cadastro grava o perfil selecionado pela API sem usar storage do navegador
   await page.getByRole('checkbox', { name: /Segurança e Saúde no Trabalho/ }).uncheck()
   await page.getByLabel('Crie uma palavra-passe').fill('correct-horse-battery')
   await page.getByRole('button', { name: 'Criar conta e ver o meu plano' }).click()
-  await expect(page).toHaveURL(/dashboard/)
+  await expect(page).toHaveURL(/\/verify-email\?email=contato%40atlantico\.pt$/)
+  await expect(page.getByText('A conta foi criada. Consulte o email para confirmar o endereço antes de entrar.')).toBeVisible()
   expect(requests).toHaveLength(1)
   expect(requests[0]).toMatchObject({ email: 'contato@atlantico.pt', name: 'Maria Silva', locale: 'pt-PT' })
   expect(requests[0].profile).toMatchObject({
