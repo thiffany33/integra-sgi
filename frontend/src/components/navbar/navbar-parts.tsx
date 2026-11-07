@@ -92,7 +92,9 @@ export function AccountMenu({ wide = false, align = 'end' }: { wide?: boolean; a
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoLoaded, setPhotoLoaded] = useState(false);
   if (auth.status !== 'authenticated') return null;
-  const initials = auth.user.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]?.toLocaleUpperCase()).join('');
+  // The account belongs to the organization; the person's name is only a fallback.
+  const displayName = auth.profile.organization.name.trim() || auth.user.name.trim();
+  const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]?.toLocaleUpperCase()).join('');
 
   async function logout() {
     setError('');
@@ -119,19 +121,19 @@ export function AccountMenu({ wide = false, align = 'end' }: { wide?: boolean; a
     <DropdownMenu.Root onOpenChange={open => { if (open) void loadPhoto(); }}>
       <DropdownMenu.Trigger asChild>
         {wide
-          ? <Button variant="outline" aria-label={t('accountMenu', { name: auth.user.name })} className="h-auto min-h-14 w-full justify-start gap-3 px-3 py-2 text-left">
+          ? <Button variant="outline" aria-label={t('accountMenu', { name: displayName })} className="h-auto min-h-14 w-full justify-start gap-3 px-3 py-2 text-left">
             {avatar}
-            <span aria-hidden="true" className="min-w-0 flex-1"><span className="block truncate font-semibold">{t('myAccount')}</span><span className="block truncate text-sm font-normal text-muted-foreground">{auth.user.name}</span></span>
+            <span aria-hidden="true" className="min-w-0 flex-1"><span className="block truncate font-semibold">{t('myAccount')}</span><span className="block truncate text-sm font-normal text-muted-foreground">{displayName}</span></span>
             <ChevronDown aria-hidden="true" className="size-4 shrink-0" />
           </Button>
-          : <Button variant="outline" size="icon" aria-label={t('accountMenu', { name: auth.user.name })} className="size-12 rounded-full p-0 sm:w-auto sm:gap-2 sm:rounded-lg sm:pr-3">
+          : <Button variant="outline" size="icon" aria-label={t('accountMenu', { name: displayName })} className="size-12 rounded-full p-0 sm:w-auto sm:gap-2 sm:rounded-lg sm:pr-3">
             {avatar}
             <span aria-hidden="true" className="hidden whitespace-nowrap sm:inline">{t('myAccount')}</span>
           </Button>}
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content align={align} side={wide ? 'top' : 'bottom'} sideOffset={6} className={menuContent}>
-          <div className="border-b px-3 py-3"><p className="text-base font-semibold">{auth.user.name}</p><p className="text-sm text-muted-foreground">{auth.user.email}</p></div>
+          <div className="border-b px-3 py-3"><p className="text-base font-semibold">{displayName}</p><p className="text-sm text-muted-foreground">{auth.user.email}</p></div>
           <DropdownMenu.Item asChild className={menuItem}>
             <Link to="/profile">{t('profile')}</Link>
           </DropdownMenu.Item>
