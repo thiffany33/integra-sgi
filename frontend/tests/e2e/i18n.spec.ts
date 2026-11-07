@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 
 const locales = ['pt-PT', 'en', 'fr', 'de'] as const
-const namespaces = ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'requirements', 'downloads', 'help'] as const
+const namespaces = ['common', 'navigation', 'auth', 'onboarding', 'home', 'profile', 'requirements', 'downloads', 'help', 'admin', 'privacy'] as const
 const catalogs = Object.fromEntries(locales.map(locale => [locale, Object.fromEntries(namespaces.map(namespace => [
   namespace,
   JSON.parse(readFileSync(resolve(fileURLToPath(new URL(`../../src/locales/${locale}/${namespace}.json`, import.meta.url))), 'utf8')) as Record<string, unknown>,

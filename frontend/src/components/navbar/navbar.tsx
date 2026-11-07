@@ -20,7 +20,7 @@ export default function Navbar() {
       { to: '/register', label: t('navigation:register') },
     ] : []),
     ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
-      ? [{ to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
+      ? [{ to: '/admin/insights', label: t('navigation:adminInsights') }, { to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
   ];
 
   return <header className="border-b bg-card">

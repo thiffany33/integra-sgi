@@ -16,7 +16,7 @@ export const discoveryFieldLabels: Record<string, string> = {
   responsibilityAssignments: 'step3Title', additionalPeople: 'additionalPeople', processes: 'step4Title', attentionTopics: 'attentionTopics', notes: 'notes',
 };
 
-const values: Record<string, string> = {
+export const discoveryValueLabels: Record<string, string> = {
   '1-9': 'range1', '10-49': 'range2', '50-249': 'range3', '250+': 'range4',
   on_site: 'onSite', remote: 'remote', hybrid: 'hybrid', multiple_sites: 'multipleSites',
   services: 'services', production: 'production', trade: 'trade', construction: 'construction', other: 'other',
@@ -33,6 +33,6 @@ export function formatDiscoveryAnswer(t: TFunction, value: unknown, field: strin
   if (Array.isArray(value)) return value.length ? value.map(item => formatDiscoveryAnswer(t, item, field, parentField)).join(', ') : t('notProvided');
   if (value && typeof value === 'object') return Object.entries(value).filter(([, item]) => item !== undefined && item !== '').map(([key, item]) => formatDiscoveryAnswer(t, item, key, field)).join(' · ');
   if (value === undefined || value === '') return t('notProvided');
-  if (typeof value === 'string' && (choiceFields.has(field) || (field === 'role' && parentField === 'responsibilityAssignments'))) return t(values[value] ?? value);
+  if (typeof value === 'string' && (choiceFields.has(field) || (field === 'role' && parentField === 'responsibilityAssignments'))) return t(discoveryValueLabels[value] ?? value);
   return String(value);
 }

@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ApiException } from '../../utils/api-exception';
+import { buildInsights } from './admin-insights';
 import { AdminRepository } from './admin.repository';
 import type { ListCustomersInput, UpdateCustomerSystemsInput } from './admin.schema';
 
@@ -17,6 +18,10 @@ export class AdminService {
       throw new ApiException(HttpStatus.BAD_REQUEST, { code: 'INVALID_CURSOR', message: 'Invalid customer cursor.' });
     }
     return result;
+  }
+
+  async insights() {
+    return buildInsights(await this.repository.insightCustomers());
   }
 
   async updateCustomerSystems(actorUserId: string, targetUserId: string, input: UpdateCustomerSystemsInput) {

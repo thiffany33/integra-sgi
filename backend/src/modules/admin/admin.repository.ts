@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type { CustomerProfileInput, SelectedSystem } from '@integra/shared/profile';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
+import type { InsightCustomer } from './admin-insights';
+
+const DISCOVERY_FLOW_KEY = 'organization-discovery';
+const DISCOVERY_CODES = ['4.1', '4.4', '6.1'];
 
 export type CustomerSummary = {
   userId: string;
@@ -107,5 +111,25 @@ export class AdminRepository {
       });
       return summary({ id: user.id, name: user.name, email: user.email, customerProfile: profile });
     });
+  }
+
+  async insightCustomers(): Promise<InsightCustomer[]> {
+    const rows = await this.prisma.user.findMany({
+      where: { role: 'CUSTOMER' },
+      select: {
+        createdAt: true,
+        emailVerifiedAt: true,
+        customerProfile: { select: { data: true } },
+        guidedFlows: { where: { flowKey: DISCOVERY_FLOW_KEY }, select: { status: true, currentStep: true } },
+        requirementResponses: { where: { requirementCode: { in: DISCOVERY_CODES } }, select: { requirementCode: true, data: true } },
+      },
+    });
+    return rows.map((row) => ({
+      createdAt: row.createdAt,
+      emailVerifiedAt: row.emailVerifiedAt,
+      profile: row.customerProfile?.data ?? null,
+      discovery: row.guidedFlows[0] ?? null,
+      responses: Object.fromEntries(row.requirementResponses.map((response) => [response.requirementCode, response.data])),
+    }));
   }
 }

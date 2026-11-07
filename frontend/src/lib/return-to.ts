@@ -4,6 +4,7 @@ const knownPaths = new Set([
   '/profile',
   '/downloads',
   '/admin/customers',
+  '/admin/insights',
   '/requirement',
   '/contact',
   '/representative',

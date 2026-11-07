@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Building2, ClipboardList, Download, LayoutDashboard, LifeBuoy, Menu, X, type LucideIcon } from 'lucide-react';
+import { BookOpen, Building2, ChartColumn, ClipboardList, Download, LayoutDashboard, LifeBuoy, Menu, X, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,10 @@ export function AppShell({ main, children }: { main: RefObject<HTMLElement | nul
     { to: '/downloads', label: t('downloads'), icon: Download, active: path => path === '/downloads' },
     { to: '/contact', label: t('help'), icon: LifeBuoy, active: path => path === '/contact' },
     ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
-      ? [{ to: '/admin/customers', label: t('adminCustomers'), icon: Building2, active: (path: string) => path.startsWith('/admin') }] : []),
+      ? [
+        { to: '/admin/insights', label: t('adminInsights'), icon: ChartColumn, active: (path: string) => path === '/admin/insights' },
+        { to: '/admin/customers', label: t('adminCustomers'), icon: Building2, active: (path: string) => path === '/admin/customers' },
+      ] : []),
   ];
 
   return <div className="min-h-screen lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]">

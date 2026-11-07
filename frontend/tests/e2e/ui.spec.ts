@@ -99,7 +99,7 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   await expect(download).toHaveAccessibleName(/abre num novo separador/)
 })
 
-for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/login', '/nao-existe']) {
+for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/login', '/nao-existe']) {
   test(`acessibilidade e leitura mobile em ${route}`, async ({ page }) => {
     if (['/dashboard', '/requirement4_1', '/downloads'].includes(route)) await signInForPrivatePages(page)
     await page.setViewportSize({ width: 375, height: 812 })
@@ -116,4 +116,47 @@ for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requir
 test('o rodapé identifica a titular dos direitos', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('contentinfo')).toContainText(`© ${new Date().getFullYear()} Thiffany Gonçalves. Todos os direitos reservados.`)
+})
+
+test('o rodapé leva à política de privacidade', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Política de privacidade' }).click()
+  await expect(page).toHaveURL('/privacidade')
+  await expect(page.getByRole('heading', { level: 1, name: 'Política de Privacidade' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '7. Os seus direitos' })).toBeVisible()
+})
+
+test('formulário de contacto envia a mensagem e confirma o envio', async ({ page }) => {
+  const sent: unknown[] = []
+  await page.route('**/api/v1/contact', route => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { available: true } })
+    sent.push(route.request().postDataJSON())
+    return route.fulfill({ status: 202, json: { message: 'Message sent.' } })
+  })
+  await page.goto('/contact')
+  await page.getByLabel('Nome', { exact: true }).fill('Ana Silva')
+  await page.getByLabel('Email', { exact: true }).fill('ana@example.pt')
+  await page.getByLabel('Como podemos ajudar?').fill('Gostaria de saber mais sobre a ISO 9001.')
+  await page.getByRole('button', { name: 'Enviar mensagem' }).click()
+  await expect(page.getByRole('status')).toContainText('Mensagem enviada')
+  expect(sent).toEqual([{ name: 'Ana Silva', email: 'ana@example.pt', message: 'Gostaria de saber mais sobre a ISO 9001.' }])
+})
+
+test('formulário de contacto explica limites e indisponibilidade', async ({ page }) => {
+  let available = true
+  await page.route('**/api/v1/contact', route => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { available } })
+    return route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED' } } })
+  })
+  await page.goto('/contact')
+  await page.getByLabel('Nome', { exact: true }).fill('Ana Silva')
+  await page.getByLabel('Email', { exact: true }).fill('ana@example.pt')
+  await page.getByLabel('Como podemos ajudar?').fill('Gostaria de saber mais sobre a ISO 9001.')
+  await page.getByRole('button', { name: 'Enviar mensagem' }).click()
+  await expect(page.getByRole('alert')).toContainText('Enviou várias mensagens seguidas')
+
+  available = false
+  await page.reload()
+  await expect(page.getByText('Envio de mensagens indisponível')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Envio indisponível no momento' })).toBeDisabled()
 })

@@ -74,6 +74,16 @@ describe('platform administrator HTTP flow', () => {
       .set('Cookie', customerCookie).send({ selectedSystems: ['sga'], revision: 1 }).expect(403);
   });
 
+  it('serves aggregated insights only to platform administrators', async () => {
+    await request(app.getHttpServer()).get('/api/v1/admin/insights').expect(401);
+    await request(app.getHttpServer()).get('/api/v1/admin/insights').set('Cookie', customerCookie).expect(403);
+    const response = await request(app.getHttpServer()).get('/api/v1/admin/insights').set('Cookie', adminCookie).expect(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.body.funnel.registered).toBeGreaterThanOrEqual(1);
+    expect(response.body.selectedSystems.map((item: { value: string }) => item.value)).toEqual(['sgq', 'sga', 'sgsst']);
+    expect(JSON.stringify(response.body)).not.toContain(marker);
+  });
+
   it('searches customer names and emails, with empty and invalid-cursor results', async () => {
     const found = await request(app.getHttpServer()).get(`/api/v1/admin/customers?search=${encodeURIComponent(marker)}`)
       .set('Cookie', adminCookie).expect(200);
