@@ -8,16 +8,21 @@
   --color-card-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: #ffffff;
-  --color-secondary: #e8efec;
-  --color-secondary-foreground: #22513d;
-  --color-muted: #eef1ef;
-  --color-muted-foreground: #50615c;
-  --color-accent: #e8efec;
-  --color-accent-foreground: #183f33;
-  --color-destructive: #a1272c;
-  --color-border: #d2dcd7;
-  --color-input: #82968c;
-  --color-ring: #24664b;
+  --color-secondary: #e6f1eb;
+  --color-secondary-foreground: #0b5a34;
+  --color-muted: #edf1f4;
+  --color-muted-foreground: #4d5b6a;
+  --color-accent: #e6f1eb;
+  --color-accent-foreground: #0b5532;
+  --color-destructive: var(--brand-red);
+  --color-border: #d3dbe3;
+  --color-input: #7e8b98;
+  --color-ring: var(--brand-green);
+  /* The four rings of the Integra SGI logo. */
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-green: var(--brand-green);
+  --color-brand-red: var(--brand-red);
+  --color-brand-gold: var(--brand-gold);
   --radius-sm: .375rem;
   --radius-md: .5rem;
   --radius-lg: .75rem;
@@ -25,10 +30,15 @@
 }
 
 :root {
-  --background: #f7f8f5;
-  --foreground: #243f37;
+  /* Original brand palette (identidade visual, June 2026). */
+  --brand-blue: #203e5e;
+  --brand-green: #0f7343;
+  --brand-red: #980206;
+  --brand-gold: #995816;
+  --background: #f6f8f9;
+  --foreground: #1d3049;
   --card: #fff;
-  --primary: #203e5e;
+  --primary: var(--brand-blue);
   font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
@@ -47,9 +57,9 @@
   button:not(:disabled), summary { cursor: pointer; }
   a, p, label { overflow-wrap: anywhere; }
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-    outline: 3px solid #24664b; outline-offset: 4px;
+    outline: 3px solid var(--brand-green); outline-offset: 4px;
   }
-  ::selection { background: #d5e8da; color: #173c2d; }
+  ::selection { background: #d6eadf; color: #0b3f26; }
 }
 
 @layer components {

@@ -16,7 +16,7 @@ import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
-import { RequireAuth } from "../components/auth/require-auth";
+import { RedirectIfAuthenticated, RequireAuth } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
 import AdminCustomers from "../pages/admin/customers";
 import { Navigate } from "react-router-dom";
@@ -203,11 +203,11 @@ function AppRoutes() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<RootRoute />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<RedirectIfAuthenticated><Login /></RedirectIfAuthenticated>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<RedirectIfAuthenticated><Register /></RedirectIfAuthenticated>} />
             <Route path="/select-systems" element={<SelectSystems />} />
             <Route path="/requirement" element={<Requirement />} />
             <Route path="/contact" element={<Contact />} />

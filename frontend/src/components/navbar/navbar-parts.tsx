@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Sprout, UserRound } from 'lucide-react';
+import { Check, ChevronDown, UserRound } from 'lucide-react';
+import brandMark from '@/assets/logos/integra-sgi-mark-96.png';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from 'radix-ui';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context-value';
 import type { SupportedLocale } from '@integra/shared/auth';
 import { supportedLocales } from '@/i18n';
-import { profileApi } from '@/api/profile.api';
+import { clearProfilePhoto, loadProfilePhoto, useProfilePhoto } from '@/lib/profile-photo';
 
 const localeNames: Record<SupportedLocale, string> = {
   en: 'English', 'pt-PT': 'Português (Portugal)', fr: 'Français', de: 'Deutsch',
@@ -22,7 +23,7 @@ const menuItem = 'flex min-h-12 cursor-default items-center rounded-md px-3 text
 export function BrandLink() {
   const { t } = useTranslation('navigation');
   return <Link to="/" aria-label={t('brandHome')} className="flex min-h-12 items-center gap-3 rounded-md">
-    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-white"><Sprout aria-hidden="true" className="size-6" /></span>
+    <img src={brandMark} alt="" width={44} height={44} className="size-11 shrink-0" />
     <span className="text-2xl font-bold tracking-tight">integra<span className="ml-2 text-base font-medium text-muted-foreground">SGI</span></span>
   </Link>;
 }
@@ -89,49 +90,56 @@ export function AccountMenu({ wide = false, align = 'end' }: { wide?: boolean; a
   const auth = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [photoLoaded, setPhotoLoaded] = useState(false);
+  const photoUrl = useProfilePhoto();
+  const [retriedPhoto, setRetriedPhoto] = useState<string | null>(null);
+  const userId = auth.status === 'authenticated' ? auth.user.id : null;
+  useEffect(() => { if (userId) loadProfilePhoto(userId).catch(() => { /* the menu falls back to initials */ }); }, [userId]);
   if (auth.status !== 'authenticated') return null;
-  const initials = auth.user.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]?.toLocaleUpperCase()).join('');
+  // The account belongs to the organization; the person's name is only a fallback.
+  const displayName = auth.profile.organization.name.trim() || auth.user.name.trim();
+  const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]?.toLocaleUpperCase()).join('');
 
   async function logout() {
     setError('');
     try {
-      navigate('/login', { replace: true });
+      // Leave first so protected pages do not redirect to /login?returnTo=…; the state tells
+      // the sign-in page not to bounce a session that is still closing back to the dashboard.
+      navigate('/login', { replace: true, state: { signingOut: true } });
       await auth.logout();
+      clearProfilePhoto();
     } catch {
       setError(t('logoutError'));
     }
   }
 
-  async function loadPhoto() {
-    setPhotoLoaded(false);
-    try { setPhotoUrl(await profileApi.getPhoto()); }
-    catch { setPhotoUrl(null); }
-    finally { setPhotoLoaded(true); }
+  // Signed URLs expire after a few minutes; ask for a fresh one once when the image stops loading.
+  function photoFailed() {
+    if (!photoUrl || !userId || retriedPhoto === photoUrl) return;
+    setRetriedPhoto(photoUrl);
+    loadProfilePhoto(userId, { fresh: true }).catch(() => { /* keep the initials */ });
   }
 
   const avatar = <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
-    {photoLoaded && photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" /> : initials || <UserRound aria-hidden="true" className="size-6" />}
+    {photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" onError={photoFailed} /> : initials || <UserRound aria-hidden="true" className="size-6" />}
   </span>;
 
   return <>
-    <DropdownMenu.Root onOpenChange={open => { if (open) void loadPhoto(); }}>
+    <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         {wide
-          ? <Button variant="outline" aria-label={t('accountMenu', { name: auth.user.name })} className="h-auto min-h-14 w-full justify-start gap-3 px-3 py-2 text-left">
+          ? <Button variant="outline" aria-label={t('accountMenu', { name: displayName })} className="h-auto min-h-14 w-full justify-start gap-3 px-3 py-2 text-left">
             {avatar}
-            <span aria-hidden="true" className="min-w-0 flex-1"><span className="block truncate font-semibold">{t('myAccount')}</span><span className="block truncate text-sm font-normal text-muted-foreground">{auth.user.name}</span></span>
+            <span aria-hidden="true" className="min-w-0 flex-1"><span className="block truncate font-semibold">{t('myAccount')}</span><span className="block truncate text-sm font-normal text-muted-foreground">{displayName}</span></span>
             <ChevronDown aria-hidden="true" className="size-4 shrink-0" />
           </Button>
-          : <Button variant="outline" size="icon" aria-label={t('accountMenu', { name: auth.user.name })} className="size-12 rounded-full p-0 sm:w-auto sm:gap-2 sm:rounded-lg sm:pr-3">
+          : <Button variant="outline" size="icon" aria-label={t('accountMenu', { name: displayName })} className="size-12 rounded-full p-0 sm:w-auto sm:gap-2 sm:rounded-lg sm:pr-3">
             {avatar}
             <span aria-hidden="true" className="hidden whitespace-nowrap sm:inline">{t('myAccount')}</span>
           </Button>}
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content align={align} side={wide ? 'top' : 'bottom'} sideOffset={6} className={menuContent}>
-          <div className="border-b px-3 py-3"><p className="text-base font-semibold">{auth.user.name}</p><p className="text-sm text-muted-foreground">{auth.user.email}</p></div>
+          <div className="border-b px-3 py-3"><p className="text-base font-semibold">{displayName}</p><p className="text-sm text-muted-foreground">{auth.user.email}</p></div>
           <DropdownMenu.Item asChild className={menuItem}>
             <Link to="/profile">{t('profile')}</Link>
           </DropdownMenu.Item>

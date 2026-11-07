@@ -38,7 +38,7 @@ export default function SelectSystems() {
     try {
       const selectedSystems = Object.entries(systems).filter(([, enabled]) => enabled).map(([system]) => system as "sgq" | "sga" | "sgsst");
       await auth.register({
-        name: representative.name,
+        name: organization.name,
         email: organization.email,
         password,
         locale: supportedLocales.includes(i18n.resolvedLanguage as SupportedLocale) ? i18n.resolvedLanguage as SupportedLocale : "pt-PT",

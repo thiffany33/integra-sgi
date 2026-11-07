@@ -43,6 +43,21 @@ function invalidFields(step: Step, answers: DiscoveryAnswers): Record<string, st
   return errors;
 }
 
+/** Empty values mean "not answered", so clearing a field and leaving counts as unchanged. */
+function comparable(value: unknown): unknown {
+  if (Array.isArray(value)) return value.length ? value.map(comparable) : undefined;
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value).map(([key, item]) => [key, comparable(item)] as const)
+      .filter(([, item]) => item !== undefined).sort(([a], [b]) => a.localeCompare(b));
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  }
+  return value === '' || value === null ? undefined : value;
+}
+
+function stepChanged(step: Step, answers: DiscoveryAnswers, state: OrganizationDiscoveryState): boolean {
+  return JSON.stringify(comparable(answers[step])) !== JSON.stringify(comparable(answersFromState(state)[step]));
+}
+
 /** `?step=N` opens one saved group for editing from the dashboard. */
 function editStepFromSearch(search: URLSearchParams): Step | null {
   const step = Number(search.get('step'));
@@ -98,6 +113,15 @@ export default function OrganizationDiscovery() {
     if (!state || !answers || screen < 1 || screen > 5 || busy) return;
     const step = screen as Step;
     const leaving = action === 'leave' ? '/dashboard' : action === 'navigate' ? destination ?? null : null;
+    // Saving marks the step as done, so moving away from an untouched step must not save it.
+    if (action !== 'next' && !stepChanged(step, answers, state)) {
+      setErrors({}); setMessage(null); setPendingLeave(null);
+      if (leaving) { void navigate(leaving); return; }
+      if (mode === 'edit-dashboard') { void navigate('/dashboard'); return; }
+      if (mode === 'edit-summary') { setScreen(6); setMode('flow'); return; }
+      setScreen(step === 1 ? 0 : (step - 1) as Screen); setEditingReview(false);
+      return;
+    }
     const problems = invalidFields(step, answers);
     if (Object.keys(problems).length) {
       setErrors(problems); setMessage('fixFields'); setPendingLeave(leaving);
@@ -179,6 +203,6 @@ export default function OrganizationDiscovery() {
     {screen >= 1 && screen <= 5 ? <OrganizationDiscoveryStep step={screen as Step} mode={mode} answers={answers} profile={auth.profile} errors={errors} onChange={setAnswers} onNext={() => void save('next')} onBack={() => void save('back')} onLeave={() => void save('leave')} onCancelEdit={cancelEdit} busy={busy} />
       : state.status === 'COMPLETED' ? <OrganizationDiscoveryComplete state={state} onEdit={step => { setScreen(step); setMode('edit-summary'); setMessage(null); }} />
       : screen === 0 ? <OrganizationDiscoveryIntro onStart={() => { setScreen(1); setMessage(null); }} />
-      : <OrganizationDiscoveryReview state={state} profile={auth.profile} busy={busy} onEdit={step => { setScreen(step); setEditingReview(true); setMessage(null); }} onComplete={() => void complete()} />}
+      : <OrganizationDiscoveryReview state={state} profile={auth.profile} busy={busy} onEdit={step => { setScreen(step); setEditingReview(true); setMessage(null); }} onBack={() => { setScreen(5); setEditingReview(false); setMessage(null); }} onComplete={() => void complete()} />}
   </>;
 }

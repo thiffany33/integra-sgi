@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth, type AuthContextValue } from '@/contexts/auth-context-value';
 import { profileApi } from '@/api/profile.api';
+import { loadProfilePhoto, setProfilePhoto, useProfilePhoto } from '@/lib/profile-photo';
 
 type Organization = UpdateCustomerProfileInput['profile']['organization'];
 type Representative = UpdateCustomerProfileInput['profile']['representative'];
@@ -42,16 +43,16 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
   const [hasProfileConflict, setHasProfileConflict] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<Message>(null);
   const [busy, setBusy] = useState<'account' | 'organization' | 'password' | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const photoUrl = useProfilePhoto();
   const [photoMessage, setPhotoMessage] = useState<Message>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
-    profileApi.getPhoto().then(url => { if (active) setPhotoUrl(url); })
+    loadProfilePhoto(auth.user.id, { fresh: true })
       .catch(() => { if (active) setPhotoMessage({ kind: 'error', text: t('photoLoadError') }); });
     return () => { active = false; };
-  }, [t]);
+  }, [t, auth.user.id]);
 
   async function uploadPhoto(file: File | undefined, input: HTMLInputElement) {
     if (!file) return;
@@ -62,7 +63,8 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
     }
     setPhotoBusy(true); setPhotoMessage(null);
     try {
-      setPhotoUrl(await profileApi.uploadPhoto(file));
+      const url = await profileApi.uploadPhoto(file);
+      setProfilePhoto(auth.user.id, url);
       setPhotoMessage({ kind: 'success', text: t('photoSaved') });
     } catch (error) {
       const code = errorCode(error);
@@ -80,7 +82,7 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
   async function removePhoto() {
     setPhotoBusy(true); setPhotoMessage(null);
     try {
-      await profileApi.removePhoto(); setPhotoUrl(null);
+      await profileApi.removePhoto(); setProfilePhoto(auth.user.id, null);
       setPhotoMessage({ kind: 'success', text: t('photoRemoved') });
     } catch { setPhotoMessage({ kind: 'error', text: t('photoRemoveError') }); }
     finally { setPhotoBusy(false); }

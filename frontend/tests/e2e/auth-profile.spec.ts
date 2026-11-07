@@ -32,7 +32,7 @@ test('login recarrega perfil pelo servidor e regressa ao requisito pedido', asyn
   await expect(nav.getByRole('link', { name: 'Modelos' })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
   await page.route('**/api/v1/auth/logout', route => route.fulfill({ status: 204, body: '' }));
-  const accountMenu = nav.getByRole('button', { name: 'Menu da conta de Maria Silva' });
+  const accountMenu = nav.getByRole('button', { name: 'Menu da conta de Cooperativa Exemplo' });
   await accountMenu.click();
   await page.getByRole('menuitem', { name: 'Sair' }).click();
   await expect(page).toHaveURL(/\/login$/);
@@ -101,9 +101,21 @@ test('menu da conta mostra iniciais e reúne perfil e saída', async ({ page }) 
   await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 200, json: authPayload }));
   await page.route('**/api/v1/customers/me', route => route.fulfill({ status: 200, json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
   await page.goto('/dashboard');
-  const accountMenu = page.getByRole('button', { name: 'Menu da conta de Maria Silva' });
-  await expect(accountMenu).toContainText('MS');
+  const accountMenu = page.getByRole('button', { name: 'Menu da conta de Cooperativa Exemplo' });
+  await expect(accountMenu).toContainText('CE');
+  await expect(accountMenu).toContainText('Cooperativa Exemplo');
   await accountMenu.click();
   await expect(page.getByRole('menuitem', { name: 'O meu perfil' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Sair' })).toBeVisible();
 });
+
+test('uma sessão válida não vê o login nem o cadastro e segue para o destino', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 200, json: authPayload }));
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ status: 200, json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
+  await page.goto('/login');
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto('/login?returnTo=%2Fprofile');
+  await expect(page).toHaveURL(/\/profile$/);
+  await page.goto('/register');
+  await expect(page).toHaveURL(/\/dashboard$/);
+})
