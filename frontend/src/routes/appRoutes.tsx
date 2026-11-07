@@ -17,7 +17,7 @@ import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
-import { RedirectIfAuthenticated, RequireAuth } from "../components/auth/require-auth";
+import { RedirectIfAuthenticated, RequireAuth, RequireCustomer } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
 import { homePath } from "../lib/return-to";
 import AdminCustomers from "../pages/admin/customers";
@@ -219,9 +219,10 @@ function AppRoutes() {
             <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
             <Route path="/admin/insights" element={<RequirePlatformAdmin><AdminInsights /></RequirePlatformAdmin>} />
             <Route element={<RequireAuth><Outlet /></RequireAuth>}>
+            <Route path="/profile" element={<Profile />} />
+            <Route element={<RequireCustomer><Outlet /></RequireCustomer>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/organization-discovery" element={<OrganizationDiscovery />} />
-            <Route path="/profile" element={<Profile />} />
             <Route path="/downloads" element={<Downloads />} />
 
             {/* Requisito 4 */}
@@ -291,6 +292,7 @@ function AppRoutes() {
             <Route path="/requirement10" element={<Requirement10 />} />
             <Route path="/requirement10_1" element={<Requirement10_1 />} />
             <Route path="/requirement10_2" element={<Requirement10_2 />} />
+            </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Route>

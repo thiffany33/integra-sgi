@@ -326,3 +326,14 @@ test('admin deletes a company only after confirming with their own password', as
   await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo', exact: true })).toHaveCount(0);
   expect(attempts).toEqual([{ password: 'wrong-password' }, { password: 'right-password' }]);
 });
+
+test('admin opening a customer page by URL goes to the indicators', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  await page.route('**/api/v1/admin/insights', route => route.fulfill({ status: 500, json: {} }));
+  for (const path of ['/dashboard', '/organization-discovery', '/downloads', '/requirement4_1']) {
+    await page.goto(path);
+    await expect(page).toHaveURL('/admin/insights');
+  }
+  await page.goto('/profile');
+  await expect(page).toHaveURL('/profile');
+});
