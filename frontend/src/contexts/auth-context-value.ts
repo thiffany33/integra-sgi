@@ -14,6 +14,8 @@ export type AuthContextValue = AuthState & {
   refresh: () => Promise<void>;
   retry: () => Promise<void>;
   login: (email: string, password: string) => Promise<AuthUser>;
+  /** `leave` runs after the deletion succeeds and before the session is cleared, so the caller can navigate first. */
+  deleteAccount: (password: string, leave?: () => void) => Promise<void>;
   register: (input: { name: string; email: string; password: string; locale: SupportedLocale; profile: CustomerProfileInput }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (profile: CustomerProfileInput) => Promise<void>;

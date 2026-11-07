@@ -21,6 +21,6 @@ import { SessionGuard } from './session.guard';
     PasswordHashingService,
     SessionGuard,
   ],
-  exports: [AuthService, AuthRateLimitService, SessionGuard],
+  exports: [AuthService, AuthRateLimitService, PasswordHashingService, SessionGuard],
 })
 export class AuthModule {}

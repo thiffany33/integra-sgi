@@ -72,7 +72,7 @@ O tratamento de dados pessoais segue o RGPD. O detalhe para os utilizadores est�
 - **Minimização**: recolhem-se apenas os dados da organização (nome, NIF, setor, email), do representante (nome, email, telefone), a foto de perfil opcional e as respostas ao diagnóstico.
 - **Finalidade**: prestação do serviço de apoio à implementação de sistemas de gestão.
 - **Dados agregados**: os indicadores do painel de administração usam apenas dados agregados e não expõem respostas individuais fora do perfil de administração.
-- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): a retificação está disponível no perfil. Até existir uma funcionalidade dedicada, o acesso, a exportação e o apagamento são tratados a pedido pelo contacto de privacidade, no prazo legal de 30 dias.
+- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não se podem apagar a si próprias. Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de 30 dias.
 - **Subcontratantes**: Vercel (alojamento), Neon (base de dados e ficheiros), Resend (email).
 
 ## 7. Testes de invasão
@@ -131,7 +131,6 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o con
 | Lacuna | Estado |
 | --- | --- |
 | Registo de auditoria (login, alteração de perfil, permissões, apagamentos) | Por implementar. |
-| Exportação e apagamento de conta pelo próprio utilizador | Por implementar; hoje tratados a pedido. |
 | Scan automático (OWASP ZAP baseline) contra homologação no CI | Proposto. |
 | Contacto público de segurança e de privacidade | A definir. |
 | Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |

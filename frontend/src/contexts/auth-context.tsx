@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { CustomerProfileInput } from '@integra/shared/profile';
 import type { SupportedLocale } from '@integra/shared/auth';
 import type { ChangePasswordInput, UpdateAccountInput, UpdateCustomerProfileInput } from '@integra/shared/auth';
 import { authApi, type AuthUser } from '../api/auth.api';
+import { accountApi } from '../api/account.api';
 import { customersApi } from '../api/customers.api';
 import { profileApi } from '../api/profile.api';
 import { AuthContext, type AuthContextValue, type AuthState } from './auth-context-value';
@@ -49,6 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ status: 'anonymous', user: null, profile: null, error: null });
   }, []);
 
+  const deleteAccount = useCallback(async (password: string, leave?: () => void) => {
+    await accountApi.delete(password);
+    // The router navigates in a transition; clearing the session in the same one keeps RequireAuth
+    // from redirecting the deleted account's page before the caller's navigation lands.
+    startTransition(() => {
+      leave?.();
+      setState({ status: 'anonymous', user: null, profile: null, error: null });
+    });
+  }, []);
+
   const logout = useCallback(async () => {
     await authApi.logout();
     setState({ status: 'anonymous', user: null, profile: null, error: null });
@@ -92,8 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const value = useMemo<AuthContextValue>(() => ({
-    ...state, refresh, retry: refresh, login, register, logout, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale,
-  }), [state, refresh, login, register, logout, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale]);
+    ...state, refresh, retry: refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale,
+  }), [state, refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

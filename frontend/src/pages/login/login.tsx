@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import axios from 'axios';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Info } from 'lucide-react';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,6 +19,7 @@ export default function Login() {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const accountDeleted = (useLocation().state as { accountDeleted?: boolean } | null)?.accountDeleted === true;
   const returnTo = safeReturnTo(searchParams.get('returnTo'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,6 +66,7 @@ export default function Login() {
     <div id="access-panel" role="tabpanel" aria-labelledby="access-login-tab">
     <PageHeading title={t('loginTitle')} description={t('loginDescription')} />
     <Card className="shadow-none"><CardContent className="space-y-6">
+      {accountDeleted && <p role="status" className="rounded-lg border border-primary/30 bg-secondary/50 px-4 py-3 text-base text-secondary-foreground">{t('accountDeleted')}</p>}
       <Alert role="note"><Info aria-hidden="true" /><AlertTitle>{t('loginInfoTitle')}</AlertTitle><AlertDescription>{t('loginInfo')}</AlertDescription></Alert>
       {auth.status === 'unavailable' && <Alert variant="destructive"><AlertDescription>{auth.error} <button type="button" className="text-link" onClick={() => void auth.retry()}>{t('retry', { ns: 'common' })}</button></AlertDescription></Alert>}
       <form className="space-y-5" onSubmit={submit}>
