@@ -9,6 +9,7 @@ import Dashboard from "../pages/dashboard/dashboard";
 import Requirement from "../pages/requirement/requirement";
 import Downloads from "../pages/downloads/downloads";
 import Contact from "../pages/contact/contact";
+import Privacy from "../pages/privacy/privacy";
 import NotFound from "../pages/notFound/notFound";
 import Layout from "../components/layout/layout";
 import Representative from "../pages/representative/representative";
@@ -19,6 +20,7 @@ import Profile from "../pages/profile/profile";
 import { RedirectIfAuthenticated, RequireAuth } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
 import AdminCustomers from "../pages/admin/customers";
+import AdminInsights from "../pages/admin/insights";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth-context-value";
 import { useTranslation } from "react-i18next";
@@ -211,8 +213,10 @@ function AppRoutes() {
             <Route path="/select-systems" element={<SelectSystems />} />
             <Route path="/requirement" element={<Requirement />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacidade" element={<Privacy />} />
             <Route path="/representative" element={<Representative />} />
             <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
+            <Route path="/admin/insights" element={<RequirePlatformAdmin><AdminInsights /></RequirePlatformAdmin>} />
             <Route element={<RequireAuth><Outlet /></RequireAuth>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/organization-discovery" element={<OrganizationDiscovery />} />

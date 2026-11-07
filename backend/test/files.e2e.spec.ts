@@ -33,7 +33,7 @@ describe('private template downloads', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(AuthService)
       .useValue({ validateSession: async (token: string) => token === 'valid'
-        ? { userId: 'test-user', role: 'CUSTOMER' }
+        ? { userId: 'test-user', isAdmin: false }
         : null })
       .overrideProvider(ObjectStorageService)
       .useValue({ getSignedReadUrl })

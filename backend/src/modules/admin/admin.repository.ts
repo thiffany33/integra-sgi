@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type { CustomerProfileInput, SelectedSystem } from '@integra/shared/profile';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
+import type { InsightCustomer } from './admin-insights';
+
+const DISCOVERY_FLOW_KEY = 'organization-discovery';
+const DISCOVERY_CODES = ['4.1', '4.4', '6.1'];
 
 export type CustomerSummary = {
   userId: string;
@@ -48,14 +52,14 @@ export class AdminRepository {
   async listCustomers(input: { search?: string; cursor?: string; limit: number }): Promise<{ items: CustomerSummary[]; nextCursor: string | null } | 'INVALID_CURSOR'> {
     if (input.cursor) {
       const exists = await this.prisma.user.findFirst({
-        where: { id: input.cursor, role: 'CUSTOMER', customerProfile: { isNot: null } }, select: { id: true },
+        where: { id: input.cursor, isAdmin: false, customerProfile: { isNot: null } }, select: { id: true },
       });
       if (!exists) return 'INVALID_CURSOR';
     }
     const search = input.search?.trim();
     const rows = await this.prisma.user.findMany({
       where: {
-        role: 'CUSTOMER',
+        isAdmin: false,
         customerProfile: { isNot: null },
         ...(input.cursor ? { id: { gt: input.cursor } } : {}),
         ...(search ? { OR: [
@@ -80,9 +84,9 @@ export class AdminRepository {
     return this.prisma.$transaction(async (transaction) => {
       const user = await transaction.user.findUnique({
         where: { id: targetUserId },
-        select: { ...customerSelect, role: true },
+        select: { ...customerSelect, isAdmin: true },
       });
-      if (!user || user.role !== 'CUSTOMER' || !user.customerProfile) return 'NOT_FOUND';
+      if (!user || user.isAdmin || !user.customerProfile) return 'NOT_FOUND';
       if (user.customerProfile.revision !== revision) return 'CONFLICT';
 
       const existing = user.customerProfile.data as CustomerProfileInput;
@@ -107,5 +111,25 @@ export class AdminRepository {
       });
       return summary({ id: user.id, name: user.name, email: user.email, customerProfile: profile });
     });
+  }
+
+  async insightCustomers(): Promise<InsightCustomer[]> {
+    const rows = await this.prisma.user.findMany({
+      where: { isAdmin: false },
+      select: {
+        createdAt: true,
+        emailVerifiedAt: true,
+        customerProfile: { select: { data: true } },
+        guidedFlows: { where: { flowKey: DISCOVERY_FLOW_KEY }, select: { status: true, currentStep: true } },
+        requirementResponses: { where: { requirementCode: { in: DISCOVERY_CODES } }, select: { requirementCode: true, data: true } },
+      },
+    });
+    return rows.map((row) => ({
+      createdAt: row.createdAt,
+      emailVerifiedAt: row.emailVerifiedAt,
+      profile: row.customerProfile?.data ?? null,
+      discovery: row.guidedFlows[0] ?? null,
+      responses: Object.fromEntries(row.requirementResponses.map((response) => [response.requirementCode, response.data])),
+    }));
   }
 }

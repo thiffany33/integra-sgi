@@ -2,64 +2,53 @@ import { describe, expect, it, vi } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import { seedPlatformAdmin } from '../prisma/seed-platform-admin';
 
-describe('seedPlatformAdmin', () => {
-  const input = {
-    appEnv: 'development',
-    name: 'Local Admin',
-    email: '  ADMIN@EXAMPLE.PT ',
-    password: 'a-strong-local-password',
+function fakeDatabase(existing: { id: string } | null) {
+  const user = {
+    findUnique: vi.fn().mockResolvedValue(existing),
+    create: vi.fn().mockResolvedValue({ id: 'new-admin' }),
   };
+  const database = { $transaction: vi.fn((work: (transaction: { user: typeof user }) => unknown) => work({ user })) };
+  return { database: database as never, user };
+}
 
-  it.each(['test', 'homolog', 'production', undefined])('refuses APP_ENV=%s before touching persistence', async (appEnv) => {
-    const database = { user: { upsert: vi.fn() }, customerProfile: { upsert: vi.fn() } };
-    const hashPassword = vi.fn();
-    await expect(seedPlatformAdmin({ ...input, appEnv }, database, hashPassword)).rejects.toThrow('APP_ENV=development');
-    expect(database.user.upsert).not.toHaveBeenCalled();
-    expect(hashPassword).not.toHaveBeenCalled();
-  });
+describe('seedPlatformAdmin', () => {
+  const input = { name: 'Admin', email: '  ADMIN@EXAMPLE.PT ', password: 'a-strong-admin-password' };
 
-  it('validates required inputs and does not touch persistence for invalid values', async () => {
-    const database = { user: { upsert: vi.fn() }, customerProfile: { upsert: vi.fn() } };
+  it('validates required inputs before touching persistence', async () => {
+    const { database, user } = fakeDatabase(null);
+    await expect(seedPlatformAdmin({ ...input, name: ' ' }, database, vi.fn())).rejects.toThrow('SEED_ADMIN_NAME');
     await expect(seedPlatformAdmin({ ...input, email: 'bad' }, database, vi.fn())).rejects.toThrow('SEED_ADMIN_EMAIL');
     await expect(seedPlatformAdmin({ ...input, password: 'short' }, database, vi.fn())).rejects.toThrow('SEED_ADMIN_PASSWORD');
-    expect(database.user.upsert).not.toHaveBeenCalled();
+    expect(user.findUnique).not.toHaveBeenCalled();
   });
 
-  it('upserts a verified platform administrator and profile using a hashed password', async () => {
-    const user = { id: 'local-admin' };
-    const database = {
-      user: { upsert: vi.fn().mockResolvedValue(user) },
-      customerProfile: { upsert: vi.fn().mockResolvedValue({ id: 'profile' }) },
-    };
+  it('creates a verified administrator with a profile and a hashed password', async () => {
+    const { database, user } = fakeDatabase(null);
     const hashPassword = vi.fn().mockResolvedValue('argon2-hash');
-
-    await seedPlatformAdmin(input, database, hashPassword);
-
+    expect(await seedPlatformAdmin(input, database, hashPassword)).toEqual({ status: 'created', userId: 'new-admin' });
     expect(hashPassword).toHaveBeenCalledWith(input.password);
-    expect(database.user.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { email: 'admin@example.pt' },
-      create: expect.objectContaining({
-        name: 'Local Admin', email: 'admin@example.pt', passwordHash: 'argon2-hash',
-        role: 'PLATFORM_ADMIN', emailVerifiedAt: expect.any(Date),
-      }),
-      update: expect.objectContaining({
-        name: 'Local Admin', passwordHash: 'argon2-hash', role: 'PLATFORM_ADMIN',
+    expect(user.findUnique).toHaveBeenCalledWith({ where: { email: 'admin@example.pt' }, select: { id: true } });
+    expect(user.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        name: 'Admin', email: 'admin@example.pt', passwordHash: 'argon2-hash', isAdmin: true,
         emailVerifiedAt: expect.any(Date),
+        customerProfile: { create: { data: expect.objectContaining({ schemaVersion: 1 }) } },
       }),
-    }));
-    expect(database.customerProfile.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { userId: user.id },
-      create: expect.objectContaining({ userId: user.id, data: expect.objectContaining({ schemaVersion: 1 }) }),
-      update: {},
     }));
   });
 
-  it('refuses a non-development CLI environment before attempting a database connection', () => {
+  it('skips an existing account without changing it', async () => {
+    const { database, user } = fakeDatabase({ id: 'existing' });
+    expect(await seedPlatformAdmin(input, database, vi.fn().mockResolvedValue('hash'))).toEqual({ status: 'skipped', userId: 'existing' });
+    expect(user.create).not.toHaveBeenCalled();
+  });
+
+  it('fails without DATABASE_URL and never prints the password', () => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'prisma/seed-platform-admin.ts'], {
       cwd: process.cwd(), encoding: 'utf8', timeout: 15_000,
       env: {
         ...process.env,
-        APP_ENV: 'production',
+        DOTENV_CONFIG_PATH: '/dev/null',
         DATABASE_URL: '',
         SEED_ADMIN_NAME: 'Secret Name',
         SEED_ADMIN_EMAIL: 'secret@example.pt',
@@ -68,7 +57,7 @@ describe('seedPlatformAdmin', () => {
     });
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
-    expect(result.stderr.trim()).toBe('The platform administrator seed can only run with APP_ENV=development.');
-    expect(result.stderr).not.toContain('a-secret-password-that-must-not-leak');
+    expect(result.stderr.trim()).toBe('DATABASE_URL is required.');
+    expect(`${result.stdout}${result.stderr}`).not.toContain('a-secret-password-that-must-not-leak');
   });
 });

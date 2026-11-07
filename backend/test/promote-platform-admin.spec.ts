@@ -15,7 +15,7 @@ describe('promotePlatformAdmin', () => {
     const prisma = { user: { findUnique: vi.fn().mockResolvedValue({ id: 'user-1' }), update: vi.fn().mockResolvedValue({ id: 'user-1' }) } };
     await promotePlatformAdmin('  ADMIN@EXAMPLE.PT ', prisma);
     expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: 'admin@example.pt' }, select: { id: true } });
-    expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'user-1' }, data: { role: 'PLATFORM_ADMIN' }, select: { id: true } });
+    expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'user-1' }, data: { isAdmin: true }, select: { id: true } });
   });
 
   it('does not print database connection details when the promotion command fails unexpectedly', () => {

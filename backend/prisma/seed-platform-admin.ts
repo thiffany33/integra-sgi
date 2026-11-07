@@ -3,13 +3,13 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { z } from 'zod';
 import { Prisma, PrismaClient } from '../src/generated/prisma/client';
 
-type SeedDatabase = Pick<PrismaClient, 'user' | 'customerProfile'>;
+type SeedDatabase = Pick<PrismaClient, '$transaction'>;
 type SeedInput = {
-  appEnv: string | undefined;
   name: string | undefined;
   email: string | undefined;
   password: string | undefined;
 };
+export type SeedResult = { status: 'created' | 'skipped'; userId: string };
 
 class SeedConfigurationError extends Error {}
 
@@ -20,15 +20,16 @@ const profileFor = (name: string, email: string): Prisma.InputJsonValue => ({
   selectedSystems: ['sgq'],
 });
 
+/**
+ * Creates the platform administrator when no account uses SEED_ADMIN_EMAIL. An existing account is
+ * left exactly as it is (password, name and admin flag included), so the seed is safe to rerun in
+ * any environment; use db:promote-platform-admin to make an existing account an administrator.
+ */
 export async function seedPlatformAdmin(
   input: SeedInput,
   database: SeedDatabase,
   hashPassword: (password: string) => Promise<string>,
-): Promise<string> {
-  if (input.appEnv !== 'development') {
-    throw new SeedConfigurationError('The platform administrator seed can only run with APP_ENV=development.');
-  }
-
+): Promise<SeedResult> {
   const name = z.string().trim().min(1).max(160).safeParse(input.name);
   if (!name.success) throw new SeedConfigurationError('SEED_ADMIN_NAME must be provided (1–160 characters).');
   const email = z.string().trim().email().max(254).transform((value) => value.toLowerCase()).safeParse(input.email);
@@ -37,52 +38,50 @@ export async function seedPlatformAdmin(
   if (!password.success) throw new SeedConfigurationError('SEED_ADMIN_PASSWORD must be 12–128 characters.');
 
   const passwordHash = await hashPassword(password.data);
-  const now = new Date();
-  const user = await database.user.upsert({
-    where: { email: email.data },
-    create: {
-      name: name.data,
-      email: email.data,
-      passwordHash,
-      role: 'PLATFORM_ADMIN',
-      emailVerifiedAt: now,
-    },
-    update: {
-      name: name.data,
-      passwordHash,
-      role: 'PLATFORM_ADMIN',
-      emailVerifiedAt: now,
-    },
-    select: { id: true },
-  });
-  await database.customerProfile.upsert({
-    where: { userId: user.id },
-    create: { userId: user.id, data: profileFor(name.data, email.data) },
-    // Keep any locally edited profile answers when rerunning the seed.
-    update: {},
-    select: { id: true },
-  });
-  return user.id;
+  try {
+    return await database.$transaction(async (transaction) => {
+      const existing = await transaction.user.findUnique({ where: { email: email.data }, select: { id: true } });
+      if (existing) return { status: 'skipped', userId: existing.id };
+      const user = await transaction.user.create({
+        data: {
+          name: name.data,
+          email: email.data,
+          passwordHash,
+          isAdmin: true,
+          emailVerifiedAt: new Date(),
+          customerProfile: { create: { data: profileFor(name.data, email.data) } },
+        },
+        select: { id: true },
+      });
+      return { status: 'created', userId: user.id };
+    });
+  } catch (error) {
+    // Another run created the same account in the meantime.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const existing = await database.$transaction((transaction) =>
+        transaction.user.findUniqueOrThrow({ where: { email: email.data }, select: { id: true } }));
+      return { status: 'skipped', userId: existing.id };
+    }
+    throw error;
+  }
 }
 
 async function main(): Promise<void> {
-  // Fail closed before constructing a client: a typo or deployed environment must never be seeded.
-  if (process.env.APP_ENV !== 'development') {
-    throw new SeedConfigurationError('The platform administrator seed can only run with APP_ENV=development.');
-  }
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new SeedConfigurationError('DATABASE_URL is required.');
+  const input = {
+    name: process.env.SEED_ADMIN_NAME,
+    email: process.env.SEED_ADMIN_EMAIL,
+    password: process.env.SEED_ADMIN_PASSWORD,
+  };
 
   const database = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
   try {
     const argon2 = await import('argon2');
-    await seedPlatformAdmin({
-      appEnv: process.env.APP_ENV,
-      name: process.env.SEED_ADMIN_NAME,
-      email: process.env.SEED_ADMIN_EMAIL,
-      password: process.env.SEED_ADMIN_PASSWORD,
-    }, database, (password) => argon2.hash(password, { type: argon2.argon2id }));
-    process.stdout.write('Local development platform administrator seeded. Use the credentials configured in backend/.env.\n');
+    const result = await seedPlatformAdmin(input, database, (password) => argon2.hash(password, { type: argon2.argon2id }));
+    process.stdout.write(result.status === 'created'
+      ? 'Platform administrator created.\n'
+      : 'An account with SEED_ADMIN_EMAIL already exists; skipped without changes.\n');
   } finally {
     await database.$disconnect();
   }

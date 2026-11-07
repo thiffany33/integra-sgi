@@ -121,7 +121,7 @@ test('os modelos do capítulo 9 estão nas páginas certas e na página de model
   for (const [path, links] of pages) {
     await page.goto(path)
     await page.getByRole('button', { name: 'Ferramentas de apoio' }).click()
-    for (const [name, id] of links) await expect(page.getByRole('link', { name, exact: true })).toHaveAttribute('href', url(id))
+    for (const [name, id] of links) await expect(page.getByRole('link', { name: `${name} (abre num novo separador)`, exact: true })).toHaveAttribute('href', url(id))
   }
   await page.goto('/downloads')
   const chapter9 = page.getByRole('region', { name: 'Requisito 9' })

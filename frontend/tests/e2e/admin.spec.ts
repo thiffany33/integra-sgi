@@ -5,8 +5,8 @@ const customer = {
   selectedSystems: ['sgq'], revision: 1, updatedAt: '2026-10-04T12:00:00.000Z',
 };
 
-async function signInAs(page: Page, role: 'CUSTOMER' | 'PLATFORM_ADMIN') {
-  const user = { id: role === 'CUSTOMER' ? 'customer-1' : 'admin-1', name: 'Utilizador', email: 'user@example.pt', locale: 'pt-PT', emailVerifiedAt: null, role };
+async function signInAs(page: Page, role: 'CUSTOMER' | 'ADMIN') {
+  const user = { id: role === 'CUSTOMER' ? 'customer-1' : 'admin-1', name: 'Utilizador', email: 'user@example.pt', locale: 'pt-PT', emailVerifiedAt: null, isAdmin: role === 'ADMIN' };
   const profile = {
     schemaVersion: 1, organization: { name: 'Exemplo', nif: '123456789', sector: 'Serviços', email: 'user@example.pt' },
     representative: { name: 'Utilizador', email: '', phone: '' }, selectedSystems: ['sgq'],
@@ -25,7 +25,7 @@ test('customer cannot see or render the platform administration', async ({ page 
 });
 
 test('admin can search for an identified account and explicitly save selected systems', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let matchingSearches = 0;
   await page.route('**/api/v1/admin/customers**', async route => {
     if (route.request().method() === 'PATCH') {
@@ -54,7 +54,7 @@ test('admin can search for an identified account and explicitly save selected sy
 });
 
 test('admin sees a conflict and can refresh before editing again', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let changed = false;
   await page.route('**/api/v1/admin/customers**', async route => {
     if (route.request().method() === 'PATCH') {
@@ -74,7 +74,7 @@ test('admin sees a conflict and can refresh before editing again', async ({ page
 });
 
 test('admin sees a useful list error and can retry', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let attempts = 0;
   await page.route('**/api/v1/admin/customers**', async route => {
     attempts += 1;
@@ -89,7 +89,7 @@ test('admin sees a useful list error and can retry', async ({ page }) => {
 });
 
 test('retry after a failed new search uses the failed query and replaces the displayed list', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   const queries: string[] = [];
   const matched = { ...customer, userId: 'customer-2', name: 'Ana Costa', organizationName: 'Cooperativa Nova' };
   await page.route('**/api/v1/admin/customers**', async route => {
@@ -113,7 +113,7 @@ test('retry after a failed new search uses the failed query and replaces the dis
 });
 
 test('pending save keeps account and search controls stable', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   const second = { ...customer, userId: 'customer-2', organizationName: 'Outra Empresa', email: 'outra@example.pt' };
   let releaseSave!: () => void;
   const savePending = new Promise<void>(resolve => { releaseSave = resolve; });
@@ -140,7 +140,7 @@ test('pending save keeps account and search controls stable', async ({ page }) =
 });
 
 test('a list response started before a save cannot replace the saved revision', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let listCalls = 0;
   let patchCalls = 0;
   let releaseList!: () => void;
@@ -173,7 +173,7 @@ test('a list response started before a save cannot replace the saved revision', 
 });
 
 test('a cancelled search cannot change the query used to paginate the displayed list', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let releaseSearch!: () => void;
   const searchPending = new Promise<void>(resolve => { releaseSearch = resolve; });
   let paginatedQuery: URLSearchParams | null = null;
@@ -204,4 +204,47 @@ test('a cancelled search cannot change the query used to paginate the displayed 
   await page.getByRole('button', { name: 'Ver mais empresas' }).click();
   await expect.poll(() => paginatedQuery?.get('cursor')).toBe('cursor-old');
   expect(paginatedQuery?.has('search')).toBe(false);
+});
+
+const insights = {
+  generatedAt: '2026-11-07T12:00:00.000Z',
+  funnel: { registered: 10, emailVerified: 8, discoveryStarted: 6, discoveryCompleted: 3 },
+  stoppedAtStep: [{ value: '1', count: 0 }, { value: '2', count: 2 }, { value: '3', count: 1 }, { value: '4', count: 0 }, { value: '5', count: 0 }],
+  registrationsByMonth: Array.from({ length: 12 }, (_, index) => ({ value: `${index < 2 ? 2025 : 2026}-${String(((index + 10) % 12) + 1).padStart(2, '0')}`, count: index === 11 ? 4 : 0 })),
+  answered: { organization: 4, activity: 4, processes: 2, attention: 2 },
+  selectedSystems: [{ value: 'sgq', count: 9 }, { value: 'sga', count: 4 }, { value: 'sgsst', count: 2 }],
+  sectors: [{ value: 'Serviços', count: 6 }, { value: 'Indústria', count: 4 }],
+  workforceRanges: [{ value: '1-9', count: 3 }, { value: '10-49', count: 1 }, { value: '50-249', count: 0 }, { value: '250+', count: 0 }],
+  activityTypes: [{ value: 'services', count: 4 }],
+  customerTypes: [{ value: 'businesses', count: 3 }],
+  operatingAreas: [{ value: 'national', count: 2 }],
+  processActivities: [{ value: 'sales', count: 2 }],
+  attentionTopics: [{ value: 'delays', count: 2 }],
+};
+
+test('admin sees aggregated insights with readable counts and shares', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  await page.route('**/api/v1/admin/insights', route => route.fulfill({ json: insights }));
+  await page.goto('/admin/insights');
+  await expect(page.getByRole('heading', { level: 1, name: 'Indicadores' })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: 'Diagnóstico concluído' })).toContainText('30% das contas');
+  await expect(page.getByRole('listitem').filter({ hasText: 'Gestão da Qualidade' })).toContainText('9 · 90%');
+  await expect(page.getByRole('listitem').filter({ hasText: 'Atividade e contexto' })).toContainText('2 · 67%');
+  await expect(page.getByRole('listitem', { name: /: 4 contas$/ })).toHaveCount(1);
+});
+
+test('insights explain a failed load and can retry', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  let calls = 0;
+  await page.route('**/api/v1/admin/insights', route => (++calls === 1 ? route.fulfill({ status: 500, json: {} }) : route.fulfill({ json: insights })));
+  await page.goto('/admin/insights');
+  await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os indicadores');
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.getByText('Contas criadas')).toBeVisible();
+});
+
+test('customer cannot open the insights page', async ({ page }) => {
+  await signInAs(page, 'CUSTOMER');
+  await page.goto('/admin/insights');
+  await expect(page).toHaveURL('/dashboard');
 });

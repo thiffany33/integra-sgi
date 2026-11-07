@@ -57,7 +57,7 @@ describe('platform administrator HTTP flow', () => {
     customerId = customer.id;
     adminCookie = admin.cookie;
     customerCookie = customer.cookie;
-    await prisma.user.update({ where: { id: adminId }, data: { role: 'PLATFORM_ADMIN' } });
+    await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
   }, 30_000);
 
   afterAll(async () => {
@@ -72,6 +72,16 @@ describe('platform administrator HTTP flow', () => {
       .expect(403).expect(({ body }) => expect(body.error.code).toBe('FORBIDDEN'));
     await request(app.getHttpServer()).patch(`/api/v1/admin/customers/${customerId}/systems`)
       .set('Cookie', customerCookie).send({ selectedSystems: ['sga'], revision: 1 }).expect(403);
+  });
+
+  it('serves aggregated insights only to platform administrators', async () => {
+    await request(app.getHttpServer()).get('/api/v1/admin/insights').expect(401);
+    await request(app.getHttpServer()).get('/api/v1/admin/insights').set('Cookie', customerCookie).expect(403);
+    const response = await request(app.getHttpServer()).get('/api/v1/admin/insights').set('Cookie', adminCookie).expect(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.body.funnel.registered).toBeGreaterThanOrEqual(1);
+    expect(response.body.selectedSystems.map((item: { value: string }) => item.value)).toEqual(['sgq', 'sga', 'sgsst']);
+    expect(JSON.stringify(response.body)).not.toContain(marker);
   });
 
   it('searches customer names and emails, with empty and invalid-cursor results', async () => {
@@ -138,7 +148,7 @@ describe('platform administrator HTTP flow', () => {
     }).expect(201);
     const secondAdminUser = await prisma.user.update({
       where: { email: secondAdminEmail },
-      data: { emailVerifiedAt: new Date(), role: 'PLATFORM_ADMIN' },
+      data: { emailVerifiedAt: new Date(), isAdmin: true },
     });
     const secondAdminId = secondAdminUser.id;
     const secondAdminLogin = await request(app.getHttpServer()).post('/api/v1/auth/login').send({

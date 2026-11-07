@@ -42,15 +42,17 @@ npm run db:migrate:dev -- --name init
 npm run dev
 ```
 
-### Acesso administrador local
+### Conta administradora
 
-Para entrar na área administrativa durante o desenvolvimento, defina `SEED_ADMIN_NAME`, `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` no `backend/.env` (use uma senha local com pelo menos 12 caracteres). Depois de iniciar o PostgreSQL e aplicar as migrações, execute:
+Defina `SEED_ADMIN_NAME`, `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` (senha com pelo menos 12 caracteres) e, com as migrações aplicadas, execute:
 
 ```bash
 npm run db:seed --workspace @integra/api
 ```
 
-Use na tela de login exatamente o email e a senha definidos no seu `backend/.env`. O comando cria ou atualiza essa conta como administradora da plataforma, marca o email como verificado e garante um perfil associado. A senha é armazenada com Argon2; o comando não a imprime. Ele recusa qualquer `APP_ENV` diferente de `development`; não configure essas três variáveis na Vercel, em homologação ou em produção.
+Se ainda não existir uma conta com esse email, o comando cria-a como administradora (`isAdmin = true`), com o email verificado e um perfil associado. Se a conta já existir, o comando faz *skip* sem alterar nada: nem a senha, nem o nome, nem o `isAdmin`. Por isso pode ser repetido com segurança. A senha é guardada com Argon2 e nunca é impressa.
+
+Em desenvolvimento, as variáveis ficam no `backend/.env`. Para homologação ou produção, passe-as só na linha de comando, junto com o `DATABASE_URL` desse ambiente, e não as guarde na Vercel. Para tornar administradora uma conta que já existe, use `PLATFORM_ADMIN_EMAIL=… npm run db:promote-platform-admin --workspace @integra/api`.
 
 `npm run dev` inicia web e API. Também existem `npm run dev:web` e `npm run dev:api`. Para verificações locais, use `npm run lint`, `npm run build`, `npm test --workspaces --if-present` e `npm run test:e2e --workspace @integra/web`.
 

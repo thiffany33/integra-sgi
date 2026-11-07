@@ -79,12 +79,12 @@ describe('authentication HTTP flow', () => {
   it('stores the profile and password hash, but leaves email unverified and creates no session', async () => {
     const storedUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, role: true, passwordHash: true, emailVerifiedAt: true, customerProfile: { select: { data: true } } },
+      select: { id: true, isAdmin: true, passwordHash: true, emailVerifiedAt: true, customerProfile: { select: { data: true } } },
     });
     const session = await prisma.session.findFirst({ where: { userId: storedUser!.id } });
 
     expect(storedUser?.passwordHash).not.toBe(password);
-    expect(storedUser?.role).toBe('CUSTOMER');
+    expect(storedUser?.isAdmin).toBe(false);
     expect(storedUser?.emailVerifiedAt).toBeNull();
     expect(storedUser?.customerProfile?.data).toEqual(profile);
     expect(session).toBeNull();
@@ -125,7 +125,7 @@ describe('authentication HTTP flow', () => {
       .send({ email: email.toUpperCase(), password })
       .expect(200);
     expect(loginResponse.body.user.email).toBe(email);
-    expect(loginResponse.body.user.role).toBe('CUSTOMER');
+    expect(loginResponse.body.user.isAdmin).toBe(false);
     expect(loginResponse.body.profile).toEqual(profile);
     expect(loginResponse.body.user).not.toHaveProperty('passwordHash');
 
@@ -171,7 +171,7 @@ describe('authentication HTTP flow', () => {
       .send({ email: email.toUpperCase(), password })
       .expect(200);
     expect(loginResponse.body.user.email).toBe(email);
-    expect(loginResponse.body.user.role).toBe('CUSTOMER');
+    expect(loginResponse.body.user.isAdmin).toBe(false);
     expect(loginResponse.body.profile).toEqual(profile);
     expect(loginResponse.body.user).not.toHaveProperty('passwordHash');
 
@@ -182,20 +182,20 @@ describe('authentication HTTP flow', () => {
       .expect(200)
       .expect(({ body }) => {
         expect(body.profile).toEqual(profile);
-        expect(body.user.role).toBe('CUSTOMER');
+        expect(body.user.isAdmin).toBe(false);
       });
   });
 
-  it('resolves the current role for an existing session', async () => {
+  it('resolves the current admin flag for an existing session', async () => {
     const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
       .send({ email, password }).expect(200);
     const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
-    await prisma.user.update({ where: { id: registrationUserId }, data: { role: 'PLATFORM_ADMIN' } });
+    await prisma.user.update({ where: { id: registrationUserId }, data: { isAdmin: true } });
     try {
       const me = await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200);
-      expect(me.body.user.role).toBe('PLATFORM_ADMIN');
+      expect(me.body.user.isAdmin).toBe(true);
     } finally {
-      await prisma.user.update({ where: { id: registrationUserId }, data: { role: 'CUSTOMER' } });
+      await prisma.user.update({ where: { id: registrationUserId }, data: { isAdmin: false } });
     }
   });
 

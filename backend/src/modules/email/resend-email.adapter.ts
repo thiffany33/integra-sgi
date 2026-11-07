@@ -23,6 +23,7 @@ export class ResendEmailAdapter implements EmailService {
       subject: email.subject,
       html: email.html,
       text: email.text,
+      ...(email.replyTo ? { replyTo: email.replyTo } : {}),
     });
     if (error) throw new Error('Transactional email delivery failed.');
   }

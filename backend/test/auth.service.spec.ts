@@ -19,7 +19,7 @@ const publicUser = {
   email: 'ana@example.pt',
   locale: 'pt-PT',
   emailVerifiedAt: null,
-  role: 'CUSTOMER' as const,
+  isAdmin: false,
 };
 
 function makeService() {
@@ -101,7 +101,7 @@ describe('AuthService', () => {
     const { service, repository } = makeService();
     repository.findSessionByTokenHash.mockResolvedValue({
       userId: 'user-1',
-      role: 'CUSTOMER',
+      isAdmin: false,
       expiresAt: new Date(Date.now() + 60_000),
       revokedAt: null,
       emailVerifiedAt: null,
@@ -136,13 +136,13 @@ describe('AuthService', () => {
     expect(repository.createSession).not.toHaveBeenCalled();
   });
 
-  it('returns the current persisted role on login and session validation', async () => {
+  it('returns the current persisted admin flag on login and session validation', async () => {
     const { service, repository } = makeService();
-    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, role: 'PLATFORM_ADMIN', emailVerifiedAt: new Date() }, passwordHash: 'stored', profile });
-    repository.findSessionByTokenHash.mockResolvedValue({ userId: 'user-1', role: 'PLATFORM_ADMIN', expiresAt: new Date(Date.now() + 60_000), revokedAt: null, emailVerifiedAt: new Date() });
+    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, isAdmin: true, emailVerifiedAt: new Date() }, passwordHash: 'stored', profile });
+    repository.findSessionByTokenHash.mockResolvedValue({ userId: 'user-1', isAdmin: true, expiresAt: new Date(Date.now() + 60_000), revokedAt: null, emailVerifiedAt: new Date() });
     const login = await service.login({ email: 'ana@example.pt', password: 'valid-password' });
-    expect(login.user.role).toBe('PLATFORM_ADMIN');
-    expect(await service.validateSession(login.sessionToken)).toEqual({ userId: 'user-1', role: 'PLATFORM_ADMIN' });
+    expect(login.user.isAdmin).toBe(true);
+    expect(await service.validateSession(login.sessionToken)).toEqual({ userId: 'user-1', isAdmin: true });
   });
 
   it('normalizes account details and resends verification only when the email changes', async () => {
