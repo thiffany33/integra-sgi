@@ -248,3 +248,40 @@ test('customer cannot open the insights page', async ({ page }) => {
   await page.goto('/admin/insights');
   await expect(page).toHaveURL('/dashboard');
 });
+
+test('admin navigation only offers the administration pages, insights first', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  await page.route('**/api/v1/admin/insights', route => route.fulfill({ json: insights }));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/');
+  await expect(page).toHaveURL('/admin/insights');
+  const navigation = page.getByRole('navigation', { name: 'Navegação principal', exact: true });
+  await expect(navigation.getByRole('link')).toHaveText(['Indicadores', 'Empresas']);
+});
+
+test('admin signing in lands on the insights page', async ({ page }) => {
+  const user = { id: 'admin-1', name: 'Utilizador', email: 'user@example.pt', locale: 'pt-PT', emailVerifiedAt: '2026-11-07T00:00:00.000Z', isAdmin: true };
+  const profile = {
+    schemaVersion: 1, organization: { name: 'Integra SGI', nif: 'N/A', sector: 'Administração da plataforma', email: 'user@example.pt' },
+    representative: { name: 'Utilizador', email: '', phone: '' }, selectedSystems: ['sgq'],
+  };
+  let signedIn = false;
+  await page.route('**/api/v1/auth/me', route => signedIn ? route.fulfill({ json: { user, profile } }) : route.fulfill({ status: 401, json: {} }));
+  await page.route('**/api/v1/auth/login', route => { signedIn = true; return route.fulfill({ json: { user, profile } }); });
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ json: { profile, revision: 1, updatedAt: customer.updatedAt } }));
+  await page.route('**/api/v1/admin/insights', route => route.fulfill({ json: insights }));
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('user@example.pt');
+  await page.getByLabel('Palavra-passe').fill('correct-horse-battery');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page).toHaveURL('/admin/insights');
+});
+
+test('customer navigation has no administration pages', async ({ page }) => {
+  await signInAs(page, 'CUSTOMER');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/dashboard');
+  const navigation = page.getByRole('navigation', { name: 'Navegação principal', exact: true });
+  await expect(navigation.getByRole('link', { name: 'Meu plano' })).toBeVisible();
+  await expect(navigation.getByRole('link', { name: 'Indicadores' })).toHaveCount(0);
+});

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context-value';
-import { safeReturnTo } from '@/lib/return-to';
+import { homePath, safeReturnTo } from '@/lib/return-to';
 import { useTranslation } from 'react-i18next';
 import { AccessTabs } from './access-tabs';
 import { authApi } from '@/api/auth.api';
@@ -35,8 +35,8 @@ export default function Login() {
     setNeedsVerification(false);
     setResendMessage('');
     try {
-      await auth.login(email, password);
-      navigate(returnTo, { replace: true });
+      const user = await auth.login(email, password);
+      navigate(searchParams.has('returnTo') ? returnTo : homePath(user.isAdmin), { replace: true });
     } catch (requestError) {
       const response = axios.isAxiosError(requestError) ? requestError.response?.data as { error?: { code?: string } } | undefined : undefined;
       const emailNeedsVerification = response?.error?.code === 'EMAIL_NOT_VERIFIED';

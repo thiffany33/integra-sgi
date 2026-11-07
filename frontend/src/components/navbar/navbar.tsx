@@ -9,7 +9,11 @@ export default function Navbar() {
   const { t } = useTranslation(['common', 'navigation']);
   const auth = useAuth();
   const signedIn = auth.status === 'authenticated';
-  const links = [
+  const admin = auth.status === 'authenticated' && auth.user.isAdmin;
+  const links = admin ? [
+    { to: '/admin/insights', label: t('navigation:adminInsights') },
+    { to: '/admin/customers', label: t('navigation:adminCustomers') },
+  ] : [
     { to: '/', label: t('navigation:home') },
     ...(signedIn ? [{ to: '/dashboard', label: t('navigation:dashboard') }] : []),
     { to: '/requirement', label: t('navigation:guidance') },
@@ -19,8 +23,6 @@ export default function Navbar() {
       { to: '/login', label: t('navigation:login') },
       { to: '/register', label: t('navigation:register') },
     ] : []),
-    ...(auth.status === 'authenticated' && auth.user.isAdmin
-      ? [{ to: '/admin/insights', label: t('navigation:adminInsights') }, { to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
   ];
 
   return <header className="border-b bg-card">
