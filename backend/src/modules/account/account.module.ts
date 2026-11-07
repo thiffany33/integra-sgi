@@ -9,5 +9,6 @@ import { AccountService } from './account.service';
   imports: [AuthModule, StorageModule],
   controllers: [AccountController],
   providers: [AccountRepository, AccountService],
+  exports: [AccountService],
 })
 export class AccountModule {}

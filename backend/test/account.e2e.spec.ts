@@ -123,4 +123,58 @@ describe('account export and deletion', () => {
       .expect(({ body }) => expect(body.error.code).toBe('ADMIN_ACCOUNT_DELETION_FORBIDDEN'));
     expect(await prisma.user.count({ where: { id } })).toBe(1);
   });
+
+  describe('by an administrator', () => {
+    async function admin() {
+      const created = await account(`operator-${randomUUID().slice(0, 8)}`);
+      await prisma.user.update({ where: { id: created.id }, data: { isAdmin: true } });
+      return created;
+    }
+
+    it('downloads a customer\'s data and refuses non-administrators and other administrators', async () => {
+      const operator = await admin();
+      const customer = await account('customer-export');
+      const other = await account('not-admin');
+      await request(app.getHttpServer()).get(`/api/v1/admin/customers/${customer.id}/export`).set('Cookie', other.cookie).expect(403);
+
+      const response = await request(app.getHttpServer()).get(`/api/v1/admin/customers/${customer.id}/export`).set('Cookie', operator.cookie).expect(200);
+      expect(response.headers['content-disposition']).toContain('attachment');
+      expect(response.body).toMatchObject({ account: { email: customer.email }, profile: { organization: { name: 'Delete Me Lda' } } });
+      expect(response.body.account).not.toHaveProperty('isAdmin');
+      expect(await prisma.auditEvent.count({ where: { action: 'admin.customer_exported', userId: operator.id } })).toBe(1);
+
+      const secondAdmin = await admin();
+      await request(app.getHttpServer()).get(`/api/v1/admin/customers/${secondAdmin.id}/export`).set('Cookie', operator.cookie).expect(404);
+    });
+
+    it('deletes a customer only with the administrator\'s own password', async () => {
+      const operator = await admin();
+      const customer = await account('customer-delete');
+      await prisma.customerProfile.update({ where: { userId: customer.id }, data: { avatarObjectKey: `avatars/${customer.id}/photo.png` } });
+      const deleteUrl = `/api/v1/admin/customers/${customer.id}/delete`;
+
+      await request(app.getHttpServer()).post(deleteUrl).set('Cookie', customer.cookie).send({ password }).expect(403);
+      await request(app.getHttpServer()).post(deleteUrl).set('Cookie', operator.cookie).send({ password: 'not-the-password' }).expect(401)
+        .expect(({ body }) => expect(body.error.code).toBe('INVALID_CURRENT_PASSWORD'));
+      expect(await prisma.user.count({ where: { id: customer.id } })).toBe(1);
+
+      const response = await request(app.getHttpServer()).post(deleteUrl).set('Cookie', operator.cookie).send({ password }).expect(200);
+      // The administrator stays signed in.
+      expect(response.headers['set-cookie']).toBeUndefined();
+      expect(deleteObject).toHaveBeenCalledWith({ key: `avatars/${customer.id}/photo.png` });
+      expect(await prisma.user.count({ where: { id: customer.id } })).toBe(0);
+      await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', customer.cookie).expect(401);
+      await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', operator.cookie).expect(200);
+      expect(await prisma.auditEvent.count({ where: { action: 'admin.customer_deleted', userId: operator.id } })).toBe(1);
+      await request(app.getHttpServer()).post(deleteUrl).set('Cookie', operator.cookie).send({ password }).expect(404);
+    });
+
+    it('never deletes another administrator', async () => {
+      const operator = await admin();
+      const secondAdmin = await admin();
+      await request(app.getHttpServer()).post(`/api/v1/admin/customers/${secondAdmin.id}/delete`).set('Cookie', operator.cookie).send({ password }).expect(404)
+        .expect(({ body }) => expect(body.error.code).toBe('CUSTOMER_NOT_FOUND'));
+      expect(await prisma.user.count({ where: { id: secondAdmin.id } })).toBe(1);
+    });
+  });
 });
