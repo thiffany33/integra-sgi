@@ -5,6 +5,8 @@ export type TransactionalEmail = {
   subject: string;
   html: string;
   text: string;
+  /** Lets the recipient reply to the visitor; the sender stays EMAIL_FROM. */
+  replyTo?: string;
 };
 
 export interface EmailService {

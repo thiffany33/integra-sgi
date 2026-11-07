@@ -46,6 +46,11 @@ export const envSchema = z
       z.string().min(1).optional(),
     ),
     EMAIL_FROM: z.string().min(3).optional(),
+    // Inbox for the public contact form; while unset, the form reports that messaging is unavailable.
+    CONTACT_EMAIL: z.preprocess(
+      (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+      z.email().optional(),
+    ),
     AWS_ACCESS_KEY_ID: storageValue,
     AWS_SECRET_ACCESS_KEY: storageValue,
     AWS_ENDPOINT_URL_S3: storageEndpoint,
