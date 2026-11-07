@@ -17,7 +17,7 @@ export default function Banner() {
       </div>
       <p className="flex items-start gap-2 text-base text-muted-foreground"><Check className="mt-1 size-5 shrink-0 text-secondary-foreground" aria-hidden="true" />{t('home:noStandards')}</p>
     </div>
-    <Card className="gap-0 overflow-hidden border-secondary/80 bg-[#edf3ed] py-0 shadow-none">
+    <Card className="gap-0 overflow-hidden border-secondary/80 bg-secondary py-0 shadow-none">
       <CardContent className="p-7 sm:p-9">
         <p className="eyebrow mb-6">{t('home:pathTitle')}</p>
         <h2 className="mb-6 text-2xl">{t('home:threeAreas')}</h2>

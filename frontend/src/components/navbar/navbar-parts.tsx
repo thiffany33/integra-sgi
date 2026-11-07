@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Sprout, UserRound } from 'lucide-react';
+import { Check, ChevronDown, UserRound } from 'lucide-react';
+import brandMark from '@/assets/logos/integra-sgi-mark-96.png';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from 'radix-ui';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ const menuItem = 'flex min-h-12 cursor-default items-center rounded-md px-3 text
 export function BrandLink() {
   const { t } = useTranslation('navigation');
   return <Link to="/" aria-label={t('brandHome')} className="flex min-h-12 items-center gap-3 rounded-md">
-    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-white"><Sprout aria-hidden="true" className="size-6" /></span>
+    <img src={brandMark} alt="" width={44} height={44} className="size-11 shrink-0" />
     <span className="text-2xl font-bold tracking-tight">integra<span className="ml-2 text-base font-medium text-muted-foreground">SGI</span></span>
   </Link>;
 }
