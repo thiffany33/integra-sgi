@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changePasswordSchema, registerSchema, resetPasswordSchema, updateAccountSchema, updateCustomerProfileSchema, userRoleSchema } from '../src/auth/auth.schema';
+import { changePasswordSchema, registerSchema, resetPasswordSchema, updateAccountSchema, updateCustomerProfileSchema } from '../src/auth/auth.schema';
 
 const validRegistration = {
   name: 'Ana Silva',
@@ -32,10 +32,8 @@ describe('registerSchema', () => {
     expect(registerSchema.safeParse({ ...validRegistration, locale: 'pt-BR' }).success).toBe(false);
   });
 
-  it('accepts only known persisted user roles and never a role supplied during registration', () => {
-    expect(userRoleSchema.parse('CUSTOMER')).toBe('CUSTOMER');
-    expect(userRoleSchema.parse('PLATFORM_ADMIN')).toBe('PLATFORM_ADMIN');
-    expect(userRoleSchema.safeParse('ADMIN').success).toBe(false);
+  it('never accepts an administrator flag or role supplied during registration', () => {
+    expect(registerSchema.safeParse({ ...validRegistration, isAdmin: true }).success).toBe(false);
     expect(registerSchema.safeParse({ ...validRegistration, role: 'PLATFORM_ADMIN' }).success).toBe(false);
   });
 
