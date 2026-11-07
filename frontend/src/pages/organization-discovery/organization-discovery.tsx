@@ -203,6 +203,6 @@ export default function OrganizationDiscovery() {
     {screen >= 1 && screen <= 5 ? <OrganizationDiscoveryStep step={screen as Step} mode={mode} answers={answers} profile={auth.profile} errors={errors} onChange={setAnswers} onNext={() => void save('next')} onBack={() => void save('back')} onLeave={() => void save('leave')} onCancelEdit={cancelEdit} busy={busy} />
       : state.status === 'COMPLETED' ? <OrganizationDiscoveryComplete state={state} onEdit={step => { setScreen(step); setMode('edit-summary'); setMessage(null); }} />
       : screen === 0 ? <OrganizationDiscoveryIntro onStart={() => { setScreen(1); setMessage(null); }} />
-      : <OrganizationDiscoveryReview state={state} profile={auth.profile} busy={busy} onEdit={step => { setScreen(step); setEditingReview(true); setMessage(null); }} onComplete={() => void complete()} />}
+      : <OrganizationDiscoveryReview state={state} profile={auth.profile} busy={busy} onEdit={step => { setScreen(step); setEditingReview(true); setMessage(null); }} onBack={() => { setScreen(5); setEditingReview(false); setMessage(null); }} onComplete={() => void complete()} />}
   </>;
 }

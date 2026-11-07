@@ -223,6 +223,19 @@ test('back and save-and-leave on an untouched step move without marking it done'
   expect(flow.getState()).toMatchObject({ currentStep: 3, completedSteps: [1, 2] });
 });
 
+test('review goes back to the last step without saving or confirming', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 6, completedSteps: [1, 2, 3, 4, 5], revision: 5, responses: { '6.1': { notes: 'Rever stock.' } } });
+  await page.goto('/organization-discovery');
+  await expect(page.getByRole('heading', { level: 1, name: 'Rever respostas' })).toBeVisible();
+  await page.getByRole('button', { name: 'Voltar' }).click();
+  await expect(page.getByText('Passo 5 de 6')).toBeVisible();
+  await expect(page.getByLabel('Quer acrescentar alguma nota?')).toHaveValue('Rever stock.');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Rever respostas' })).toBeVisible();
+  expect(flow.getState().status).toBe('IN_PROGRESS');
+});
+
 test('a failed save keeps the draft and offers to stay or leave without saving', async ({ page }) => {
   const flow = await mockFlow(page);
   await page.goto('/organization-discovery');
