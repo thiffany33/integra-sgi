@@ -19,6 +19,7 @@ import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
 import { RedirectIfAuthenticated, RequireAuth } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
+import { homePath } from "../lib/return-to";
 import AdminCustomers from "../pages/admin/customers";
 import AdminInsights from "../pages/admin/insights";
 import { Navigate } from "react-router-dom";
@@ -29,7 +30,7 @@ function RootRoute() {
   const auth = useAuth();
   const { t } = useTranslation('navigation');
   if (auth.status === 'loading') return <p role="status">{t('checkingAccount')}</p>;
-  return auth.status === 'authenticated' ? <Navigate to="/dashboard" replace /> : <Home />;
+  return auth.status === 'authenticated' ? <Navigate to={homePath(auth.user.isAdmin)} replace /> : <Home />;
 }
 
 // Requisito 4

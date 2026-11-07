@@ -9,6 +9,7 @@ import { AuthRepository, type PublicUserRecord } from './auth.repository';
 import { PasswordHashingService } from './password-hashing.service';
 import { SESSION_TTL_SECONDS } from './session-cookie';
 import { AuthEmailService } from './auth-email.service';
+import { AuditService } from '../audit/audit.service';
 
 export type PublicAuthUser = {
   id: string;
@@ -32,6 +33,7 @@ export class AuthService {
     private readonly passwords: PasswordHashingService,
     private readonly rateLimit: AuthRateLimitService,
     private readonly authEmail: AuthEmailService,
+    private readonly audit: AuditService,
   ) {}
 
   async register(input: RegisterInput, ipAddress?: string): Promise<{ message: string }> {
@@ -54,6 +56,7 @@ export class AuthService {
         locale: registration.locale,
         profile: registration.profile,
       });
+      await this.audit.record('auth.registered', created.user.id);
       await this.authEmail.sendVerification(created.user.id, created.user.email, created.user.locale);
       return { message: 'Account created. Check your email to verify the account before signing in.' };
     } catch (error) {
@@ -73,6 +76,8 @@ export class AuthService {
 
     const found = await this.repository.findUserForLogin(credentials.email);
     if (!found || !(await this.passwords.verify(found.passwordHash, credentials.password)) || !found.profile) {
+      // An unknown email identifies no one, so only failures against an existing account are recorded.
+      if (found) await this.audit.record('auth.login_failed', found.user.id, { reason: 'invalid_credentials' });
       throw new ApiException(HttpStatus.UNAUTHORIZED, {
         code: 'INVALID_CREDENTIALS',
         message: 'Invalid email or password.',
@@ -80,6 +85,7 @@ export class AuthService {
     }
 
     if (!found.user.emailVerifiedAt) {
+      await this.audit.record('auth.login_failed', found.user.id, { reason: 'email_not_verified' });
       throw new ApiException(HttpStatus.FORBIDDEN, {
         code: 'EMAIL_NOT_VERIFIED',
         message: 'Confirm your email address before signing in.',
@@ -93,6 +99,7 @@ export class AuthService {
       this.hashSessionToken(sessionToken),
       expiresAt,
     );
+    await this.audit.record('auth.login', found.user.id);
 
     return {
       user: this.publicUser(found.user),
@@ -103,7 +110,10 @@ export class AuthService {
 
   async logout(sessionToken?: string): Promise<void> {
     if (!sessionToken) return;
-    await this.repository.revokeSession(this.hashSessionToken(sessionToken), new Date());
+    const tokenHash = this.hashSessionToken(sessionToken);
+    const session = await this.repository.findSessionByTokenHash(tokenHash);
+    await this.repository.revokeSession(tokenHash, new Date());
+    if (session && !session.revokedAt) await this.audit.record('auth.logout', session.userId);
   }
 
   async validateSession(sessionToken: string): Promise<{ userId: string; isAdmin: boolean } | null> {
@@ -137,11 +147,13 @@ export class AuthService {
     const tokenHash = this.hashSessionToken(token);
     await this.rateLimit.consume('reset-password', ipAddress, tokenHash, 5, 3600);
     const passwordHash = await this.passwords.hash(password);
-    if (!(await this.repository.resetPassword(tokenHash, passwordHash, new Date()))) {
+    const userId = await this.repository.resetPassword(tokenHash, passwordHash, new Date());
+    if (!userId) {
       throw new ApiException(HttpStatus.BAD_REQUEST, {
         code: 'INVALID_RESET_TOKEN', message: 'This password reset link is invalid or has expired.',
       });
     }
+    await this.audit.record('auth.password_reset', userId);
     return { message: 'Password updated. Please sign in again.' };
   }
 
@@ -182,6 +194,7 @@ export class AuthService {
       if (!updated) {
         throw new ApiException(HttpStatus.NOT_FOUND, { code: 'USER_NOT_FOUND', message: 'User account not found.' });
       }
+      await this.audit.record('account.updated', userId, { emailChanged: updated.emailChanged });
       if (updated.emailChanged) {
         await this.authEmail.sendPreparedVerification(updated.user.email, updated.user.locale, verification.token);
       }
@@ -220,6 +233,7 @@ export class AuthService {
         code: 'UNAUTHENTICATED', message: 'Please sign in to continue.',
       });
     }
+    await this.audit.record('auth.password_changed', userId);
     return { user: this.publicUser(updated), sessionToken };
   }
 

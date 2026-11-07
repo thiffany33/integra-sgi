@@ -133,3 +133,46 @@ test('valida e altera a palavra-passe, apresentando o erro de credenciais atuais
   await expect(page.getByRole('status')).toContainText('Palavra-passe alterada');
   await expect(page.getByLabel('Nova palavra-passe')).toBeEmpty();
 });
+
+test('descarrega uma cópia dos dados da conta', async ({ page }) => {
+  await page.route('**/api/v1/account/export', route => route.fulfill({ json: { schemaVersion: 1, account: { email: user.email } } }));
+  await page.goto('/profile');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Descarregar os meus dados' }).click();
+  expect((await download).suggestedFilename()).toBe('integra-sgi-dados.json');
+  await expect(page.getByText('O ficheiro foi descarregado.')).toBeVisible();
+});
+
+test('apagar a conta exige confirmação e a palavra-passe certa', async ({ page }) => {
+  const attempts: unknown[] = [];
+  await page.route('**/api/v1/account/delete', route => {
+    attempts.push(route.request().postDataJSON());
+    return attempts.length === 1
+      ? route.fulfill({ status: 401, json: { error: { code: 'INVALID_CURRENT_PASSWORD' } } })
+      : route.fulfill({ json: { message: 'Account deleted.' } });
+  });
+  await page.goto('/profile');
+  await page.getByLabel('Palavra-passe, para confirmar').fill('wrong-password');
+  await page.getByRole('button', { name: 'Apagar a conta definitivamente' }).click();
+  await expect(page.getByText('Confirme que compreende que a conta será apagada')).toBeVisible();
+  expect(attempts).toHaveLength(0);
+
+  await page.getByRole('checkbox', { name: /Compreendo que a conta/ }).check();
+  await page.getByRole('button', { name: 'Apagar a conta definitivamente' }).click();
+  await expect(page.getByRole('alert')).toContainText('A palavra-passe atual');
+  await expect(page).toHaveURL('/profile');
+
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 401, json: {} }));
+  await page.getByLabel('Palavra-passe, para confirmar').fill('right-password');
+  await page.getByRole('button', { name: 'Apagar a conta definitivamente' }).click();
+  await expect(page).toHaveURL('/login');
+  await expect(page.getByRole('status')).toContainText('A sua conta e todos os dados associados foram apagados.');
+  expect(attempts).toEqual([{ password: 'wrong-password' }, { password: 'right-password' }]);
+});
+
+test('conta de administração não oferece apagar a conta', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { user: { ...user, isAdmin: true }, profile } }));
+  await page.goto('/profile');
+  await expect(page.getByText('As contas de administração não podem ser apagadas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Apagar a conta definitivamente' })).toHaveCount(0);
+});

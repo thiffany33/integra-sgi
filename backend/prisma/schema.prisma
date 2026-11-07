@@ -30,6 +30,7 @@ model User {
   systemChangesReceived CustomerSystemsChange[] @relation("SystemChangeTarget")
   requirementResponses CustomerRequirementResponse[]
   guidedFlows          CustomerGuidedFlow[]
+  auditEvents          AuditEvent[]
 }
 
 model CustomerRequirementResponse {
@@ -137,4 +138,18 @@ model AuthRateLimitBucket {
   updatedAt       DateTime @updatedAt
 
   @@index([expiresAt])
+}
+
+/// Security-relevant account events, kept for 12 months. No IP address or request content is stored.
+model AuditEvent {
+  id        String   @id @default(cuid())
+  /// Null for events that must not identify anyone, such as a deleted account.
+  userId    String?
+  action    String   @db.VarChar(64)
+  metadata  Json?    @db.JsonB
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import axios from 'axios';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Info } from 'lucide-react';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context-value';
-import { safeReturnTo } from '@/lib/return-to';
+import { homePath, safeReturnTo } from '@/lib/return-to';
 import { useTranslation } from 'react-i18next';
 import { AccessTabs } from './access-tabs';
 import { authApi } from '@/api/auth.api';
@@ -19,6 +19,7 @@ export default function Login() {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const accountDeleted = (useLocation().state as { accountDeleted?: boolean } | null)?.accountDeleted === true;
   const returnTo = safeReturnTo(searchParams.get('returnTo'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,8 +36,8 @@ export default function Login() {
     setNeedsVerification(false);
     setResendMessage('');
     try {
-      await auth.login(email, password);
-      navigate(returnTo, { replace: true });
+      const user = await auth.login(email, password);
+      navigate(searchParams.has('returnTo') ? returnTo : homePath(user.isAdmin), { replace: true });
     } catch (requestError) {
       const response = axios.isAxiosError(requestError) ? requestError.response?.data as { error?: { code?: string } } | undefined : undefined;
       const emailNeedsVerification = response?.error?.code === 'EMAIL_NOT_VERIFIED';
@@ -65,6 +66,7 @@ export default function Login() {
     <div id="access-panel" role="tabpanel" aria-labelledby="access-login-tab">
     <PageHeading title={t('loginTitle')} description={t('loginDescription')} />
     <Card className="shadow-none"><CardContent className="space-y-6">
+      {accountDeleted && <p role="status" className="rounded-lg border border-primary/30 bg-secondary/50 px-4 py-3 text-base text-secondary-foreground">{t('accountDeleted')}</p>}
       <Alert role="note"><Info aria-hidden="true" /><AlertTitle>{t('loginInfoTitle')}</AlertTitle><AlertDescription>{t('loginInfo')}</AlertDescription></Alert>
       {auth.status === 'unavailable' && <Alert variant="destructive"><AlertDescription>{auth.error} <button type="button" className="text-link" onClick={() => void auth.retry()}>{t('retry', { ns: 'common' })}</button></AlertDescription></Alert>}
       <form className="space-y-5" onSubmit={submit}>

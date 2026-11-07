@@ -187,6 +187,8 @@ describe('platform administrator HTTP flow', () => {
         newSystems: winner.selectedSystems,
       });
     } finally {
+      // Either administrator may win the race; the winner's audit row references them and blocks deletion.
+      await prisma.customerSystemsChange.deleteMany({ where: { actorUserId: secondAdminId } });
       await prisma.user.delete({ where: { id: secondAdminId } });
     }
   });

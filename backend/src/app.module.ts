@@ -8,6 +8,8 @@ import { HealthModule } from './modules/health/health.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AccountModule } from './modules/account/account.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { GuidedFlowsModule } from './modules/guided-flows/guided-flows.module';
 import { validateEnvironment } from './config/configuration';
@@ -16,6 +18,7 @@ import { validateEnvironment } from './config/configuration';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
     PrismaModule,
+    AuditModule,
     AuthModule,
     CustomersModule,
     RequirementsModule,
@@ -25,6 +28,7 @@ import { validateEnvironment } from './config/configuration';
     FilesModule,
     GuidedFlowsModule,
     ContactModule,
+    AccountModule,
   ],
 })
 export class AppModule {}

@@ -230,17 +230,18 @@ export class AuthRepository {
     ]);
   }
 
-  async resetPassword(tokenHash: string, passwordHash: string, now: Date): Promise<boolean> {
+  /** Returns the account whose password was reset, or null for an invalid, used, or expired link. */
+  async resetPassword(tokenHash: string, passwordHash: string, now: Date): Promise<string | null> {
     return this.prisma.$transaction(async (transaction) => {
       const token = await transaction.passwordResetToken.findUnique({ where: { tokenHash }, select: { id: true, userId: true } });
-      if (!token) return false;
+      if (!token) return null;
       const consumed = await transaction.passwordResetToken.updateMany({
         where: { id: token.id, usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now },
       });
-      if (consumed.count !== 1) return false;
+      if (consumed.count !== 1) return null;
       await transaction.user.update({ where: { id: token.userId }, data: { passwordHash } });
       await transaction.session.updateMany({ where: { userId: token.userId, revokedAt: null }, data: { revokedAt: now } });
-      return true;
+      return token.userId;
     });
   }
 

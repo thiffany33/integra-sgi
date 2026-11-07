@@ -28,17 +28,16 @@ export function AppShell({ main, children }: { main: RefObject<HTMLElement | nul
   // Rendered in one place only, so the account button is never duplicated for assistive technology.
   const large = useSyncExternalStore(subscribeToScreen, isLargeScreen);
 
-  const items: Item[] = [
+  // Administrators manage the platform, so they only see the administration pages.
+  const items: Item[] = auth.status === 'authenticated' && auth.user.isAdmin ? [
+    { to: '/admin/insights', label: t('adminInsights'), icon: ChartColumn, active: path => path === '/admin/insights' },
+    { to: '/admin/customers', label: t('adminCustomers'), icon: Building2, active: path => path === '/admin/customers' },
+  ] : [
     { to: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, active: path => path === '/dashboard' },
     { to: '/organization-discovery', label: t('discovery'), icon: ClipboardList, active: path => path === '/organization-discovery' },
     { to: '/requirement', label: t('guidance'), icon: BookOpen, active: path => path.startsWith('/requirement') },
     { to: '/downloads', label: t('downloads'), icon: Download, active: path => path === '/downloads' },
     { to: '/contact', label: t('help'), icon: LifeBuoy, active: path => path === '/contact' },
-    ...(auth.status === 'authenticated' && auth.user.isAdmin
-      ? [
-        { to: '/admin/insights', label: t('adminInsights'), icon: ChartColumn, active: (path: string) => path === '/admin/insights' },
-        { to: '/admin/customers', label: t('adminCustomers'), icon: Building2, active: (path: string) => path === '/admin/customers' },
-      ] : []),
   ];
 
   return <div className="min-h-screen lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]">

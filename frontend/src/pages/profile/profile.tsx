@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LockKeyhole, UserRound, Building2, Camera, Trash2 } from 'lucide-react';
+import { LockKeyhole, UserRound, Building2, Camera, Trash2, Download, ShieldCheck } from 'lucide-react';
 import type { UpdateCustomerProfileInput } from '@integra/shared/auth';
 import { MAX_PROFILE_PHOTO_BYTES } from '@integra/shared/profile';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth, type AuthContextValue } from '@/contexts/auth-context-value';
 import { profileApi } from '@/api/profile.api';
-import { loadProfilePhoto, setProfilePhoto, useProfilePhoto } from '@/lib/profile-photo';
+import { accountApi } from '@/api/account.api';
+import { clearProfilePhoto, loadProfilePhoto, setProfilePhoto, useProfilePhoto } from '@/lib/profile-photo';
 
 type Organization = UpdateCustomerProfileInput['profile']['organization'];
 type Representative = UpdateCustomerProfileInput['profile']['representative'];
@@ -168,7 +169,71 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
       <Feedback message={passwordMessage} />
       <Button type="submit" disabled={busy !== null}>{busy === 'password' ? t('saving') : t('changePassword')}</Button>
     </form></CardContent></Card>
+
+    <YourData auth={auth} />
   </div>;
+}
+
+/** Data portability and erasure, as promised by the privacy policy. */
+function YourData({ auth }: { auth: AuthenticatedContext }) {
+  const { t } = useTranslation(['profile', 'common']);
+  const navigate = useNavigate();
+  const [exporting, setExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState<Message>(null);
+  const [password, setPassword] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState<Message>(null);
+
+  async function exportData() {
+    setExporting(true); setExportMessage(null);
+    try {
+      const url = URL.createObjectURL(await accountApi.export());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'integra-sgi-dados.json';
+      link.click();
+      URL.revokeObjectURL(url);
+      setExportMessage({ kind: 'success', text: t('exportReady') });
+    } catch {
+      setExportMessage({ kind: 'error', text: t('exportError') });
+    } finally { setExporting(false); }
+  }
+
+  async function deleteAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!confirmed) { setDeleteMessage({ kind: 'error', text: t('deleteConfirmRequired') }); return; }
+    setDeleting(true); setDeleteMessage(null);
+    try {
+      await auth.deleteAccount(password, () => {
+        clearProfilePhoto();
+        navigate('/login', { replace: true, state: { signingOut: true, accountDeleted: true } });
+      });
+    } catch (error) {
+      const code = errorCode(error);
+      setDeleteMessage({ kind: 'error', text: t(code === 'INVALID_CURRENT_PASSWORD' ? 'wrongCurrentPassword' : code === 'RATE_LIMITED' ? 'deleteRateLimited' : 'deleteError') });
+      setDeleting(false);
+    }
+  }
+
+  return <Card className="shadow-none"><CardHeader><h2 className="flex items-center gap-3 text-2xl"><ShieldCheck className="size-6 text-primary" aria-hidden="true" />{t('dataTitle')}</h2><p className="text-base text-muted-foreground">{t('dataDescription')} <Link className="text-link" to="/privacidade">{t('common:privacyPolicy')}</Link></p></CardHeader><CardContent className="space-y-8">
+    <div className="space-y-3">
+      <h3 className="text-xl">{t('exportTitle')}</h3>
+      <p className="text-base text-muted-foreground">{t('exportDescription')}</p>
+      <Feedback message={exportMessage} />
+      <Button type="button" variant="outline" disabled={exporting} onClick={() => void exportData()}><Download className="mr-2 size-4" aria-hidden="true" />{exporting ? t('exporting') : t('exportAction')}</Button>
+    </div>
+    <div className="space-y-3 border-t pt-6">
+      <h3 className="text-xl">{t('deleteTitle')}</h3>
+      {auth.user.isAdmin ? <p className="text-base text-muted-foreground">{t('deleteAdminBlocked')}</p> : <form className="space-y-5" onSubmit={deleteAccount}>
+        <p className="text-base">{t('deleteDescription')}</p>
+        <div className="field"><Label htmlFor="profile-delete-password">{t('deletePassword')}</Label><Input id="profile-delete-password" type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required /></div>
+        <label className="flex min-h-12 items-start gap-3 text-base"><input type="checkbox" className="mt-1 size-5 shrink-0 accent-destructive" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />{t('deleteConfirm')}</label>
+        <Feedback message={deleteMessage} />
+        <Button type="submit" variant="destructive" disabled={deleting}><Trash2 className="mr-2 size-4" aria-hidden="true" />{deleting ? t('deleting') : t('deleteAction')}</Button>
+      </form>}
+    </div>
+  </CardContent></Card>;
 }
 
 export default function Profile() {

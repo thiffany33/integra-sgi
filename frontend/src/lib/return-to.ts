@@ -25,9 +25,14 @@ const knownPaths = new Set([
   '/requirement10', '/requirement10_1', '/requirement10_2',
 ]);
 
-export function safeReturnTo(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/dashboard';
+/** Where an account lands by default: administrators manage the platform from the insights page. */
+export function homePath(isAdmin = false): string {
+  return isAdmin ? '/admin/insights' : '/dashboard';
+}
+
+export function safeReturnTo(value: string | null, fallback = homePath()): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return fallback;
   const [pathname] = value.split(/[?#]/);
   if (knownPaths.has(pathname)) return value;
-  return '/dashboard';
+  return fallback;
 }
