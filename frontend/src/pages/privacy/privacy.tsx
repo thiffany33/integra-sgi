@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { PageHeading } from '@/components/pageHeading/pageHeading';
 
-// TODO(before merge): confirm the controller's details and retention periods with the owner.
+// Retention periods confirmed by the owner; NIF and address are still to be provided.
 const PRIVACY_CONTROLLER = {
   name: 'Thiffany Gonçalves',
   nif: '[NIF por definir]',
   address: '[morada por definir]',
-  email: '[email de privacidade por definir]',
+  email: 'thiffanyg33@gmail.com',
 };
 const RETENTION = { accountDays: 30, contactMonths: 12 };
 const LAST_UPDATED = '2026-11-07';
