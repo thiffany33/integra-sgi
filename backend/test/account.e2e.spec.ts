@@ -74,6 +74,7 @@ describe('account export and deletion', () => {
       requirementResponses: [], guidedFlows: [], selectedSystemsHistory: [],
     });
     expect(JSON.stringify(response.body)).not.toMatch(/passwordHash|tokenHash|argon2/);
+    expect(await prisma.auditEvent.count({ where: { action: 'account.exported', user: { email } } })).toBe(1);
   });
 
   it('keeps the account when the password is wrong', async () => {
@@ -90,6 +91,9 @@ describe('account export and deletion', () => {
     await prisma.customerRequirementResponse.create({ data: { userId: id, requirementCode: '4.1', data: { workforceRange: '1-9' } } });
     await prisma.customerSystemsChange.create({ data: { actorUserId: id, targetUserId: id, previousSystems: ['sgq'], newSystems: ['sga'] } });
 
+    expect(await prisma.auditEvent.findMany({ where: { userId: id }, select: { action: true }, orderBy: { createdAt: 'asc' } }))
+      .toEqual([{ action: 'auth.registered' }, { action: 'auth.login' }]);
+    const deletedAfter = new Date();
     const response = await request(app.getHttpServer()).post('/api/v1/account/delete').set('Cookie', cookie).send({ password }).expect(200);
     expect((response.headers['set-cookie'] as unknown as string[])[0]).toMatch(/^integra_session=;/);
     expect(deleteObject).toHaveBeenCalledWith({ key: `avatars/${id}/photo.png` });
@@ -98,6 +102,9 @@ describe('account export and deletion', () => {
     expect(await prisma.customerRequirementResponse.count({ where: { userId: id } })).toBe(0);
     expect(await prisma.customerSystemsChange.count({ where: { targetUserId: id } })).toBe(0);
     await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(401);
+    // The account's own audit trail goes with it; only an anonymous deletion event remains.
+    expect(await prisma.auditEvent.count({ where: { userId: id } })).toBe(0);
+    expect(await prisma.auditEvent.count({ where: { action: 'account.deleted', userId: null, createdAt: { gte: deletedAfter } } })).toBeGreaterThanOrEqual(1);
   });
 
   it('deletes nothing when the photo cannot be removed', async () => {

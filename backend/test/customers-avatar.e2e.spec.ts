@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { CustomersController } from '../src/modules/customers/customers.controller';
 import { CustomersRepository } from '../src/modules/customers/customers.repository';
 import { CustomersService } from '../src/modules/customers/customers.service';
+import { AuditService } from '../src/modules/audit/audit.service';
 import { SessionGuard } from '../src/modules/auth/session.guard';
 import { ObjectStorageService } from '../src/modules/storage/object-storage.service';
 import { SanitizedExceptionFilter } from '../src/middlewares/sanitized-exception.filter';
@@ -43,6 +44,8 @@ describe('customer avatar HTTP flow', () => {
       controllers: [CustomersController],
       providers: [CustomersService, { provide: CustomersRepository, useValue: repository }, {
         provide: ObjectStorageService, useValue: { putObject, getSignedReadUrl, deleteObject },
+      }, {
+        provide: AuditService, useValue: { record: async () => undefined },
       }],
     }).overrideGuard(SessionGuard).useValue({
       canActivate(context: { switchToHttp(): { getRequest(): { headers: Record<string, string>; userId?: string } } }) {

@@ -4,6 +4,7 @@ import type { UpdateCustomerProfileInput } from '@integra/shared/auth';
 import { MAX_PROFILE_PHOTO_BYTES } from '@integra/shared/profile';
 import { ApiException } from '../../utils/api-exception';
 import { ObjectStorageService } from '../storage/object-storage.service';
+import { AuditService } from '../audit/audit.service';
 import { CustomersRepository } from './customers.repository';
 
 const AVATAR_URL_TTL_SECONDS = 120;
@@ -17,7 +18,11 @@ const imageFormats = [
 export class CustomersService {
   private readonly logger = new Logger(CustomersService.name);
 
-  constructor(private readonly repository: CustomersRepository, private readonly storage: ObjectStorageService) {}
+  constructor(
+    private readonly repository: CustomersRepository,
+    private readonly storage: ObjectStorageService,
+    private readonly audit: AuditService,
+  ) {}
 
   async getMe(userId: string) {
     const profile = await this.repository.getProfile(userId);
@@ -33,6 +38,7 @@ export class CustomersService {
         message: 'This profile changed elsewhere. Reload it and try again.',
       });
     }
+    await this.audit.record('profile.updated', userId);
     return { profile: profile.data, revision: profile.revision, updatedAt: profile.updatedAt };
   }
 
@@ -88,6 +94,7 @@ export class CustomersService {
         });
       }
     }
+    await this.audit.record('profile.photo_uploaded', userId);
     try {
       return { photoUrl: await this.storage.getSignedReadUrl({ key, expiresInSeconds: AVATAR_URL_TTL_SECONDS }) };
     } catch (error) {
@@ -115,6 +122,7 @@ export class CustomersService {
         code: 'PROFILE_PHOTO_DELETE_FAILED', message: 'Unable to remove profile photo. Please try again.',
       });
     }
+    await this.audit.record('profile.photo_removed', userId);
   }
 
   private invalidPhoto() {

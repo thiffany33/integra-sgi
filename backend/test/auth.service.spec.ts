@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { AuditService } from '../src/modules/audit/audit.service';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { AuthRepository } from '../src/modules/auth/auth.repository';
@@ -40,6 +41,7 @@ function makeService() {
     verify: vi.fn().mockResolvedValue(true),
   };
   const rateLimit = { consume: vi.fn().mockResolvedValue(undefined) };
+  const audit = { record: vi.fn().mockResolvedValue(undefined) };
   const authEmail = {
     sendVerification: vi.fn().mockResolvedValue(undefined),
     prepareVerification: vi.fn().mockReturnValue({ token: 'prepared-token', tokenHash: 'prepared-hash', expiresAt: new Date('2030-01-01') }),
@@ -53,9 +55,10 @@ function makeService() {
     passwords as unknown as PasswordHashingService,
     rateLimit as unknown as AuthRateLimitService,
     authEmail as unknown as AuthEmailService,
+    audit as unknown as AuditService,
   );
 
-  return { service, repository, passwords, rateLimit, authEmail };
+  return { service, repository, passwords, rateLimit, authEmail, audit };
 }
 
 describe('AuthService', () => {
@@ -134,6 +137,31 @@ describe('AuthService', () => {
         response: { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } },
       });
     expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('audits sign-ins and failures against existing accounts, never unknown emails', async () => {
+    const { service, repository, passwords, audit } = makeService();
+    repository.findUserForLogin.mockResolvedValueOnce(null);
+    await expect(service.login({ email: 'nobody@example.pt', password: 'whatever-password' })).rejects.toBeDefined();
+    expect(audit.record).not.toHaveBeenCalled();
+
+    passwords.verify.mockResolvedValueOnce(false);
+    repository.findUserForLogin.mockResolvedValue({ user: { ...publicUser, emailVerifiedAt: new Date() }, passwordHash: 'stored', profile });
+    await expect(service.login({ email: 'ana@example.pt', password: 'wrong-password' })).rejects.toBeDefined();
+    expect(audit.record).toHaveBeenLastCalledWith('auth.login_failed', 'user-1', { reason: 'invalid_credentials' });
+
+    await service.login({ email: 'ana@example.pt', password: 'valid-password' });
+    expect(audit.record).toHaveBeenLastCalledWith('auth.login', 'user-1');
+  });
+
+  it('audits a logout only for a session that was still active', async () => {
+    const { service, repository, audit } = makeService();
+    repository.findSessionByTokenHash.mockResolvedValueOnce({ userId: 'user-1', revokedAt: null });
+    await service.logout('active-token');
+    expect(audit.record).toHaveBeenCalledWith('auth.logout', 'user-1');
+    repository.findSessionByTokenHash.mockResolvedValueOnce({ userId: 'user-1', revokedAt: new Date() });
+    await service.logout('revoked-token');
+    expect(audit.record).toHaveBeenCalledTimes(1);
   });
 
   it('returns the current persisted admin flag on login and session validation', async () => {

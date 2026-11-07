@@ -3,6 +3,7 @@ import { AuthRateLimitService } from '../auth/auth-rate-limit.service';
 import { PasswordHashingService } from '../auth/password-hashing.service';
 import { ObjectStorageService } from '../storage/object-storage.service';
 import { ApiException } from '../../utils/api-exception';
+import { AuditService } from '../audit/audit.service';
 import { AccountRepository } from './account.repository';
 
 const EXPORT_SCHEMA_VERSION = 1;
@@ -16,11 +17,13 @@ export class AccountService {
     private readonly passwords: PasswordHashingService,
     private readonly rateLimit: AuthRateLimitService,
     private readonly storage: ObjectStorageService,
+    private readonly audit: AuditService,
   ) {}
 
   async export(userId: string) {
     const user = await this.repository.findExport(userId);
     if (!user) throw new ApiException(HttpStatus.UNAUTHORIZED, { code: 'UNAUTHENTICATED', message: 'Sign in to continue.' });
+    await this.audit.record('account.exported', userId);
     const { customerProfile, requirementResponses, guidedFlows, systemChangesReceived, ...account } = user;
     return {
       schemaVersion: EXPORT_SCHEMA_VERSION,
@@ -64,5 +67,7 @@ export class AccountService {
       }
     }
     await this.repository.deleteUser(userId);
+    // The account's own events go with it; this one keeps no identifier.
+    await this.audit.record('account.deleted', null);
   }
 }

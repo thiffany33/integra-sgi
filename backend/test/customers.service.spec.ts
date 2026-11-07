@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CustomersRepository } from '../src/modules/customers/customers.repository';
 import { CustomersService } from '../src/modules/customers/customers.service';
 import type { PrismaService } from '../src/infra/prisma/prisma.service';
+import type { AuditService } from '../src/modules/audit/audit.service';
 
 const savedProfile = {
   schemaVersion: 1 as const,
@@ -33,7 +34,8 @@ function makeService() {
     $transaction: async <T>(callback: (transaction: { customerProfile: typeof customerProfile }) => Promise<T>) =>
       callback({ customerProfile }),
   } as unknown as PrismaService;
-  return { service: new CustomersService(new CustomersRepository(prisma)), stored };
+  const audit = { record: async () => undefined } as unknown as AuditService;
+  return { service: new CustomersService(new CustomersRepository(prisma), undefined as never, audit), stored };
 }
 
 describe('CustomersService', () => {

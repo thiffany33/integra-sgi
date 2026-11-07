@@ -49,7 +49,8 @@ Arquitetura de referência:
 5. **Validação de entrada**: todos os corpos de pedido são validados com Zod, com esquemas partilhados entre web e API (`packages/shared`).
 6. **Uploads**: foto de perfil limitada a 4 MiB e a JPEG, PNG ou WebP, com o tipo confirmado pelos bytes do ficheiro (não pela extensão). Os ficheiros ficam num bucket privado e só são servidos por URLs assinadas de curta duração (120 s).
 7. **Erros**: o filtro global (`sanitized-exception.filter.ts`) não devolve stack traces nem detalhes internos ao cliente.
-8. **Acesso à API em pré-visualização**: os deploys da Vercel estão protegidos e o site acede à API com um segredo de bypass que só existe no servidor.
+8. **Registo de auditoria** (`AuditEvent`, `audit.service.ts`): regista entradas, tentativas falhadas contra contas existentes, saídas, alterações e recuperação de palavra-passe, alterações de conta, de perfil e de foto, exportações e apagamentos de conta. Guarda apenas a conta, a ação e a data, sem IP nem conteúdo do pedido. Os registos são apagados ao fim de 12 meses, ou com a conta; o apagamento de uma conta deixa só um evento anónimo. As alterações de sistemas feitas por admins ficam em `CustomerSystemsChange`. Uma falha ao gravar o registo nunca bloqueia a ação.
+9. **Acesso à API em pré-visualização**: os deploys da Vercel estão protegidos e o site acede à API com um segredo de bypass que só existe no servidor.
 
 ## 4. Controlo de acesso
 
@@ -130,7 +131,6 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o con
 
 | Lacuna | Estado |
 | --- | --- |
-| Registo de auditoria (login, alteração de perfil, permissões, apagamentos) | Por implementar. |
 | Scan automático (OWASP ZAP baseline) contra homologação no CI | Proposto. |
 | Contacto público de segurança e de privacidade | A definir. |
 | Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |
