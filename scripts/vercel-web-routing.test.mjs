@@ -39,6 +39,7 @@ test('every web response carries the security headers before any other route', (
   }
   assert.equal(SECURITY_HEADERS['X-Frame-Options'], 'DENY');
   assert.equal(SECURITY_HEADERS['X-Content-Type-Options'], 'nosniff');
+  assert.equal(SECURITY_HEADERS['Cross-Origin-Opener-Policy'], 'same-origin');
 });
 
 test('rejects API targets outside Vercel app domains', () => {

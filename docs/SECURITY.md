@@ -45,11 +45,12 @@ Arquitetura de referência:
    - `X-Content-Type-Options: nosniff`.
    - `Referrer-Policy: strict-origin-when-cross-origin`.
    - `Permissions-Policy`: câmara, microfone, geolocalização e pagamentos desativados.
+   - `Cross-Origin-Opener-Policy: same-origin`. O `Cross-Origin-Embedder-Policy` fica de fora porque bloquearia as fotos de perfil servidas pelo Neon Storage.
 4. **CSRF**: cookie `SameSite=Lax` e, em pedidos `POST/PUT/PATCH/DELETE`, rejeição de qualquer `Origin` diferente de `FRONTEND_URL` (`origin.middleware.ts`). O CORS só aceita o domínio do site.
 5. **Validação de entrada**: todos os corpos de pedido são validados com Zod, com esquemas partilhados entre web e API (`packages/shared`).
 6. **Uploads**: foto de perfil limitada a 4 MiB e a JPEG, PNG ou WebP, com o tipo confirmado pelos bytes do ficheiro (não pela extensão). Os ficheiros ficam num bucket privado e só são servidos por URLs assinadas de curta duração (120 s).
 7. **Erros**: o filtro global (`sanitized-exception.filter.ts`) não devolve stack traces nem detalhes internos ao cliente.
-8. **Registo de auditoria** (`AuditEvent`, `audit.service.ts`): regista entradas, tentativas falhadas contra contas existentes, saídas, alterações e recuperação de palavra-passe, alterações de conta, de perfil e de foto, exportações e apagamentos de conta. Guarda apenas a conta, a ação e a data, sem IP nem conteúdo do pedido. Os registos são apagados ao fim de 12 meses, ou com a conta; o apagamento de uma conta deixa só um evento anónimo. As alterações de sistemas feitas por admins ficam em `CustomerSystemsChange`. Uma falha ao gravar o registo nunca bloqueia a ação.
+8. **Registo de auditoria** (`AuditEvent`, `audit.service.ts`): regista entradas, tentativas falhadas contra contas existentes, saídas, alterações e recuperação de palavra-passe, alterações de conta, de perfil e de foto, exportações e apagamentos de conta, incluindo os feitos por admins. Guarda apenas a conta, a ação e a data, sem IP nem conteúdo do pedido. Os registos são apagados ao fim de 12 meses, ou com a conta; o apagamento de uma conta deixa só um evento anónimo. As alterações de sistemas feitas por admins ficam em `CustomerSystemsChange`. Uma falha ao gravar o registo nunca bloqueia a ação.
 9. **Acesso à API em pré-visualização**: os deploys da Vercel estão protegidos e o site acede à API com um segredo de bypass que só existe no servidor.
 
 ## 4. Controlo de acesso
@@ -73,7 +74,7 @@ O tratamento de dados pessoais segue o RGPD. O detalhe para os utilizadores est�
 - **Minimização**: recolhem-se apenas os dados da organização (nome, NIF, setor, email), do representante (nome, email, telefone), a foto de perfil opcional e as respostas ao diagnóstico.
 - **Finalidade**: prestação do serviço de apoio à implementação de sistemas de gestão.
 - **Dados agregados**: os indicadores do painel de administração usam apenas dados agregados e não expõem respostas individuais fora do perfil de administração.
-- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não se podem apagar a si próprias. Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de 30 dias.
+- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não têm esta secção no perfil e não se podem apagar a si próprias. Na página Empresas, um admin descarrega os dados de uma empresa (`GET /api/v1/admin/customers/:id/export`) ou apaga a conta (`POST /api/v1/admin/customers/:id/delete`), por exemplo para responder a um pedido recebido por email. Apagar exige a palavra-passe do próprio admin e nunca se aplica a outra conta de administração. As duas ações ficam no registo de auditoria (`admin.customer_exported`, `admin.customer_deleted`). Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de 30 dias.
 - **Subcontratantes**: Vercel (alojamento), Neon (base de dados e ficheiros), Resend (email).
 
 ## 7. Testes de invasão
@@ -109,6 +110,11 @@ Baseada no **OWASP Web Security Testing Guide** e no **OWASP ASVS nível 1**, co
 ### 7.4 Frequência
 
 - **Automática**: verificação de dependências e dos cabeçalhos a cada pull request.
+- **Scan passivo OWASP ZAP** (`.github/workflows/security-scan.yml`): ZAP baseline com spider AJAX após cada deploy de homologação e todas as segundas-feiras. Também pode ser lançado à mão contra produção, porque só faz pedidos GET e não envia ataques. As regras ficam em `.zap/rules.tsv`:
+  - **Falham o job**: a falta de CSP, `X-Frame-Options`, `X-Content-Type-Options` ou `Permissions-Policy`; um cookie sem `HttpOnly`, `Secure` ou `SameSite`; e o cabeçalho `X-Powered-By`.
+  - **Avisos aceites**: `style-src 'unsafe-inline'`, a falta de COEP e o HSTS em respostas lidas da cache do próprio spider.
+  - **Ignorados, com justificação no ficheiro**: alertas informativos e o `Access-Control-Allow-Origin: *` que a Vercel envia nos ficheiros estáticos, que não levam credenciais.
+  - O relatório fica como artefacto `zap-baseline-report` no run.
 - **Manual, interna**: antes de cada lançamento com mudanças em autenticação, permissões ou upload, e pelo menos **uma vez por semestre**.
 - **Externa** (empresa especializada): pelo menos **uma vez por ano** e antes de abrir a plataforma a novos mercados.
 
@@ -131,7 +137,6 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o con
 
 | Lacuna | Estado |
 | --- | --- |
-| Scan automático (OWASP ZAP baseline) contra homologação no CI | Proposto. |
 | Contacto público de segurança e de privacidade | A definir. |
 | Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |
 

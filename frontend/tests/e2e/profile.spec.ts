@@ -170,9 +170,11 @@ test('apagar a conta exige confirmação e a palavra-passe certa', async ({ page
   expect(attempts).toEqual([{ password: 'wrong-password' }, { password: 'right-password' }]);
 });
 
-test('conta de administração não oferece apagar a conta', async ({ page }) => {
+test('conta de administração não mostra a secção dos seus dados', async ({ page }) => {
   await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { user: { ...user, isAdmin: true }, profile } }));
   await page.goto('/profile');
-  await expect(page.getByText('As contas de administração não podem ser apagadas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Alterar palavra-passe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Os seus dados' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Descarregar os meus dados' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Apagar a conta definitivamente' })).toHaveCount(0);
 });

@@ -40,6 +40,13 @@ export const adminApi = {
     const { data } = await api.get<AdminInsights>('/admin/insights');
     return data;
   },
+  async exportCustomer(userId: string): Promise<Blob> {
+    const { data } = await api.get<unknown>(`/admin/customers/${encodeURIComponent(userId)}/export`);
+    return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  },
+  async deleteCustomer(userId: string, password: string): Promise<void> {
+    await api.post(`/admin/customers/${encodeURIComponent(userId)}/delete`, { password });
+  },
   async updateCustomerSystems(userId: string, selectedSystems: SelectedSystem[], revision: number): Promise<AdminCustomer> {
     const { data } = await api.patch<AdminCustomer>(`/admin/customers/${encodeURIComponent(userId)}/systems`, { selectedSystems, revision });
     return data;

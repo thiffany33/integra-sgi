@@ -14,7 +14,9 @@ export type AuditAction =
   | 'account.deleted'
   | 'profile.updated'
   | 'profile.photo_uploaded'
-  | 'profile.photo_removed';
+  | 'profile.photo_removed'
+  | 'admin.customer_exported'
+  | 'admin.customer_deleted';
 
 const RETENTION_DAYS = 365;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;
