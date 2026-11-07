@@ -285,3 +285,44 @@ test('customer navigation has no administration pages', async ({ page }) => {
   await expect(navigation.getByRole('link', { name: 'Meu plano' })).toBeVisible();
   await expect(navigation.getByRole('link', { name: 'Indicadores' })).toHaveCount(0);
 });
+
+test('admin downloads a company\'s data', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  await page.route('**/api/v1/admin/customers**', route => route.fulfill({ json: { items: [customer], nextCursor: null } }));
+  await page.route('**/api/v1/admin/customers/customer-1/export', route => route.fulfill({ json: { schemaVersion: 1, account: { email: customer.email } } }));
+  await page.goto('/admin/customers');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Descarregar dados de Cooperativa Exemplo' }).click();
+  expect((await download).suggestedFilename()).toBe('integra-sgi-dados-customer-1.json');
+  await expect(page.getByRole('status')).toContainText('Os dados de Cooperativa Exemplo foram descarregados.');
+});
+
+test('admin deletes a company only after confirming with their own password', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  const attempts: unknown[] = [];
+  await page.route('**/api/v1/admin/customers**', route => route.fulfill({ json: { items: [customer], nextCursor: null } }));
+  await page.route('**/api/v1/admin/customers/customer-1/delete', route => {
+    attempts.push(route.request().postDataJSON());
+    return attempts.length === 1
+      ? route.fulfill({ status: 401, json: { error: { code: 'INVALID_CURRENT_PASSWORD' } } })
+      : route.fulfill({ json: { message: 'Customer deleted.' } });
+  });
+  await page.goto('/admin/customers');
+  await page.getByRole('button', { name: 'Apagar conta de Cooperativa Exemplo' }).click();
+  await expect(page.getByText('Apaga de imediato a conta de maria@example.pt')).toBeVisible();
+  await page.getByLabel('A sua palavra-passe, para confirmar').fill('wrong-password');
+  await page.getByRole('button', { name: 'Apagar definitivamente' }).click();
+  await expect(page.getByRole('alert')).toContainText('Confirme que compreende');
+  expect(attempts).toHaveLength(0);
+
+  await page.getByRole('checkbox', { name: /Compreendo que a conta de Cooperativa Exemplo/ }).check();
+  await page.getByRole('button', { name: 'Apagar definitivamente' }).click();
+  await expect(page.getByRole('alert')).toContainText('A sua palavra-passe está incorreta.');
+  await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo', exact: true })).toBeVisible();
+
+  await page.getByLabel('A sua palavra-passe, para confirmar').fill('right-password');
+  await page.getByRole('button', { name: 'Apagar definitivamente' }).click();
+  await expect(page.getByRole('status')).toContainText('A conta de Cooperativa Exemplo foi apagada.');
+  await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo', exact: true })).toHaveCount(0);
+  expect(attempts).toEqual([{ password: 'wrong-password' }, { password: 'right-password' }]);
+});

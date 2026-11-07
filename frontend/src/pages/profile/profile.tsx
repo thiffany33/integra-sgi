@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth, type AuthContextValue } from '@/contexts/auth-context-value';
 import { profileApi } from '@/api/profile.api';
 import { accountApi } from '@/api/account.api';
+import { saveFile } from '@/lib/download';
 import { clearProfilePhoto, loadProfilePhoto, setProfilePhoto, useProfilePhoto } from '@/lib/profile-photo';
 
 type Organization = UpdateCustomerProfileInput['profile']['organization'];
@@ -170,7 +171,8 @@ function ProfileSettings({ auth }: { auth: AuthenticatedContext }) {
       <Button type="submit" disabled={busy !== null}>{busy === 'password' ? t('saving') : t('changePassword')}</Button>
     </form></CardContent></Card>
 
-    <YourData auth={auth} />
+    {/* Administrators manage customers' data from the companies page; their own account is not deleted here. */}
+    {!auth.user.isAdmin && <YourData auth={auth} />}
   </div>;
 }
 
@@ -188,12 +190,7 @@ function YourData({ auth }: { auth: AuthenticatedContext }) {
   async function exportData() {
     setExporting(true); setExportMessage(null);
     try {
-      const url = URL.createObjectURL(await accountApi.export());
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'integra-sgi-dados.json';
-      link.click();
-      URL.revokeObjectURL(url);
+      saveFile(await accountApi.export(), 'integra-sgi-dados.json');
       setExportMessage({ kind: 'success', text: t('exportReady') });
     } catch {
       setExportMessage({ kind: 'error', text: t('exportError') });
@@ -225,13 +222,13 @@ function YourData({ auth }: { auth: AuthenticatedContext }) {
     </div>
     <div className="space-y-3 border-t pt-6">
       <h3 className="text-xl">{t('deleteTitle')}</h3>
-      {auth.user.isAdmin ? <p className="text-base text-muted-foreground">{t('deleteAdminBlocked')}</p> : <form className="space-y-5" onSubmit={deleteAccount}>
+      <form className="space-y-5" onSubmit={deleteAccount}>
         <p className="text-base">{t('deleteDescription')}</p>
         <div className="field"><Label htmlFor="profile-delete-password">{t('deletePassword')}</Label><Input id="profile-delete-password" type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required /></div>
         <label className="flex min-h-12 items-start gap-3 text-base"><input type="checkbox" className="mt-1 size-5 shrink-0 accent-destructive" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />{t('deleteConfirm')}</label>
         <Feedback message={deleteMessage} />
         <Button type="submit" variant="destructive" disabled={deleting}><Trash2 className="mr-2 size-4" aria-hidden="true" />{deleting ? t('deleting') : t('deleteAction')}</Button>
-      </form>}
+      </form>
     </div>
   </CardContent></Card>;
 }
