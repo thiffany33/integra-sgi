@@ -58,7 +58,7 @@ Arquitetura de referência:
 1. Perfis: contas com `isAdmin = true` são da equipa Integra SGI; todas as outras são organizações clientes. A primeira conta administradora é criada pelo seed (`npm run db:seed`), que nunca altera uma conta existente.
 2. Cada cliente só acede aos seus próprios dados: todas as consultas são filtradas pelo utilizador da sessão.
 3. As rotas de administração exigem `isAdmin` (`platform-admin.guard.ts`).
-4. Privilégio mínimo também na infraestrutura: só quem mantém o projeto tem acesso à Vercel, ao Neon e aos ambientes do GitHub. O ambiente `production` do GitHub deve exigir aprovação.
+4. Privilégio mínimo também na infraestrutura: só quem mantém o projeto tem acesso à Vercel, ao Neon e aos ambientes do GitHub. O ambiente `production` do GitHub exige aprovação de um revisor e só aceita deploys da `main`.
 
 ## 5. Desenvolvimento seguro
 
@@ -138,8 +138,7 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thi
 
 | Lacuna | Estado |
 | --- | --- |
-| Email de privacidade, NIF e morada do responsável na política de privacidade | A definir. |
-| Aprovação obrigatória no ambiente `production` do GitHub | Autorizada; falta configurá-la com a conta de admin do repositório. |
+| NIF e morada do responsável na política de privacidade | A definir. O email de privacidade é thiffanyg33@gmail.com. |
 
 ---
 
