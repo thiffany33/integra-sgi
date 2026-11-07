@@ -106,7 +106,7 @@ test('starts, saves five groups, reviews and completes without storing answers i
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Conhecer a organização');
   expect(flow.getCount()).toBe(1);
   await page.getByRole('button', { name: 'Começar' }).click();
-  await expect(page.getByText('Cooperativa Exemplo')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Cooperativa Exemplo')).toBeVisible();
   await page.getByLabel('Dimensão da equipa').selectOption('10-49');
   await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(page.getByText('Passo 2 de 6')).toBeVisible();
@@ -120,7 +120,7 @@ test('starts, saves five groups, reviews and completes without storing answers i
   await page.getByLabel('Atrasos').check();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Rever respostas');
-  await expect(page.getByText('Cooperativa Exemplo')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Cooperativa Exemplo')).toBeVisible();
   expect(flow.writes.map(write => write.step)).toEqual([1, 2, 3, 4, 5]);
   expect(JSON.stringify(flow.getState().responses)).not.toContain('Cooperativa Exemplo');
   await page.getByRole('button', { name: 'Confirmar descoberta' }).click();
@@ -190,10 +190,50 @@ test('shared header links save the current step before leaving', async ({ page }
   await page.goto('/organization-discovery');
   await expect(page.getByText('Passo 2 de 6')).toBeVisible();
   await page.getByLabel('Descreva a atividade principal').fill('Reparação de máquinas');
-  await page.getByRole('button', { name: 'Menu da conta de Maria Silva' }).click();
+  await page.getByRole('button', { name: 'Menu da conta de Cooperativa Exemplo' }).click();
   await page.getByRole('menuitem', { name: 'O meu perfil' }).click();
   await expect(page).toHaveURL(/\/profile$/);
   expect(flow.getState().responses['4.1'].activityDescription).toBe('Reparação de máquinas');
+});
+
+test('leaving an untouched step for the guide and coming back does not advance discovery', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 3, completedSteps: [1, 2], revision: 2, responses: {} });
+  const nav = page.getByRole('navigation', { name: 'Navegação principal' });
+  for (let visit = 0; visit < 3; visit++) {
+    await page.goto('/organization-discovery');
+    await expect(page.getByText('Passo 3 de 6')).toBeVisible();
+    await nav.getByRole('link', { name: 'Guia de gestão' }).click();
+    await expect(page).toHaveURL(/\/requirement$/);
+  }
+  expect(flow.writes).toHaveLength(0);
+  expect(flow.getState()).toMatchObject({ currentStep: 3, completedSteps: [1, 2] });
+});
+
+test('back and save-and-leave on an untouched step move without marking it done', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 3, completedSteps: [1, 2], revision: 2, responses: {} });
+  await page.goto('/organization-discovery');
+  await expect(page.getByText('Passo 3 de 6')).toBeVisible();
+  await page.getByRole('button', { name: 'Voltar' }).click();
+  await expect(page.getByText('Passo 2 de 6')).toBeVisible();
+  await page.getByRole('button', { name: 'Guardar e sair' }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect(flow.writes).toHaveLength(0);
+  expect(flow.getState()).toMatchObject({ currentStep: 3, completedSteps: [1, 2] });
+});
+
+test('review goes back to the last step without saving or confirming', async ({ page }) => {
+  const flow = await mockFlow(page);
+  flow.setState({ status: 'IN_PROGRESS', currentStep: 6, completedSteps: [1, 2, 3, 4, 5], revision: 5, responses: { '6.1': { notes: 'Rever stock.' } } });
+  await page.goto('/organization-discovery');
+  await expect(page.getByRole('heading', { level: 1, name: 'Rever respostas' })).toBeVisible();
+  await page.getByRole('button', { name: 'Voltar' }).click();
+  await expect(page.getByText('Passo 5 de 6')).toBeVisible();
+  await expect(page.getByLabel('Quer acrescentar alguma nota?')).toHaveValue('Rever stock.');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Rever respostas' })).toBeVisible();
+  expect(flow.getState().status).toBe('IN_PROGRESS');
 });
 
 test('a failed save keeps the draft and offers to stay or leave without saving', async ({ page }) => {
@@ -271,7 +311,7 @@ test('dashboard starts discovery from saved not-started state and identifies sel
   await expect(page.getByRole('main').getByText(/concluído/i)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Começar pelo requisito 4' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Consultar todo o guia' })).toBeVisible();
-  const account = page.getByRole('button', { name: 'Menu da conta de Maria Silva' });
+  const account = page.getByRole('button', { name: 'Menu da conta de Cooperativa Exemplo' });
   await expect(account).toContainText('A minha conta');
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(account).toBeVisible();

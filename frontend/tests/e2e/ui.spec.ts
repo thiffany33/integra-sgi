@@ -56,7 +56,7 @@ test('cadastro grava o perfil selecionado pela API sem usar storage do navegador
   await expect(page).toHaveURL(/\/verify-email\?email=contato%40atlantico\.pt$/)
   await expect(page.getByText('A conta foi criada. Consulte o email para confirmar o endereço antes de entrar.')).toBeVisible()
   expect(requests).toHaveLength(1)
-  expect(requests[0]).toMatchObject({ email: 'contato@atlantico.pt', name: 'Maria Silva', locale: 'pt-PT' })
+  expect(requests[0]).toMatchObject({ email: 'contato@atlantico.pt', name: 'Cooperativa Atlântico', locale: 'pt-PT' })
   expect(requests[0].profile).toMatchObject({
     organization: { name: 'Cooperativa Atlântico', nif: '123456789' },
     representative: { name: 'Maria Silva' },
