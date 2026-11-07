@@ -11,7 +11,7 @@ export async function promotePlatformAdmin(emailValue: string | undefined, datab
   if (!email.success) throw new PromotionInputError('PLATFORM_ADMIN_EMAIL must contain a valid email address.');
   const account = await database.user.findUnique({ where: { email: email.data }, select: { id: true } });
   if (!account) throw new PromotionInputError('PLATFORM_ADMIN_EMAIL must identify an existing account.');
-  await database.user.update({ where: { id: account.id }, data: { role: 'PLATFORM_ADMIN' }, select: { id: true } });
+  await database.user.update({ where: { id: account.id }, data: { isAdmin: true }, select: { id: true } });
   return account.id;
 }
 

@@ -52,14 +52,14 @@ export class AdminRepository {
   async listCustomers(input: { search?: string; cursor?: string; limit: number }): Promise<{ items: CustomerSummary[]; nextCursor: string | null } | 'INVALID_CURSOR'> {
     if (input.cursor) {
       const exists = await this.prisma.user.findFirst({
-        where: { id: input.cursor, role: 'CUSTOMER', customerProfile: { isNot: null } }, select: { id: true },
+        where: { id: input.cursor, isAdmin: false, customerProfile: { isNot: null } }, select: { id: true },
       });
       if (!exists) return 'INVALID_CURSOR';
     }
     const search = input.search?.trim();
     const rows = await this.prisma.user.findMany({
       where: {
-        role: 'CUSTOMER',
+        isAdmin: false,
         customerProfile: { isNot: null },
         ...(input.cursor ? { id: { gt: input.cursor } } : {}),
         ...(search ? { OR: [
@@ -84,9 +84,9 @@ export class AdminRepository {
     return this.prisma.$transaction(async (transaction) => {
       const user = await transaction.user.findUnique({
         where: { id: targetUserId },
-        select: { ...customerSelect, role: true },
+        select: { ...customerSelect, isAdmin: true },
       });
-      if (!user || user.role !== 'CUSTOMER' || !user.customerProfile) return 'NOT_FOUND';
+      if (!user || user.isAdmin || !user.customerProfile) return 'NOT_FOUND';
       if (user.customerProfile.revision !== revision) return 'CONFLICT';
 
       const existing = user.customerProfile.data as CustomerProfileInput;
@@ -115,7 +115,7 @@ export class AdminRepository {
 
   async insightCustomers(): Promise<InsightCustomer[]> {
     const rows = await this.prisma.user.findMany({
-      where: { role: 'CUSTOMER' },
+      where: { isAdmin: false },
       select: {
         createdAt: true,
         emailVerifiedAt: true,

@@ -53,9 +53,9 @@ Arquitetura de referência:
 
 ## 4. Controlo de acesso
 
-1. Perfis: `CUSTOMER` (organização cliente) e `PLATFORM_ADMIN` (equipa Integra SGI).
+1. Perfis: contas com `isAdmin = true` são da equipa Integra SGI; todas as outras são organizações clientes. A primeira conta administradora é criada pelo seed (`npm run db:seed`), que nunca altera uma conta existente.
 2. Cada cliente só acede aos seus próprios dados: todas as consultas são filtradas pelo utilizador da sessão.
-3. As rotas de administração exigem `PLATFORM_ADMIN` (`platform-admin.guard.ts`).
+3. As rotas de administração exigem `isAdmin` (`platform-admin.guard.ts`).
 4. Privilégio mínimo também na infraestrutura: só quem mantém o projeto tem acesso à Vercel, ao Neon e aos ambientes do GitHub. O ambiente `production` do GitHub deve exigir aprovação.
 
 ## 5. Desenvolvimento seguro
@@ -94,7 +94,7 @@ Baseada no **OWASP Web Security Testing Guide** e no **OWASP ASVS nível 1**, co
 
 | Área | O que se verifica |
 | --- | --- |
-| Controlo de acesso (A01) | Acesso a dados de outra organização (IDOR), rotas de admin com perfil `CUSTOMER`, ficheiros sem URL assinada. |
+| Controlo de acesso (A01) | Acesso a dados de outra organização (IDOR), rotas de admin com uma conta de cliente, ficheiros sem URL assinada. |
 | Criptografia (A02) | TLS, HSTS, flags do cookie, ausência de dados sensíveis em URLs e logs. |
 | Injeção (A03) | SQL/NoSQL nos campos do diagnóstico e do perfil, XSS armazenado e refletido. |
 | Design inseguro (A04) | Fluxo de recuperação de palavra-passe, enumeração de contas, limites de tentativas. |

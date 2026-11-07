@@ -19,7 +19,7 @@ export default function Navbar() {
       { to: '/login', label: t('navigation:login') },
       { to: '/register', label: t('navigation:register') },
     ] : []),
-    ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
+    ...(auth.status === 'authenticated' && auth.user.isAdmin
       ? [{ to: '/admin/insights', label: t('navigation:adminInsights') }, { to: '/admin/customers', label: t('navigation:adminCustomers') }] : []),
   ];
 

@@ -6,7 +6,7 @@ import { ApiException } from '../../utils/api-exception';
 export class PlatformAdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    if (request.userRole !== 'PLATFORM_ADMIN') {
+    if (request.isAdmin !== true) {
       throw new ApiException(HttpStatus.FORBIDDEN, {
         code: 'FORBIDDEN', message: 'You do not have access to this resource.',
       });

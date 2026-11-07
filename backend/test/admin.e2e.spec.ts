@@ -57,7 +57,7 @@ describe('platform administrator HTTP flow', () => {
     customerId = customer.id;
     adminCookie = admin.cookie;
     customerCookie = customer.cookie;
-    await prisma.user.update({ where: { id: adminId }, data: { role: 'PLATFORM_ADMIN' } });
+    await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
   }, 30_000);
 
   afterAll(async () => {
@@ -148,7 +148,7 @@ describe('platform administrator HTTP flow', () => {
     }).expect(201);
     const secondAdminUser = await prisma.user.update({
       where: { email: secondAdminEmail },
-      data: { emailVerifiedAt: new Date(), role: 'PLATFORM_ADMIN' },
+      data: { emailVerifiedAt: new Date(), isAdmin: true },
     });
     const secondAdminId = secondAdminUser.id;
     const secondAdminLogin = await request(app.getHttpServer()).post('/api/v1/auth/login').send({

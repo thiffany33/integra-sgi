@@ -34,7 +34,7 @@ export function AppShell({ main, children }: { main: RefObject<HTMLElement | nul
     { to: '/requirement', label: t('guidance'), icon: BookOpen, active: path => path.startsWith('/requirement') },
     { to: '/downloads', label: t('downloads'), icon: Download, active: path => path === '/downloads' },
     { to: '/contact', label: t('help'), icon: LifeBuoy, active: path => path === '/contact' },
-    ...(auth.status === 'authenticated' && auth.user.role === 'PLATFORM_ADMIN'
+    ...(auth.status === 'authenticated' && auth.user.isAdmin
       ? [
         { to: '/admin/insights', label: t('adminInsights'), icon: ChartColumn, active: (path: string) => path === '/admin/insights' },
         { to: '/admin/customers', label: t('adminCustomers'), icon: Building2, active: (path: string) => path === '/admin/customers' },

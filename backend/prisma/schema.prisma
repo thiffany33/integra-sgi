@@ -7,11 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
-  CUSTOMER
-  PLATFORM_ADMIN
-}
-
 enum CustomerGuidedFlowStatus {
   IN_PROGRESS
   COMPLETED
@@ -23,7 +18,7 @@ model User {
   email                String                     @unique @db.VarChar(254)
   passwordHash         String                     @db.VarChar(255)
   emailVerifiedAt      DateTime?
-  role                 UserRole                   @default(CUSTOMER)
+  isAdmin              Boolean                    @default(false)
   locale               String                     @default("pt-PT") @db.VarChar(5)
   createdAt            DateTime                   @default(now())
   updatedAt            DateTime                   @updatedAt

@@ -10,6 +10,6 @@ export function RequirePlatformAdmin({ children }: { children: ReactNode }) {
 function AdminOnly({ children }: { children: ReactNode }) {
   const auth = useAuth();
   if (auth.status !== 'authenticated') return null;
-  if (auth.user.role !== 'PLATFORM_ADMIN') return <Navigate to="/" replace />;
+  if (!auth.user.isAdmin) return <Navigate to="/" replace />;
   return children;
 }

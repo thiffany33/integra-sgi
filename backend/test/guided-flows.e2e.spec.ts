@@ -48,7 +48,7 @@ describe('organization discovery HTTP API', () => {
     process.env.APP_URL = 'http://localhost:5173';
     const { AppModule } = await import('../src/app.module');
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
-      .overrideProvider(AuthService).useValue({ validateSession: async (token: string) => token === 'valid' ? { userId: 'ana', role: 'CUSTOMER' } : null })
+      .overrideProvider(AuthService).useValue({ validateSession: async (token: string) => token === 'valid' ? { userId: 'ana', isAdmin: false } : null })
       .overrideProvider(PrismaService).useValue({ ...tables, $transaction: async <T>(callback: (tx: typeof tables) => Promise<T>) => {
         const previousFlows = structuredClone(flows);
         const previousAnswers = structuredClone(answers);

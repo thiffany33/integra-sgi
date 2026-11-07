@@ -5,8 +5,8 @@ const customer = {
   selectedSystems: ['sgq'], revision: 1, updatedAt: '2026-10-04T12:00:00.000Z',
 };
 
-async function signInAs(page: Page, role: 'CUSTOMER' | 'PLATFORM_ADMIN') {
-  const user = { id: role === 'CUSTOMER' ? 'customer-1' : 'admin-1', name: 'Utilizador', email: 'user@example.pt', locale: 'pt-PT', emailVerifiedAt: null, role };
+async function signInAs(page: Page, role: 'CUSTOMER' | 'ADMIN') {
+  const user = { id: role === 'CUSTOMER' ? 'customer-1' : 'admin-1', name: 'Utilizador', email: 'user@example.pt', locale: 'pt-PT', emailVerifiedAt: null, isAdmin: role === 'ADMIN' };
   const profile = {
     schemaVersion: 1, organization: { name: 'Exemplo', nif: '123456789', sector: 'Serviços', email: 'user@example.pt' },
     representative: { name: 'Utilizador', email: '', phone: '' }, selectedSystems: ['sgq'],
@@ -25,7 +25,7 @@ test('customer cannot see or render the platform administration', async ({ page 
 });
 
 test('admin can search for an identified account and explicitly save selected systems', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let matchingSearches = 0;
   await page.route('**/api/v1/admin/customers**', async route => {
     if (route.request().method() === 'PATCH') {
@@ -54,7 +54,7 @@ test('admin can search for an identified account and explicitly save selected sy
 });
 
 test('admin sees a conflict and can refresh before editing again', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let changed = false;
   await page.route('**/api/v1/admin/customers**', async route => {
     if (route.request().method() === 'PATCH') {
@@ -74,7 +74,7 @@ test('admin sees a conflict and can refresh before editing again', async ({ page
 });
 
 test('admin sees a useful list error and can retry', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let attempts = 0;
   await page.route('**/api/v1/admin/customers**', async route => {
     attempts += 1;
@@ -89,7 +89,7 @@ test('admin sees a useful list error and can retry', async ({ page }) => {
 });
 
 test('retry after a failed new search uses the failed query and replaces the displayed list', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   const queries: string[] = [];
   const matched = { ...customer, userId: 'customer-2', name: 'Ana Costa', organizationName: 'Cooperativa Nova' };
   await page.route('**/api/v1/admin/customers**', async route => {
@@ -113,7 +113,7 @@ test('retry after a failed new search uses the failed query and replaces the dis
 });
 
 test('pending save keeps account and search controls stable', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   const second = { ...customer, userId: 'customer-2', organizationName: 'Outra Empresa', email: 'outra@example.pt' };
   let releaseSave!: () => void;
   const savePending = new Promise<void>(resolve => { releaseSave = resolve; });
@@ -140,7 +140,7 @@ test('pending save keeps account and search controls stable', async ({ page }) =
 });
 
 test('a list response started before a save cannot replace the saved revision', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let listCalls = 0;
   let patchCalls = 0;
   let releaseList!: () => void;
@@ -173,7 +173,7 @@ test('a list response started before a save cannot replace the saved revision', 
 });
 
 test('a cancelled search cannot change the query used to paginate the displayed list', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let releaseSearch!: () => void;
   const searchPending = new Promise<void>(resolve => { releaseSearch = resolve; });
   let paginatedQuery: URLSearchParams | null = null;
@@ -223,7 +223,7 @@ const insights = {
 };
 
 test('admin sees aggregated insights with readable counts and shares', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   await page.route('**/api/v1/admin/insights', route => route.fulfill({ json: insights }));
   await page.goto('/admin/insights');
   await expect(page.getByRole('heading', { level: 1, name: 'Indicadores' })).toBeVisible();
@@ -234,7 +234,7 @@ test('admin sees aggregated insights with readable counts and shares', async ({ 
 });
 
 test('insights explain a failed load and can retry', async ({ page }) => {
-  await signInAs(page, 'PLATFORM_ADMIN');
+  await signInAs(page, 'ADMIN');
   let calls = 0;
   await page.route('**/api/v1/admin/insights', route => (++calls === 1 ? route.fulfill({ status: 500, json: {} }) : route.fulfill({ json: insights })));
   await page.goto('/admin/insights');

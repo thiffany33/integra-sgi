@@ -17,7 +17,7 @@ export class SessionGuard implements CanActivate {
     if (!session) throw this.unauthenticated();
 
     request.userId = session.userId;
-    request.userRole = session.role;
+    request.isAdmin = session.isAdmin;
     return true;
   }
 
