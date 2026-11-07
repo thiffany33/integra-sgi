@@ -77,13 +77,15 @@ jobs:
           cli="$RUNNER_TEMP/vercel-cli/node_modules/.bin/vercel"
           target=preview
           flags=()
-          if [[ "$DEPLOY_BRANCH" == main ]]; then target=production; flags+=(--prod); fi
+          # Vercel only accepts --git-branch with the preview target.
+          pull_flags=(--git-branch="$DEPLOY_BRANCH")
+          if [[ "$DEPLOY_BRANCH" == main ]]; then target=production; flags+=(--prod); pull_flags=(); fi
           for project in api web; do
             if [[ "$project" == api ]]; then export VERCEL_PROJECT_ID="$API_PROJECT_ID"; else export VERCEL_PROJECT_ID="$WEB_PROJECT_ID"; fi
             cd "$GITHUB_WORKSPACE/$project-source"
             # Preserve branch-scoped Preview runtime variables on detached SHA checkouts.
             git switch --force-create "$DEPLOY_BRANCH" "$DEPLOY_SHA"
-            "$cli" pull --yes --environment="$target" --git-branch="$DEPLOY_BRANCH" --token="$VERCEL_TOKEN"
+            "$cli" pull --yes --environment="$target" "${pull_flags[@]}" --token="$VERCEL_TOKEN"
             if [[ "$project" == web ]]; then
               node "$GITHUB_WORKSPACE/web-source/scripts/configure-vercel-web.mjs" \
                 "$GITHUB_WORKSPACE/web-source/frontend/vercel.json" "$API_DOMAIN"
