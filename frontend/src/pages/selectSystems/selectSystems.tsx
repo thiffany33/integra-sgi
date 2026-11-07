@@ -71,6 +71,7 @@ export default function SelectSystems() {
       </fieldset>
       {!selected && <p role="alert" className="rounded-lg border bg-secondary p-4 text-base">{t('chooseOneSystem')}</p>}
       <div className="field"><Label htmlFor="account-password">{t('createPassword')}</Label><Input id="account-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={event => setPassword(event.target.value)} aria-describedby="password-help" /><p id="password-help" className="field-hint">{t('passwordHint')}</p></div>
+      <p className="text-base text-muted-foreground">{t('common:privacyConsent')} <Link className="text-link" to="/privacidade" target="_blank" rel="noopener noreferrer">{t('common:privacyPolicy').toLowerCase()}<span className="sr-only"> {t('common:opensInNewTab')}</span></Link>.</p>
       {error && <p role="alert" className="text-base text-destructive">{error}</p>}
       <div className="form-actions"><Button asChild variant="outline"><Link to={`/representative${query}`}><ArrowLeft aria-hidden="true" />{t('backRepresentative')}</Link></Button><Button type="submit" disabled={!selected || busy}>{busy ? t('creatingAccount') : t('createAccountPlan')}<ArrowRight aria-hidden="true" /></Button></div>
     </form></div>

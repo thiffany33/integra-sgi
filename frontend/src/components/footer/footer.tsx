@@ -14,6 +14,7 @@ export default function Footer() {
       <nav aria-label={t('navigation:footerLinks')} className="flex flex-wrap gap-5 text-base">
         <Link className="text-link inline-flex min-h-12 items-center" to="/requirement">{t('common:footerGuide')}</Link>
         <Link className="text-link inline-flex min-h-12 items-center" to="/contact">{t('common:footerHelp')}</Link>
+        <Link className="text-link inline-flex min-h-12 items-center" to="/privacidade">{t('common:privacyPolicy')}</Link>
       </nav>
     </div>
   </footer>;
