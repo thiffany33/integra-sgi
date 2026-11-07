@@ -65,3 +65,17 @@ test('rejects photos above the 4 MiB limit before uploading', async ({ page }) =
   await expect(page.getByRole('alert')).toContainText('Escolha uma imagem JPEG, PNG ou WebP até 4 MiB.');
   expect(posts).toBe(0);
 });
+
+test('the account menu shows the uploaded photo without reloading', async ({ page }) => {
+  await page.route('**/api/v1/customers/me/avatar', async route => route.request().method() === 'POST'
+    ? route.fulfill({ json: { photoUrl: 'https://storage.example/new-avatar.png?signature=short' } })
+    : route.fulfill({ json: { photoUrl: null } }));
+  await page.route('https://storage.example/**', route => route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
+  await page.goto('/profile');
+  const account = page.getByRole('button', { name: 'Menu da conta de Cooperativa Exemplo' });
+  await expect(account.locator('img')).toHaveCount(0);
+  await page.getByLabel('Escolher fotografia de perfil').setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: Buffer.from([137, 80, 78, 71]) });
+  await expect(account.locator('img')).toHaveAttribute('src', /new-avatar\.png/);
+  await page.getByRole('button', { name: 'Remover fotografia de perfil' }).click();
+  await expect(account.locator('img')).toHaveCount(0);
+});

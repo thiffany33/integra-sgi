@@ -108,3 +108,14 @@ test('menu da conta mostra iniciais e reúne perfil e saída', async ({ page }) 
   await expect(page.getByRole('menuitem', { name: 'O meu perfil' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Sair' })).toBeVisible();
 });
+
+test('uma sessão válida não vê o login nem o cadastro e segue para o destino', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 200, json: authPayload }));
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ status: 200, json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
+  await page.goto('/login');
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto('/login?returnTo=%2Fprofile');
+  await expect(page).toHaveURL(/\/profile$/);
+  await page.goto('/register');
+  await expect(page).toHaveURL(/\/dashboard$/);
+})
