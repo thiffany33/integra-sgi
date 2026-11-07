@@ -1,5 +1,27 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
+// Sent with every web response. The SPA loads only its own bundle; profile photos come from the
+// signed Neon Storage URLs, and nothing may frame the app (clickjacking).
+export const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://*.neon.tech",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    'upgrade-insecure-requests',
+  ].join('; '),
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+};
+
 export function createWebRoutingConfig(baseConfig, apiDomain) {
   let parsed;
   try {
@@ -16,6 +38,8 @@ export function createWebRoutingConfig(baseConfig, apiDomain) {
   return {
     ...projectConfig,
     routes: [
+      // `routes` cannot be combined with reliable `headers` matching, so a first pass sets them.
+      { src: '^/(.*)$', headers: SECURITY_HEADERS, continue: true },
       {
         src: '^/api/(.*)$',
         dest: `https://${parsed.hostname}/api/$1`,

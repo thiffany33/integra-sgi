@@ -1,3 +1,4 @@
+import "./lib/zod-config";
 import "./styles/styleGlobal.css";
 import "./i18n";
 import { StrictMode } from "react";
