@@ -63,7 +63,7 @@ export class AccountService {
 
   private toExport({ isAdmin, ...user }: NonNullable<Awaited<ReturnType<AccountRepository['findExport']>>>) {
     void isAdmin; // Only used to tell customers from administrators; not part of the export.
-    const { customerProfile, requirementResponses, guidedFlows, systemChangesReceived, ...account } = user;
+    const { customerProfile, requirementResponses, guidedFlows, systemChangesReceived, templateDownloads, ...account } = user;
     return {
       schemaVersion: EXPORT_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
@@ -78,6 +78,7 @@ export class AccountService {
       guidedFlows,
       requirementResponses,
       selectedSystemsHistory: systemChangesReceived,
+      templateDownloads,
     };
   }
 

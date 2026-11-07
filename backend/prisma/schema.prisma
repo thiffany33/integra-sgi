@@ -31,6 +31,7 @@ model User {
   requirementResponses CustomerRequirementResponse[]
   guidedFlows          CustomerGuidedFlow[]
   auditEvents          AuditEvent[]
+  templateDownloads    TemplateDownload[]
 }
 
 model CustomerRequirementResponse {
@@ -58,6 +59,8 @@ model CustomerGuidedFlow {
   revision       Int                      @default(1)
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
+  /// Set once, when the flow is first completed; later edits keep it.
+  completedAt    DateTime?
   user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, flowKey])
@@ -152,4 +155,16 @@ model AuditEvent {
 
   @@index([userId, createdAt])
   @@index([createdAt])
+}
+
+/// One row per template download by a customer, for the admin indicators.
+model TemplateDownload {
+  id         String   @id @default(cuid())
+  userId     String
+  documentId String   @db.VarChar(64)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, userId])
+  @@index([userId])
 }

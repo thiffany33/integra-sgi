@@ -26,3 +26,10 @@ export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   if (auth.status === 'authenticated' && !signingOut) return <Navigate to={safeReturnTo(searchParams.get('returnTo'), homePath(auth.user.isAdmin))} replace />;
   return children;
 }
+
+/** Customer workspace pages: administrators manage companies instead, so they go to their own home. */
+export function RequireCustomer({ children }: { children: ReactNode }) {
+  const auth = useAuth();
+  if (auth.status === 'authenticated' && auth.user.isAdmin) return <Navigate to={homePath(true)} replace />;
+  return children;
+}

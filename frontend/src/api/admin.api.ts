@@ -27,6 +27,8 @@ export type AdminInsights = {
   operatingAreas: InsightCount[];
   processActivities: InsightCount[];
   attentionTopics: InsightCount[];
+  completionDays: { median: number | null; buckets: InsightCount[] };
+  templateDownloads: (InsightCount & { downloads: number })[];
 };
 
 export type AdminCustomerPage = { items: AdminCustomer[]; nextCursor: string | null };

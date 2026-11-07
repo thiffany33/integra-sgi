@@ -1,0 +1,5 @@
+Contact: mailto:thiffanyg33@gmail.com
+Expires: 2027-11-07T00:00:00.000Z
+Preferred-Languages: pt, en
+Policy: https://github.com/thiffany33/integra-sgi/blob/main/docs/SECURITY.md
+Canonical: https://integrasig.pt/.well-known/security.txt

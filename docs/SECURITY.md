@@ -74,6 +74,7 @@ O tratamento de dados pessoais segue o RGPD. O detalhe para os utilizadores est�
 - **Minimização**: recolhem-se apenas os dados da organização (nome, NIF, setor, email), do representante (nome, email, telefone), a foto de perfil opcional e as respostas ao diagnóstico.
 - **Finalidade**: prestação do serviço de apoio à implementação de sistemas de gestão.
 - **Dados agregados**: os indicadores do painel de administração usam apenas dados agregados e não expõem respostas individuais fora do perfil de administração.
+- **Indicadores de uso**: a data de conclusão do diagnóstico e os downloads de modelos por clientes (`TemplateDownload`: conta, modelo e data) alimentam só contagens agregadas no painel do admin. Os downloads de admins não contam. Uma falha ao registar nunca bloqueia o download. Os dados saem na exportação e são apagados com a conta.
 - **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não têm esta secção no perfil e não se podem apagar a si próprias. Na página Empresas, um admin descarrega os dados de uma empresa (`GET /api/v1/admin/customers/:id/export`) ou apaga a conta (`POST /api/v1/admin/customers/:id/delete`), por exemplo para responder a um pedido recebido por email. Apagar exige a palavra-passe do próprio admin e nunca se aplica a outra conta de administração. As duas ações ficam no registo de auditoria (`admin.customer_exported`, `admin.customer_deleted`). Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de 30 dias.
 - **Subcontratantes**: Vercel (alojamento), Neon (base de dados e ficheiros), Resend (email).
 
@@ -131,14 +132,14 @@ Cada teste produz um relatório com âmbito, data, achados, evidências e estado
 
 ## 8. Comunicação de vulnerabilidades
 
-Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o contacto de segurança do projeto (**a definir**), sem a divulgar publicamente até estar corrigida. A receção é confirmada em até 5 dias úteis.
+Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thiffanyg33@gmail.com**, sem a divulgar publicamente até estar corrigida. A receção é confirmada em até 5 dias úteis. O mesmo contacto está em `https://integrasig.pt/.well-known/security.txt` (RFC 9116), que tem de ser renovado antes da data `Expires`.
 
 ## 9. Lacunas conhecidas e próximos passos
 
 | Lacuna | Estado |
 | --- | --- |
-| Contacto público de segurança e de privacidade | A definir. |
-| Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |
+| Email de privacidade, NIF e morada do responsável na política de privacidade | A definir. |
+| Aprovação obrigatória no ambiente `production` do GitHub | Autorizada; falta configurá-la com a conta de admin do repositório. |
 
 ---
 

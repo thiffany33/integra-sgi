@@ -24,6 +24,8 @@ export const SECURITY_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin',
 };
 
+export const ASSET_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+
 export function createWebRoutingConfig(baseConfig, apiDomain) {
   let parsed;
   try {
@@ -42,6 +44,8 @@ export function createWebRoutingConfig(baseConfig, apiDomain) {
     routes: [
       // `routes` cannot be combined with reliable `headers` matching, so a first pass sets them.
       { src: '^/(.*)$', headers: SECURITY_HEADERS, continue: true },
+      // Vite puts only content-hashed files in /assets, so a browser may keep them for good.
+      { src: '^/assets/(.*)$', headers: { 'Cache-Control': ASSET_CACHE_CONTROL }, continue: true },
       {
         src: '^/api/(.*)$',
         dest: `https://${parsed.hostname}/api/$1`,
@@ -54,6 +58,8 @@ export function createWebRoutingConfig(baseConfig, apiDomain) {
         }],
       },
       { handle: 'filesystem' },
+      // A hash from an older deploy must not fall through to index.html under the immutable header.
+      { src: '^/assets/(.*)$', status: 404, headers: { 'Cache-Control': 'no-store' } },
       { src: '^(.*)$', dest: '/index.html' },
     ],
     headers: [

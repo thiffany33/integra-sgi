@@ -220,6 +220,8 @@ const insights = {
   operatingAreas: [{ value: 'national', count: 2 }],
   processActivities: [{ value: 'sales', count: 2 }],
   attentionTopics: [{ value: 'delays', count: 2 }],
+  completionDays: { median: 2.5, buckets: [{ value: 'under1', count: 1 }, { value: '1to7', count: 2 }, { value: '8to30', count: 0 }, { value: 'over30', count: 0 }] },
+  templateDownloads: [{ value: 'swot-analysis', count: 5, downloads: 7 }, { value: 'value-chain', count: 1, downloads: 1 }],
 };
 
 test('admin sees aggregated insights with readable counts and shares', async ({ page }) => {
@@ -231,6 +233,10 @@ test('admin sees aggregated insights with readable counts and shares', async ({ 
   await expect(page.getByRole('listitem').filter({ hasText: 'Gestão da Qualidade' })).toContainText('9 · 90%');
   await expect(page.getByRole('listitem').filter({ hasText: 'Atividade e contexto' })).toContainText('2 · 67%');
   await expect(page.getByRole('listitem', { name: /: 4 contas$/ })).toHaveCount(1);
+  await expect(page.getByText('2,5 dias')).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: '1 a 7 dias' })).toContainText('2 · 67%');
+  await expect(page.getByRole('listitem').filter({ hasText: 'Análise SWOT' })).toContainText('5 · 50%');
+  await expect(page.getByRole('listitem').filter({ hasText: 'Análise SWOT' })).toContainText('7 downloads no total');
 });
 
 test('insights explain a failed load and can retry', async ({ page }) => {
@@ -325,4 +331,15 @@ test('admin deletes a company only after confirming with their own password', as
   await expect(page.getByRole('status')).toContainText('A conta de Cooperativa Exemplo foi apagada.');
   await expect(page.getByRole('heading', { name: 'Cooperativa Exemplo', exact: true })).toHaveCount(0);
   expect(attempts).toEqual([{ password: 'wrong-password' }, { password: 'right-password' }]);
+});
+
+test('admin opening a customer page by URL goes to the indicators', async ({ page }) => {
+  await signInAs(page, 'ADMIN');
+  await page.route('**/api/v1/admin/insights', route => route.fulfill({ status: 500, json: {} }));
+  for (const path of ['/dashboard', '/organization-discovery', '/downloads', '/requirement4_1']) {
+    await page.goto(path);
+    await expect(page).toHaveURL('/admin/insights');
+  }
+  await page.goto('/profile');
+  await expect(page).toHaveURL('/profile');
 });
