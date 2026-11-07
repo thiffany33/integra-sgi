@@ -1,0 +1,55 @@
+name: Security scan
+
+# Passive OWASP ZAP baseline: it crawls the site with GET requests and inspects the responses,
+# without sending attack payloads, so it is also safe against production (docs/SECURITY.md §7.2).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [homolog]
+  schedule:
+    # Mondays at 06:00 UTC, so header or cookie regressions surface even without deploys.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Environment to scan
+        type: choice
+        options: [homolog, production]
+        default: homolog
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-scan-${{ github.event.inputs.target || 'homolog' }}
+  cancel-in-progress: true
+
+jobs:
+  zap-baseline:
+    # After CI, only scan a homolog deployment that actually happened.
+    if: >-
+      github.event_name != 'workflow_run' || (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TARGET_URL: ${{ github.event.inputs.target == 'production' && 'https://integrasig.pt' || 'https://integra-sgi-web-homolog.vercel.app' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: OWASP ZAP baseline
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: ${{ env.TARGET_URL }}
+          rules_file_name: .zap/rules.tsv
+          # -j: AJAX spider, needed to reach the routes of a single-page app.
+          # -m 3: spider for at most 3 minutes. -I: warnings are reported but only FAIL rules fail the job.
+          cmd_options: '-j -m 3 -I'
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report

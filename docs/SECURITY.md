@@ -45,6 +45,7 @@ Arquitetura de referência:
    - `X-Content-Type-Options: nosniff`.
    - `Referrer-Policy: strict-origin-when-cross-origin`.
    - `Permissions-Policy`: câmara, microfone, geolocalização e pagamentos desativados.
+   - `Cross-Origin-Opener-Policy: same-origin`. O `Cross-Origin-Embedder-Policy` fica de fora porque bloquearia as fotos de perfil servidas pelo Neon Storage.
 4. **CSRF**: cookie `SameSite=Lax` e, em pedidos `POST/PUT/PATCH/DELETE`, rejeição de qualquer `Origin` diferente de `FRONTEND_URL` (`origin.middleware.ts`). O CORS só aceita o domínio do site.
 5. **Validação de entrada**: todos os corpos de pedido são validados com Zod, com esquemas partilhados entre web e API (`packages/shared`).
 6. **Uploads**: foto de perfil limitada a 4 MiB e a JPEG, PNG ou WebP, com o tipo confirmado pelos bytes do ficheiro (não pela extensão). Os ficheiros ficam num bucket privado e só são servidos por URLs assinadas de curta duração (120 s).
@@ -109,6 +110,11 @@ Baseada no **OWASP Web Security Testing Guide** e no **OWASP ASVS nível 1**, co
 ### 7.4 Frequência
 
 - **Automática**: verificação de dependências e dos cabeçalhos a cada pull request.
+- **Scan passivo OWASP ZAP** (`.github/workflows/security-scan.yml`): ZAP baseline com spider AJAX após cada deploy de homologação e todas as segundas-feiras. Também pode ser lançado à mão contra produção, porque só faz pedidos GET e não envia ataques. As regras ficam em `.zap/rules.tsv`:
+  - **Falham o job**: a falta de CSP, `X-Frame-Options`, `X-Content-Type-Options` ou `Permissions-Policy`; um cookie sem `HttpOnly`, `Secure` ou `SameSite`; e o cabeçalho `X-Powered-By`.
+  - **Avisos aceites**: `style-src 'unsafe-inline'`, a falta de COEP e o HSTS em respostas lidas da cache do próprio spider.
+  - **Ignorados, com justificação no ficheiro**: alertas informativos e o `Access-Control-Allow-Origin: *` que a Vercel envia nos ficheiros estáticos, que não levam credenciais.
+  - O relatório fica como artefacto `zap-baseline-report` no run.
 - **Manual, interna**: antes de cada lançamento com mudanças em autenticação, permissões ou upload, e pelo menos **uma vez por semestre**.
 - **Externa** (empresa especializada): pelo menos **uma vez por ano** e antes de abrir a plataforma a novos mercados.
 
@@ -131,7 +137,6 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o con
 
 | Lacuna | Estado |
 | --- | --- |
-| Scan automático (OWASP ZAP baseline) contra homologação no CI | Proposto. |
 | Contacto público de segurança e de privacidade | A definir. |
 | Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |
 

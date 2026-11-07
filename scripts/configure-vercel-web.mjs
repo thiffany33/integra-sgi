@@ -20,6 +20,8 @@ export const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+  // Isolates the window from pages it opens. COEP is left out: it would block profile photos from Neon Storage.
+  'Cross-Origin-Opener-Policy': 'same-origin',
 };
 
 export function createWebRoutingConfig(baseConfig, apiDomain) {
