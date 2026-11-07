@@ -92,6 +92,11 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   const download = page.getByRole('link', { name: /SWOT/i })
   await expect(download).toBeVisible()
   await expect(download).toHaveAttribute('href', /^http:\/\/localhost:3001\/api\/v1\/files\/templates\/swot-analysis$/)
+
+  // PDFs would otherwise replace the app: the signed storage URL is cross-origin, so `download` is ignored.
+  await expect(download).toHaveAttribute('target', '_blank')
+  await expect(download).toHaveAttribute('rel', 'noopener noreferrer')
+  await expect(download).toHaveAccessibleName(/abre num novo separador/)
 })
 
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/login', '/nao-existe']) {
@@ -107,3 +112,8 @@ for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requir
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   })
 }
+
+test('o rodapé identifica a titular dos direitos', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('contentinfo')).toContainText(`© ${new Date().getFullYear()} Thiffany Gonçalves. Todos os direitos reservados.`)
+})
