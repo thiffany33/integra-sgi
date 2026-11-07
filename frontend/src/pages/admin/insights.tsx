@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { documents } from '../../config/documents';
 import { adminApi, type AdminInsights, type InsightCount } from '../../api/admin.api';
 import { PageHeading } from '../../components/pageHeading/pageHeading';
 import { Button } from '../../components/ui/button';
@@ -11,6 +12,7 @@ const sectorKeys: Record<string, string> = {
   Alimentar: 'food', 'Construção': 'construction', 'Serviços': 'services', 'Agronegócio': 'agribusiness',
   'Comércio': 'trade', 'Indústria': 'industry', Tecnologia: 'technology',
 };
+const documentTitles = new Map<string, string>(documents.map(document => [document.id, document.title]));
 const systemKeys: Record<string, string> = { sgq: 'quality', sga: 'environment', sgsst: 'safety' };
 
 function percent(count: number, base: number): number {
@@ -18,19 +20,22 @@ function percent(count: number, base: number): number {
 }
 
 /** Ranked horizontal bars; the count and share are printed, so the bar is never the only carrier of the value. */
-function BarList({ title, items, base, label, baseLabel }: {
-  title: string; items: InsightCount[]; base: number; label: (value: string) => string; baseLabel: string;
+function BarList<T extends InsightCount>({ title, items, base, label, baseLabel, detail, children }: {
+  title: string; items: T[]; base: number; label: (value: string) => string; baseLabel: string;
+  detail?: (item: T) => string; children?: ReactNode;
 }) {
   const { t } = useTranslation('admin');
   return <Card className="shadow-none">
     <CardHeader><h2 className="text-xl">{title}</h2><p className="text-sm text-muted-foreground">{baseLabel}</p></CardHeader>
     <CardContent>
+      {children}
       {base === 0 ? <p className="text-muted-foreground">{t('insightsNoAnswers')}</p> : <ul className="space-y-3">
         {items.map(item => <li key={item.value}>
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-base">
             <span>{label(item.value)}</span>
             <span className="font-semibold tabular-nums">{t('insightsCountShare', { count: item.count, percent: percent(item.count, base) })}</span>
           </div>
+          {detail && <p className="text-sm text-muted-foreground">{detail(item)}</p>}
           <div aria-hidden="true" className="mt-1 h-2 rounded-sm bg-muted">
             <div className="h-2 rounded-sm bg-brand-green" style={{ width: `${percent(item.count, base)}%` }} />
           </div>
@@ -81,6 +86,7 @@ export default function AdminInsightsPage() {
   const monthMax = Math.max(1, ...insights.registrationsByMonth.map(item => item.count));
   const inProgress = insights.stoppedAtStep.reduce((total, item) => total + item.count, 0);
   const answeredBy = (count: number) => t('admin:insightsBase', { count });
+  const completed = insights.completionDays.buckets.reduce((total, item) => total + item.count, 0);
 
   return <>
     {heading}
@@ -136,6 +142,15 @@ export default function AdminInsightsPage() {
         baseLabel={answeredBy(answered.processes)} label={discovery} />
       <BarList title={t('organizationDiscovery:attentionTopics')} items={insights.attentionTopics} base={answered.attention}
         baseLabel={answeredBy(answered.attention)} label={discovery} />
+      <BarList title={t('admin:insightsCompletion')} items={insights.completionDays.buckets} base={completed}
+        baseLabel={t('admin:insightsCompletionBase', { count: completed })} label={value => t(`admin:insightsBucket_${value}`)}>
+        {insights.completionDays.median === null
+          ? <p className="mb-4 text-muted-foreground">{t('admin:insightsCompletionNone')}</p>
+          : <p className="mb-4"><span className="text-base text-muted-foreground">{t('admin:insightsCompletionMedian')}</span> <span className="text-2xl font-semibold tabular-nums">{t('admin:insightsDays', { count: insights.completionDays.median, days: new Intl.NumberFormat(i18n.language).format(insights.completionDays.median) })}</span></p>}
+      </BarList>
+      <BarList title={t('admin:insightsTemplates')} items={insights.templateDownloads.slice(0, 10)} base={funnel.registered}
+        baseLabel={t('admin:insightsTemplatesBase')} label={value => documentTitles.get(value) ?? value}
+        detail={item => t('admin:insightsTemplatesDownloads', { count: item.downloads })} />
     </div>
     <p className="mt-6 text-sm text-muted-foreground">{t('admin:insightsPrivacy')}</p>
   </>;

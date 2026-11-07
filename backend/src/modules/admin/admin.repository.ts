@@ -120,7 +120,7 @@ export class AdminRepository {
         createdAt: true,
         emailVerifiedAt: true,
         customerProfile: { select: { data: true } },
-        guidedFlows: { where: { flowKey: DISCOVERY_FLOW_KEY }, select: { status: true, currentStep: true } },
+        guidedFlows: { where: { flowKey: DISCOVERY_FLOW_KEY }, select: { status: true, currentStep: true, createdAt: true, completedAt: true } },
         requirementResponses: { where: { requirementCode: { in: DISCOVERY_CODES } }, select: { requirementCode: true, data: true } },
       },
     });
@@ -128,8 +128,20 @@ export class AdminRepository {
       createdAt: row.createdAt,
       emailVerifiedAt: row.emailVerifiedAt,
       profile: row.customerProfile?.data ?? null,
-      discovery: row.guidedFlows[0] ?? null,
+      discovery: row.guidedFlows[0]
+        ? { status: row.guidedFlows[0].status, currentStep: row.guidedFlows[0].currentStep, startedAt: row.guidedFlows[0].createdAt, completedAt: row.guidedFlows[0].completedAt }
+        : null,
       responses: Object.fromEntries(row.requirementResponses.map((response) => [response.requirementCode, response.data])),
     }));
+  }
+
+  /** Customers' downloads per template and organization; counts only, never who downloaded. */
+  async templateDownloads(): Promise<{ documentId: string; userId: string; downloads: number }[]> {
+    const rows = await this.prisma.templateDownload.groupBy({
+      by: ['documentId', 'userId'],
+      where: { user: { isAdmin: false } },
+      _count: { _all: true },
+    });
+    return rows.map((row) => ({ documentId: row.documentId, userId: row.userId, downloads: row._count._all }));
   }
 }

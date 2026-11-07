@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Redirect, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Redirect, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { SessionGuard } from '../auth/session.guard';
 import { FilesService } from './files.service';
 
@@ -9,7 +10,7 @@ export class FilesController {
 
   @Get('templates/:documentId')
   @Redirect(undefined, 302)
-  async getTemplate(@Param('documentId') documentId: string) {
-    return { url: await this.files.getTemplateUrl(documentId) };
+  async getTemplate(@Req() request: Request, @Param('documentId') documentId: string) {
+    return { url: await this.files.getTemplateUrl(documentId, { userId: request.userId!, isAdmin: request.isAdmin === true }) };
   }
 }

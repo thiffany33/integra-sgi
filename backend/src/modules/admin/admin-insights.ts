@@ -12,11 +12,16 @@ export type InsightCustomer = {
   createdAt: Date;
   emailVerifiedAt: Date | null;
   profile: unknown;
-  discovery: { status: 'IN_PROGRESS' | 'COMPLETED'; currentStep: number } | null;
+  discovery: { status: 'IN_PROGRESS' | 'COMPLETED'; currentStep: number; startedAt?: Date; completedAt?: Date | null } | null;
   responses: Record<string, unknown>;
 };
 
 export type Count<T extends string = string> = { value: T; count: number };
+
+/** Downloads of one template: distinct organizations (count) and all downloads. */
+export type TemplateDownloadCount = { value: string; count: number; downloads: number };
+
+export type CompletionBucket = 'under1' | '1to7' | '8to30' | 'over30';
 
 export type AdminInsights = {
   generatedAt: string;
@@ -34,6 +39,9 @@ export type AdminInsights = {
   operatingAreas: Count[];
   processActivities: Count[];
   attentionTopics: Count[];
+  /** Days from starting to first completing the discovery, for completed discoveries. */
+  completionDays: { median: number | null; buckets: Count<CompletionBucket>[] };
+  templateDownloads: TemplateDownloadCount[];
 };
 
 const MONTHS = 12;
@@ -55,12 +63,34 @@ function monthKey(date: Date): string {
 }
 
 /** Aggregates customers into counts only, so the dashboard never exposes an individual answer. */
-export function buildInsights(customers: InsightCustomer[], now = new Date()): AdminInsights {
+const DAY_MS = 86_400_000;
+
+function completionBucket(days: number): CompletionBucket {
+  if (days < 1) return 'under1';
+  if (days <= 7) return '1to7';
+  if (days <= 30) return '8to30';
+  return 'over30';
+}
+
+function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+export function buildInsights(
+  customers: InsightCustomer[],
+  now = new Date(),
+  downloads: { documentId: string; userId: string; downloads: number }[] = [],
+  templates: readonly string[] = [],
+): AdminInsights {
   const months = Array.from({ length: MONTHS }, (_, index) =>
     monthKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (MONTHS - 1 - index), 1))));
   const registrations = new Map(months.map((month) => [month, 0]));
   const stopped = new Map(['1', '2', '3', '4', '5'].map((step) => [step as '1', 0]));
   const answered = { organization: 0, activity: 0, processes: 0, attention: 0 };
+  const completionDays: number[] = [];
   const lists = {
     selectedSystems: [] as SelectedSystem[], sectors: [] as string[], workforceRanges: [] as string[],
     activityTypes: [] as string[], customerTypes: [] as string[], operatingAreas: [] as string[],
@@ -75,6 +105,11 @@ export function buildInsights(customers: InsightCustomer[], now = new Date()): A
     lists.selectedSystems.push(...(strings(profile?.selectedSystems) as SelectedSystem[]));
     const sector = profile?.organization?.sector?.trim();
     if (sector) lists.sectors.push(sector);
+
+    const { startedAt, completedAt } = customer.discovery ?? {};
+    if (customer.discovery?.status === 'COMPLETED' && startedAt && completedAt) {
+      completionDays.push(Math.max(0, (completedAt.getTime() - startedAt.getTime()) / DAY_MS));
+    }
 
     if (customer.discovery?.status === 'IN_PROGRESS' && customer.discovery.currentStep <= 5) {
       const step = String(customer.discovery.currentStep) as '1';
@@ -102,6 +137,12 @@ export function buildInsights(customers: InsightCustomer[], now = new Date()): A
     lists.attentionTopics.push(...topics);
   }
 
+  const templateCounts = new Map(templates.map((id) => [id, { count: 0, downloads: 0 }]));
+  for (const row of downloads) {
+    const current = templateCounts.get(row.documentId) ?? { count: 0, downloads: 0 };
+    templateCounts.set(row.documentId, { count: current.count + 1, downloads: current.downloads + row.downloads });
+  }
+
   return {
     generatedAt: now.toISOString(),
     funnel: {
@@ -121,5 +162,13 @@ export function buildInsights(customers: InsightCustomer[], now = new Date()): A
     operatingAreas: tally(lists.operatingAreas, operatingAreaSchema.options),
     processActivities: tally(lists.processActivities, processActivitySchema.options),
     attentionTopics: tally(lists.attentionTopics, attentionTopicSchema.options),
+    completionDays: {
+      // Rounded to one decimal place: a day count is what the dashboard shows.
+      median: (() => { const value = median(completionDays); return value === null ? null : Math.round(value * 10) / 10; })(),
+      buckets: tally(completionDays.map(completionBucket), ['under1', '1to7', '8to30', 'over30'], true),
+    },
+    templateDownloads: [...templateCounts]
+      .map(([value, counts]) => ({ value, ...counts }))
+      .sort((a, b) => b.count - a.count || b.downloads - a.downloads || a.value.localeCompare(b.value)),
   };
 }

@@ -57,4 +57,32 @@ describe('buildInsights', () => {
     expect(insights.registrationsByMonth[0]).toEqual({ value: '2025-12', count: 1 });
     expect(insights.registrationsByMonth.at(-1)).toEqual({ value: '2026-11', count: 1 });
   });
+
+  it('measures how long completed discoveries took, from the first start to the first completion', () => {
+    const started = new Date('2026-11-01T00:00:00Z');
+    const after = (days: number) => new Date(started.getTime() + days * 86_400_000);
+    const completed = (days: number) => customer({ discovery: { status: 'COMPLETED', currentStep: 6, startedAt: started, completedAt: after(days) } });
+    const insights = buildInsights([
+      completed(0.5), completed(3), completed(10), completed(40),
+      customer({ discovery: { status: 'IN_PROGRESS', currentStep: 2, startedAt: started, completedAt: null } }),
+    ], now);
+    expect(insights.completionDays).toEqual({
+      median: 6.5,
+      buckets: [{ value: 'under1', count: 1 }, { value: '1to7', count: 1 }, { value: '8to30', count: 1 }, { value: 'over30', count: 1 }],
+    });
+    expect(buildInsights([], now).completionDays.median).toBeNull();
+  });
+
+  it('counts template downloads by organization, listing templates nobody downloaded yet', () => {
+    const insights = buildInsights([], now, [
+      { documentId: 'swot-analysis', userId: 'a', downloads: 3 },
+      { documentId: 'swot-analysis', userId: 'b', downloads: 1 },
+      { documentId: 'value-chain', userId: 'a', downloads: 1 },
+    ], ['value-chain', 'swot-analysis', 'interested-parties']);
+    expect(insights.templateDownloads).toEqual([
+      { value: 'swot-analysis', count: 2, downloads: 4 },
+      { value: 'value-chain', count: 1, downloads: 1 },
+      { value: 'interested-parties', count: 0, downloads: 0 },
+    ]);
+  });
 });

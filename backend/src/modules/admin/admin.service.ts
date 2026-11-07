@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ApiException } from '../../utils/api-exception';
+import { filesManifest } from '@integra/shared/documents';
 import { buildInsights } from './admin-insights';
 import { AdminRepository } from './admin.repository';
 import type { ListCustomersInput, UpdateCustomerSystemsInput } from './admin.schema';
@@ -21,7 +22,8 @@ export class AdminService {
   }
 
   async insights() {
-    return buildInsights(await this.repository.insightCustomers());
+    const [customers, downloads] = await Promise.all([this.repository.insightCustomers(), this.repository.templateDownloads()]);
+    return buildInsights(customers, new Date(), downloads, filesManifest.map((document) => document.id));
   }
 
   async updateCustomerSystems(actorUserId: string, targetUserId: string, input: UpdateCustomerSystemsInput) {

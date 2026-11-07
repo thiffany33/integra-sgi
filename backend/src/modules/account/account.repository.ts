@@ -13,9 +13,10 @@ export class AccountRepository {
         id: true, name: true, email: true, locale: true, emailVerifiedAt: true, createdAt: true, updatedAt: true, isAdmin: true,
         customerProfile: { select: { data: true, avatarObjectKey: true, createdAt: true, updatedAt: true } },
         requirementResponses: { select: { requirementCode: true, data: true, createdAt: true, updatedAt: true }, orderBy: { requirementCode: 'asc' } },
-        guidedFlows: { select: { flowKey: true, status: true, currentStep: true, completedSteps: true, createdAt: true, updatedAt: true } },
+        guidedFlows: { select: { flowKey: true, status: true, currentStep: true, completedSteps: true, createdAt: true, updatedAt: true, completedAt: true } },
         // The administrator who made each change is another person, so only what changed is exported.
         systemChangesReceived: { select: { previousSystems: true, newSystems: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        templateDownloads: { select: { documentId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
       },
     });
   }

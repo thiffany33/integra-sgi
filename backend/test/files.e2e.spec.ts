@@ -4,6 +4,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { filesManifest } from '@integra/shared/documents';
 import { configureApp } from '../src/configure-app';
+import { PrismaService } from '../src/infra/prisma/prisma.service';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { ObjectStorageService } from '../src/modules/storage/object-storage.service';
 import { existsSync } from 'node:fs';
@@ -55,6 +56,21 @@ describe('private template downloads', () => {
       .set('Cookie', 'integra_session=valid').expect(302);
     expect(response.headers.location).toContain('signature=mock');
     expect(getSignedReadUrl).toHaveBeenCalledWith({ key: document.objectKey, expiresInSeconds: 300 });
+  });
+
+  it('counts a customer\'s download for the indicators, and still downloads if counting fails', async () => {
+    const prisma = app.get(PrismaService);
+    const document = filesManifest[1];
+    await prisma.user.deleteMany({ where: { id: 'test-user' } });
+    // Without the account row the count fails on its foreign key; the download must not.
+    await request(app.getHttpServer()).get(`/api/v1/files/templates/${document.id}`).set('Cookie', 'integra_session=valid').expect(302);
+    await prisma.user.create({ data: { id: 'test-user', name: 'Files Test', email: `files-${Date.now()}@example.pt`, passwordHash: 'x' } });
+    try {
+      await request(app.getHttpServer()).get(`/api/v1/files/templates/${document.id}`).set('Cookie', 'integra_session=valid').expect(302);
+      expect(await prisma.templateDownload.findMany({ where: { userId: 'test-user' }, select: { documentId: true } })).toEqual([{ documentId: document.id }]);
+    } finally {
+      await prisma.user.deleteMany({ where: { id: 'test-user' } });
+    }
   });
 
   it('returns 404 for an unknown document ID', async () => {

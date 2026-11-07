@@ -97,7 +97,7 @@ export class GuidedFlowsRepository {
       }
       const updated = await transaction.customerGuidedFlow.updateMany({
         where: { userId, flowKey, revision: expectedRevision },
-        data: { status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], revision: { increment: 1 } },
+        data: { status: 'COMPLETED', currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6], completedAt: new Date(), revision: { increment: 1 } },
       });
       if (updated.count !== 1) throw conflict();
     });
