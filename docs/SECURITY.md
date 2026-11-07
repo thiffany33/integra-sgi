@@ -132,14 +132,14 @@ Cada teste produz um relatório com âmbito, data, achados, evidências e estado
 
 ## 8. Comunicação de vulnerabilidades
 
-Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para o contacto de segurança do projeto (**a definir**), sem a divulgar publicamente até estar corrigida. A receção é confirmada em até 5 dias úteis.
+Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thiffanyg33@gmail.com**, sem a divulgar publicamente até estar corrigida. A receção é confirmada em até 5 dias úteis. O mesmo contacto está em `https://integrasig.pt/.well-known/security.txt` (RFC 9116), que tem de ser renovado antes da data `Expires`.
 
 ## 9. Lacunas conhecidas e próximos passos
 
 | Lacuna | Estado |
 | --- | --- |
-| Contacto público de segurança e de privacidade | A definir. |
-| Aprovação obrigatória no ambiente `production` do GitHub | A confirmar nas definições do repositório. |
+| Email de privacidade, NIF e morada do responsável na política de privacidade | A definir. |
+| Aprovação obrigatória no ambiente `production` do GitHub | Autorizada; falta configurá-la com a conta de admin do repositório. |
 
 ---
 
