@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci --include=dev --prefix ..",
+  "buildCommand": "npm --prefix .. run build:shared && npm run build",
+  "outputDirectory": "dist",
+  "git": {
+    "deploymentEnabled": false
+  }
+}

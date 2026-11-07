@@ -1,0 +1,183 @@
+import { randomUUID } from 'node:crypto';
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { configureApp } from '../src/configure-app';
+import { PrismaService } from '../src/infra/prisma/prisma.service';
+import { EMAIL_SERVICE } from '../src/modules/email/email.service';
+
+describe('platform administrator HTTP flow', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let adminId: string;
+  let customerId: string;
+  let adminCookie: string;
+  let customerCookie: string;
+  const marker = randomUUID();
+  const profile = {
+    schemaVersion: 1,
+    organization: { name: 'Alpha Company', nif: '123456789', sector: 'Services', email: 'contact@example.pt' },
+    representative: { name: 'Person', email: '', phone: '' },
+    selectedSystems: ['sgq'],
+  };
+
+  beforeAll(async () => {
+    process.env.APP_ENV = 'test';
+    process.env.NODE_ENV = 'test';
+    process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/integra_sgi';
+    process.env.DIRECT_URL = process.env.DATABASE_URL;
+    process.env.SESSION_SECRET = 'test-session-secret-with-at-least-thirty-two-characters';
+    process.env.APP_URL = 'http://localhost:5173';
+    process.env.FRONTEND_URL = 'http://localhost:5173';
+    const { AppModule } = await import('../src/app.module');
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(EMAIL_SERVICE).useValue({ send: async () => undefined }).compile();
+    app = moduleRef.createNestApplication();
+    configureApp(app);
+    await app.init();
+    prisma = app.get(PrismaService);
+    await prisma.$executeRawUnsafe('DELETE FROM "AuthRateLimitBucket"');
+    const registerAndLogin = async (name: string, email: string) => {
+      const registration = await request(app.getHttpServer())
+        .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile });
+      expect(registration.status).toBe(201);
+      const user = await prisma.user.update({
+        where: { email },
+        data: { emailVerifiedAt: new Date() },
+      });
+      const login = await request(app.getHttpServer())
+        .post('/api/v1/auth/login').send({ email, password: 'correct-horse-battery' }).expect(200);
+      const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+      return { id: user.id, cookie };
+    };
+    const admin = await registerAndLogin('Administrator', `admin-${marker}@example.pt`);
+    const customer = await registerAndLogin('Searchable Customer', `customer-${marker}@example.pt`);
+    adminId = admin.id;
+    customerId = customer.id;
+    adminCookie = admin.cookie;
+    customerCookie = customer.cookie;
+    await prisma.user.update({ where: { id: adminId }, data: { role: 'PLATFORM_ADMIN' } });
+  }, 30_000);
+
+  afterAll(async () => {
+    if (prisma && customerId) await prisma.customerSystemsChange.deleteMany({ where: { targetUserId: customerId } });
+    if (prisma && adminId) await prisma.user.deleteMany({ where: { id: { in: [adminId, customerId] } } });
+    if (app) await app.close();
+  });
+
+  it('rejects anonymous and customer requests before reading admin data', async () => {
+    await request(app.getHttpServer()).get('/api/v1/admin/customers').expect(401);
+    await request(app.getHttpServer()).get('/api/v1/admin/customers').set('Cookie', customerCookie)
+      .expect(403).expect(({ body }) => expect(body.error.code).toBe('FORBIDDEN'));
+    await request(app.getHttpServer()).patch(`/api/v1/admin/customers/${customerId}/systems`)
+      .set('Cookie', customerCookie).send({ selectedSystems: ['sga'], revision: 1 }).expect(403);
+  });
+
+  it('searches customer names and emails, with empty and invalid-cursor results', async () => {
+    const found = await request(app.getHttpServer()).get(`/api/v1/admin/customers?search=${encodeURIComponent(marker)}`)
+      .set('Cookie', adminCookie).expect(200);
+    expect(found.body.items).toHaveLength(1);
+    expect(found.body.items[0]).toMatchObject({ userId: customerId, organizationName: 'Alpha Company', selectedSystems: ['sgq'], revision: 1 });
+    expect(found.body.items[0]).not.toHaveProperty('passwordHash');
+    const empty = await request(app.getHttpServer()).get('/api/v1/admin/customers?search=notfoundzzzz')
+      .set('Cookie', adminCookie).expect(200);
+    expect(empty.body).toEqual({ items: [], nextCursor: null });
+    await request(app.getHttpServer()).get('/api/v1/admin/customers?cursor=invalid!')
+      .set('Cookie', adminCookie).expect(400);
+    await request(app.getHttpServer()).get('/api/v1/admin/customers?limit=51')
+      .set('Cookie', adminCookie).expect(400);
+  });
+
+  it('returns the next customer page using an opaque cursor', async () => {
+    const extraEmail = `second-${marker}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Second customer', email: extraEmail, password: 'correct-horse-battery', profile,
+    }).expect(201);
+    const extraUser = await prisma.user.findUniqueOrThrow({ where: { email: extraEmail } });
+    const extraId = extraUser.id;
+    try {
+      const first = await request(app.getHttpServer()).get(`/api/v1/admin/customers?search=${marker}&limit=1`)
+        .set('Cookie', adminCookie).expect(200);
+      expect(first.body.items).toHaveLength(1);
+      expect(first.body.nextCursor).toBe(first.body.items[0].userId);
+      const second = await request(app.getHttpServer())
+        .get(`/api/v1/admin/customers?search=${marker}&limit=1&cursor=${first.body.nextCursor}`)
+        .set('Cookie', adminCookie).expect(200);
+      expect(second.body.items).toHaveLength(1);
+      expect(second.body.items[0].userId).not.toBe(first.body.items[0].userId);
+      expect(second.body.nextCursor).toBeNull();
+    } finally {
+      await prisma.user.delete({ where: { id: extraId } });
+    }
+  });
+
+  it('updates systems once and writes an audit in the same revision', async () => {
+    const path = `/api/v1/admin/customers/${customerId}/systems`;
+    await request(app.getHttpServer()).patch(path).set('Cookie', adminCookie)
+      .send({ selectedSystems: ['sgq', 'sgq'], revision: 1 }).expect(400);
+    const changed = await request(app.getHttpServer()).patch(path).set('Cookie', adminCookie)
+      .send({ selectedSystems: ['sgq', 'sga'], revision: 1 }).expect(200);
+    expect(changed.body).toMatchObject({ userId: customerId, selectedSystems: ['sgq', 'sga'], revision: 2 });
+    const audit = await prisma.customerSystemsChange.findMany({ where: { targetUserId: customerId } });
+    expect(audit).toHaveLength(1);
+    expect(audit[0]).toMatchObject({ actorUserId: adminId, previousSystems: ['sgq'], newSystems: ['sgq', 'sga'] });
+    await request(app.getHttpServer()).patch(path).set('Cookie', adminCookie)
+      .send({ selectedSystems: ['sgsst'], revision: 1 }).expect(409)
+      .expect(({ body }) => expect(body.error.code).toBe('PROFILE_REVISION_CONFLICT'));
+    await request(app.getHttpServer()).patch(`/api/v1/admin/customers/${adminId}/systems`).set('Cookie', adminCookie)
+      .send({ selectedSystems: ['sgsst'], revision: 1 }).expect(404);
+    await request(app.getHttpServer()).patch('/api/v1/admin/customers/missing/systems').set('Cookie', adminCookie)
+      .send({ selectedSystems: ['sgsst'], revision: 1 }).expect(404);
+  });
+
+  it('accepts exactly one of two simultaneous administrators and audits only the winning change', async () => {
+    const secondAdminEmail = `second-admin-${marker}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      name: 'Second administrator', email: secondAdminEmail, password: 'correct-horse-battery', profile,
+    }).expect(201);
+    const secondAdminUser = await prisma.user.update({
+      where: { email: secondAdminEmail },
+      data: { emailVerifiedAt: new Date(), role: 'PLATFORM_ADMIN' },
+    });
+    const secondAdminId = secondAdminUser.id;
+    const secondAdminLogin = await request(app.getHttpServer()).post('/api/v1/auth/login').send({
+      email: secondAdminEmail, password: 'correct-horse-battery',
+    }).expect(200);
+    const secondAdminCookie = (secondAdminLogin.headers['set-cookie'] as string[])[0].split(';')[0];
+
+    try {
+      const before = await prisma.customerProfile.findUniqueOrThrow({ where: { userId: customerId } });
+      const auditsBefore = await prisma.customerSystemsChange.findMany({
+        where: { targetUserId: customerId }, select: { id: true },
+      });
+      const path = `/api/v1/admin/customers/${customerId}/systems`;
+      const [first, second] = await Promise.all([
+        request(app.getHttpServer()).patch(path).set('Cookie', adminCookie)
+          .send({ selectedSystems: ['sgq'], revision: before.revision }),
+        request(app.getHttpServer()).patch(path).set('Cookie', secondAdminCookie)
+          .send({ selectedSystems: ['sgsst'], revision: before.revision }),
+      ]);
+
+      expect([first.status, second.status].sort()).toEqual([200, 409]);
+      expect((first.status === 409 ? first : second).body.error.code).toBe('PROFILE_REVISION_CONFLICT');
+      const winner = first.status === 200
+        ? { actorUserId: adminId, selectedSystems: ['sgq'] }
+        : { actorUserId: secondAdminId, selectedSystems: ['sgsst'] };
+      const saved = await prisma.customerProfile.findUniqueOrThrow({ where: { userId: customerId } });
+      const audits = await prisma.customerSystemsChange.findMany({
+        where: { targetUserId: customerId, id: { notIn: auditsBefore.map(audit => audit.id) } },
+      });
+      expect(saved.revision).toBe(before.revision + 1);
+      expect((saved.data as { selectedSystems: string[] }).selectedSystems).toEqual(winner.selectedSystems);
+      expect(audits).toHaveLength(1);
+      expect(audits[0]).toMatchObject({
+        actorUserId: winner.actorUserId,
+        previousSystems: (before.data as { selectedSystems: string[] }).selectedSystems,
+        newSystems: winner.selectedSystems,
+      });
+    } finally {
+      await prisma.user.delete({ where: { id: secondAdminId } });
+    }
+  });
+});

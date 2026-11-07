@@ -10,7 +10,16 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+backend/src/generated/prisma/
 *.local
+.env
+.env.*
+!.env.example
+
+# Local documentation
+docs/
+test-results/
+playwright-report/
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +31,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.superpowers
+.neon
+.worktrees/
+.agents
+.codex
+
+backend/.windsurf
+backend/.claude
+
+# Vercel local settings, environment files and build artifacts
+.vercel/
+# Keep deployment instructions versioned despite local docs ignore
+!/docs/
+/docs/*
+!/docs/deployment-vercel.md

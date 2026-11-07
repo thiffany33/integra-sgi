@@ -1,0 +1,15 @@
+.git
+.superpowers
+docs
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/test-results
+**/playwright-report
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example

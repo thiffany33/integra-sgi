@@ -1,0 +1,298 @@
+import { lazy } from "react";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+
+import Home from "../pages/home/home";
+import Login from "../pages/login/login";
+import Register from "../pages/register/register";
+import SelectSystems from "../pages/selectSystems/selectSystems";
+import Dashboard from "../pages/dashboard/dashboard";
+import Requirement from "../pages/requirement/requirement";
+import Downloads from "../pages/downloads/downloads";
+import Contact from "../pages/contact/contact";
+import NotFound from "../pages/notFound/notFound";
+import Layout from "../components/layout/layout";
+import Representative from "../pages/representative/representative";
+import ForgotPassword from "../pages/auth/forgot-password";
+import ResetPassword from "../pages/auth/reset-password";
+import VerifyEmail from "../pages/auth/verify-email";
+import Profile from "../pages/profile/profile";
+import { RequireAuth } from "../components/auth/require-auth";
+import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
+import AdminCustomers from "../pages/admin/customers";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/auth-context-value";
+import { useTranslation } from "react-i18next";
+
+function RootRoute() {
+  const auth = useAuth();
+  const { t } = useTranslation('navigation');
+  if (auth.status === 'loading') return <p role="status">{t('checkingAccount')}</p>;
+  return auth.status === 'authenticated' ? <Navigate to="/dashboard" replace /> : <Home />;
+}
+
+// Requisito 4
+const Requirement4 = lazy(
+  () => import("../pages/requirement4/requirement4")
+);
+
+const OrganizationDiscovery = lazy(
+  () => import("../pages/organization-discovery/organization-discovery")
+);
+
+const Requirement4_1 = lazy(
+  () => import("../pages/requirement4_1/requirement4_1")
+);
+
+const Requirement4_2 = lazy(
+  () => import("../pages/requirement4_2/requirement4_2")
+);
+
+const Requirement4_3 = lazy(
+  () => import("../pages/requirement4_3/requirement4_3")
+);
+
+const Requirement4_4 = lazy(
+  () => import("../pages/requirement4_4/requirement4_4")
+);
+
+// Requisito 5
+const Requirement5 = lazy(
+  () => import("../pages/requirement5/requirement5")
+);
+
+const Requirement5_1 = lazy(
+  () => import("../pages/requirement5_1/requirement5_1")
+);
+
+const Requirement5_2 = lazy(
+  () => import("../pages/requirement5_2/requirement5_2")
+);
+
+const Requirement5_3 = lazy(
+  () => import("../pages/requirement5_3/requirement5_3")
+);
+
+const Requirement5_4 = lazy(
+  () => import("../pages/requirement5_4/requirement5_4")
+);
+
+// Requisito 6
+const Requirement6 = lazy(
+  () => import("../pages/requirement6/requirement6")
+);
+
+const Requirement6_1_Quality = lazy(
+  () => import("../pages/requirement6_1/requirement6_1_quality/requirement6_1_quality")
+);
+
+const Requirement6_1_Environment = lazy(
+  () =>
+    import(
+      "../pages/requirement6_1/requirement6_1_environment/requirement6_1_environment"
+    )
+);
+
+const Requirement6_1_Sst = lazy(
+  () => import("../pages/requirement6_1/requirement6_1_sst/requirement6_1_sst")
+);
+
+const Requirement6_2 = lazy(
+  () => import("../pages/requirement6_2/requirement6_2")
+);
+
+// Requisito 7
+const Requirement7 = lazy(
+  () => import("../pages/requirement7/requirement7")
+);
+
+const Requirement7_1 = lazy(
+  () => import("../pages/requirement7_1/requirement7_1")
+);
+
+const Requirement7_2 = lazy(
+  () => import("../pages/requirement7_2/requirement7_2")
+);
+
+const Requirement7_3 = lazy(
+  () => import("../pages/requirement7_3/requirement7_3")
+);
+
+const Requirement7_4 = lazy(
+  () => import("../pages/requirement7_4/requirement7_4")
+);
+
+const Requirement7_5 = lazy(
+  () => import("../pages/requirement7_5/requirement7_5")
+);
+
+// Requisito 8
+const Requirement8 = lazy(
+  () => import("../pages/requirement8/requirement8")
+);
+
+const Requirement8_1 = lazy(
+  () => import("../pages/requirement8_1/requirement8_1")
+);
+
+const Requirement8_2 = lazy(
+  () => import("../pages/requirement8_2/requirement8_2")
+);
+
+const Requirement8_3 = lazy(
+  () => import("../pages/requirement8_3/requirement8_3")
+);
+
+const Requirement8_4 = lazy(
+  () => import("../pages/requirement8_4/requirement8_4")
+);
+
+const Requirement8_5 = lazy(
+  () => import("../pages/requirement8_5/requirement8_5")
+);
+
+const Requirement8_6 = lazy(
+  () => import("../pages/requirement8_6/requirement8_6")
+);
+
+const Requirement8_7 = lazy(
+  () => import("../pages/requirement8_7/requirement8_7")
+);
+
+const Requirement8_8 = lazy(
+  () => import("../pages/requirement8_8/requirement8_8")
+);
+
+const Requirement8_9 = lazy(
+  () => import("../pages/requirement8_9/requirement8_9")
+);
+
+// Requisito 9
+const Requirement9 = lazy(
+  () => import("../pages/requirement9/requirement9")
+);
+
+const Requirement9_1 = lazy(
+  () => import("../pages/requirement9_1/requirement9_1")
+);
+
+const Requirement9_2 = lazy(
+  () => import("../pages/requirement9_2/requirement9_2")
+);
+
+const Requirement9_3 = lazy(
+  () => import("../pages/requirement9_3/requirement9_3")
+);
+
+// Requisito 10
+const Requirement10 = lazy(
+  () => import("../pages/requirement10/requirement10")
+);
+
+const Requirement10_1 = lazy(
+  () => import("../pages/requirement10_1/requirement10_1")
+);
+
+const Requirement10_2 = lazy(
+  () => import("../pages/requirement10_2/requirement10_2")
+);
+
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/select-systems" element={<SelectSystems />} />
+            <Route path="/requirement" element={<Requirement />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/representative" element={<Representative />} />
+            <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
+            <Route element={<RequireAuth><Outlet /></RequireAuth>}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/organization-discovery" element={<OrganizationDiscovery />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/downloads" element={<Downloads />} />
+
+            {/* Requisito 4 */}
+            <Route path="/requirement4" element={<Requirement4 />} />
+            <Route path="/requirement4_1" element={<Requirement4_1 />} />
+            <Route path="/requirement4_2" element={<Requirement4_2 />} />
+            <Route path="/requirement4_3" element={<Requirement4_3 />} />
+            <Route path="/requirement4_4" element={<Requirement4_4 />} />
+
+            {/* Requisito 5 */}
+            <Route path="/requirement5" element={<Requirement5 />} />
+            <Route path="/requirement5_1" element={<Requirement5_1 />} />
+            <Route path="/requirement5_2" element={<Requirement5_2 />} />
+            <Route path="/requirement5_3" element={<Requirement5_3 />} />
+            <Route path="/requirement5_4" element={<Requirement5_4 />} />
+
+            {/* Requisito 6 */}
+            <Route path="/requirement6" element={<Requirement6 />} />
+
+            <Route
+              path="/requirement6_1_quality"
+              element={<Requirement6_1_Quality />}
+            />
+
+            <Route
+              path="/requirement6_1_environment"
+              element={<Requirement6_1_Environment />}
+            />
+
+            <Route
+              path="/requirement6_1_sst"
+              element={<Requirement6_1_Sst />}
+            />
+
+            <Route
+              path="/requirement6_2"
+              element={<Requirement6_2 />}
+            />
+
+            {/* Requisito 7 */}
+            <Route path="/requirement7" element={<Requirement7 />} />
+            <Route path="/requirement7_1" element={<Requirement7_1 />} />
+            <Route path="/requirement7_2" element={<Requirement7_2 />} />
+            <Route path="/requirement7_3" element={<Requirement7_3 />} />
+            <Route path="/requirement7_4" element={<Requirement7_4 />} />
+            <Route path="/requirement7_5" element={<Requirement7_5 />} />
+
+            {/* Requisito 8 */}
+            <Route path="/requirement8" element={<Requirement8 />} />
+            <Route path="/requirement8_1" element={<Requirement8_1 />} />
+            <Route path="/requirement8_2" element={<Requirement8_2 />} />
+            <Route path="/requirement8_3" element={<Requirement8_3 />} />
+            <Route path="/requirement8_4" element={<Requirement8_4 />} />
+            <Route path="/requirement8_5" element={<Requirement8_5 />} />
+            <Route path="/requirement8_6" element={<Requirement8_6 />} />
+            <Route path="/requirement8_7" element={<Requirement8_7 />} />
+            <Route path="/requirement8_8" element={<Requirement8_8 />} />
+            <Route path="/requirement8_9" element={<Requirement8_9 />} />
+
+            {/* Requisito 9 */}
+            <Route path="/requirement9" element={<Requirement9 />} />
+            <Route path="/requirement9_1" element={<Requirement9_1 />} />
+            <Route path="/requirement9_2" element={<Requirement9_2 />} />
+            <Route path="/requirement9_3" element={<Requirement9_3 />} />
+
+            {/* Requisito 10 */}
+            <Route path="/requirement10" element={<Requirement10 />} />
+            <Route path="/requirement10_1" element={<Requirement10_1 />} />
+            <Route path="/requirement10_2" element={<Requirement10_2 />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+
+    </BrowserRouter>
+  );
+}
+
+export default AppRoutes;

@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  PLATFORM_ADMIN
+}
+
+enum CustomerGuidedFlowStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id                   String                     @id @default(cuid())
+  name                 String                     @db.VarChar(160)
+  email                String                     @unique @db.VarChar(254)
+  passwordHash         String                     @db.VarChar(255)
+  emailVerifiedAt      DateTime?
+  role                 UserRole                   @default(CUSTOMER)
+  locale               String                     @default("pt-PT") @db.VarChar(5)
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  session              Session[]
+  customerProfile      CustomerProfile?
+  passwordResetTokens  PasswordResetToken[]
+  verificationTokens   EmailVerificationToken[]
+  systemChangesMade    CustomerSystemsChange[] @relation("SystemChangeActor")
+  systemChangesReceived CustomerSystemsChange[] @relation("SystemChangeTarget")
+  requirementResponses CustomerRequirementResponse[]
+  guidedFlows          CustomerGuidedFlow[]
+}
+
+model CustomerRequirementResponse {
+  id              String   @id @default(cuid())
+  userId          String
+  requirementCode String
+  schemaVersion   Int      @default(1)
+  data            Json     @db.JsonB
+  revision        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, requirementCode])
+  @@index([userId])
+}
+
+model CustomerGuidedFlow {
+  id             String                   @id @default(cuid())
+  userId         String
+  flowKey        String
+  currentStep    Int                      @default(1)
+  completedSteps Int[]                    @default([])
+  status         CustomerGuidedFlowStatus @default(IN_PROGRESS)
+  revision       Int                      @default(1)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flowKey])
+  @@index([userId])
+}
+
+model CustomerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  data      Json     @db.JsonB
+  avatarObjectKey String?
+  revision  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CustomerSystemsChange {
+  id              String   @id @default(cuid())
+  actorUserId     String
+  targetUserId    String
+  previousSystems Json     @db.JsonB
+  newSystems      Json     @db.JsonB
+  createdAt       DateTime @default(now())
+  actor           User     @relation("SystemChangeActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  target          User     @relation("SystemChangeTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId])
+  @@index([targetUserId, createdAt])
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  email     String?   @db.VarChar(254)
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthRateLimitBucket {
+  key             String   @id @db.Char(64)
+  windowStartedAt DateTime
+  expiresAt       DateTime
+  count           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
+}
