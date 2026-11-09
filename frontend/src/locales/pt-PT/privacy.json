@@ -1,1 +1,385 @@
-{"eyebrow": "Privacidade", "title": "Política de Privacidade", "description": "Como o Integra SGI trata os dados pessoais das organizações e das pessoas que usam a plataforma.", "updated": "Última atualização: {{date}}", "controllerTitle": "1. Responsável pelo tratamento", "controllerBody": "O responsável pelo tratamento dos dados é {{name}}, NIF {{nif}}, com morada em {{address}}. Para qualquer questão sobre privacidade, contacte {{email}}.", "dataTitle": "2. Que dados recolhemos", "dataItems": ["Dados da organização: nome, NIF, ramo de atividade e email principal.", "Dados da pessoa representante: nome e, se os indicar, email secundário e telefone.", "Credenciais: o email de acesso e a palavra-passe, guardada apenas de forma cifrada (hash), nunca em texto.", "Foto de perfil, se decidir carregá-la.", "Respostas ao diagnóstico da organização (dimensão, atividades, pessoas responsáveis, processos e pontos de atenção).", "Uso da plataforma: a data em que o diagnóstico foi concluído e os modelos que descarregou, com a data. Servem apenas para indicadores agregados.", "Preferências de leitura: o tamanho do texto e o contraste que escolher no perfil.", "Mensagens enviadas pelo formulário de contacto: nome, email e texto.", "Registo de segurança da conta: entradas, tentativas falhadas, alterações de palavra-passe, de perfil e de foto, exportações e apagamento, com a data. Não inclui o endereço IP.", "Dados técnicos: o endereço IP, usado apenas para limitar tentativas abusivas, e o cookie de sessão."], "purposeTitle": "3. Para que usamos os dados", "purposeItems": ["Criar e gerir a conta e prestar o serviço de apoio à implementação de sistemas de gestão (execução do contrato, art. 6.º, n.º 1, al. b) do RGPD).", "Enviar emails necessários ao serviço, como confirmação de email e recuperação de palavra-passe (execução do contrato).", "Proteger a plataforma contra acessos indevidos e abusos, incluindo o registo de segurança da conta (interesse legítimo, art. 6.º, n.º 1, al. f)).", "Responder às mensagens de contacto (diligências a pedido do titular e interesse legítimo).", "Produzir indicadores agregados e anónimos sobre a utilização, para melhorar o serviço (interesse legítimo)."], "purposeNote": "Não usamos os dados para publicidade, não os vendemos e não tomamos decisões automatizadas com efeitos jurídicos sobre si.", "cookiesTitle": "4. Cookies e armazenamento no browser", "cookiesBody": "Usamos apenas um cookie essencial de sessão (integra_session), que mantém a sua sessão iniciada durante até 7 dias e não pode ser lido por scripts. Não usamos cookies de publicidade nem de análise, e não guardamos dados pessoais no armazenamento local do browser.", "processorsTitle": "5. Quem trata os dados por nossa conta", "processorsItems": ["Vercel Inc.: alojamento do site e da API.", "Neon Inc.: base de dados e armazenamento de ficheiros.", "Resend Inc.: envio de emails."], "processorsNote": "Estes fornecedores tratam os dados apenas segundo as nossas instruções. Alguns servidores estão fora do Espaço Económico Europeu (nos Estados Unidos); nesses casos, a transferência assenta no Quadro de Privacidade de Dados UE-EUA ou nas cláusulas contratuais-tipo aprovadas pela Comissão Europeia.", "retentionTitle": "6. Durante quanto tempo guardamos os dados", "retentionItems": ["Dados da conta, foto e respostas ao diagnóstico: enquanto a conta estiver ativa. Se apagar a conta no perfil, são eliminados de imediato; se o pedir por email, no prazo de {{accountDays}} dias.", "Mensagens de contacto: até {{contactMonths}} meses depois da resposta.", "Registo de segurança da conta: até 12 meses, ou até apagar a conta.", "Sessões: até 7 dias, ou até terminar a sessão.", "Registos de limitação de tentativas: até 1 hora."], "rightsTitle": "7. Os seus direitos", "rightsBody": "Pode descarregar os seus dados e apagar a conta diretamente no seu perfil, na secção «Os seus dados», e corrigir aí a maior parte da informação. Pode também pedir o acesso, a retificação, o apagamento, a limitação do tratamento ou a portabilidade dos seus dados, ou opor-se ao tratamento, contactando {{email}}. Respondemos no prazo de 30 dias.", "rightsComplaint": "Tem também o direito de apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), em www.cnpd.pt.", "securityTitle": "8. Segurança", "securityBody": "Os dados circulam sempre por HTTPS. As palavras-passe são protegidas com Argon2id, as sessões usam cookies seguros e inacessíveis a scripts, os ficheiros ficam num armazenamento privado e o acesso administrativo é restrito à equipa do Integra SGI.", "changesTitle": "9. Alterações a esta política", "changesBody": "Se esta política mudar de forma relevante, avisaremos na plataforma. A data da última atualização aparece no topo da página."}
+{
+  "eyebrow": "Privacidade",
+  "title": "Política de Privacidade",
+  "description": "Como o Integra SGI trata os dados pessoais das organizações e das pessoas que usam a plataforma.",
+  "updated": "Última atualização: {{date}}",
+  "sections": [
+    {
+      "title": "1. Enquadramento e âmbito",
+      "blocks": [
+        {
+          "p": "Esta política explica como o Integra SGI recolhe, usa, conserva, protege e elimina dados pessoais. Tratamos os dados de forma lícita, leal, transparente e segura, segundo o Regulamento Geral sobre a Proteção de Dados (RGPD), a Lei n.º 58/2019 e, quando aplicável, a Lei Geral de Proteção de Dados Pessoais brasileira (LGPD, Lei n.º 13.709/2018)."
+        },
+        {
+          "p": "As práticas de segurança e privacidade da plataforma seguem como referência as normas ISO/IEC 27001:2022 e ISO/IEC 27701:2025."
+        },
+        {
+          "p": "Aplica-se a quem usa a plataforma, às pessoas que representam organizações, a quem nos contacta e a outras pessoas cujos dados sejam tratados no âmbito do serviço."
+        }
+      ]
+    },
+    {
+      "title": "2. Responsável pelo tratamento",
+      "blocks": [
+        {
+          "list": [
+            "Responsável: {{name}}",
+            "NIF: {{nif}}",
+            "Morada: {{address}}",
+            "Email de contacto: {{email}}"
+          ]
+        },
+        {
+          "p": "Use este email para qualquer questão sobre privacidade ou para exercer os seus direitos."
+        },
+        {
+          "p": "Quando uma organização introduz na plataforma dados pessoais de outras pessoas para gerir os seus próprios processos, essa organização é a responsável por esses dados e o Integra SGI trata-os como subcontratante, apenas segundo as instruções documentadas da organização e o acordo de tratamento de dados aplicável."
+        }
+      ]
+    },
+    {
+      "title": "3. Que dados recolhemos",
+      "blocks": [
+        {
+          "p": "Recolhemos apenas os dados necessários para prestar, manter e melhorar o serviço."
+        },
+        {
+          "h": "Dados da organização"
+        },
+        {
+          "list": [
+            "Nome ou denominação social, NIF, setor de atividade e email principal."
+          ]
+        },
+        {
+          "h": "Dados da pessoa representante"
+        },
+        {
+          "list": [
+            "Nome e, se os indicar, email secundário e telefone.",
+            "Foto de perfil, se decidir carregá-la."
+          ]
+        },
+        {
+          "h": "Dados de autenticação"
+        },
+        {
+          "list": [
+            "O email de acesso.",
+            "A palavra-passe, guardada apenas como hash Argon2id, nunca em texto.",
+            "O identificador da sessão. Na base de dados fica só um hash dele; o valor em si existe apenas no cookie do seu browser."
+          ]
+        },
+        {
+          "h": "Respostas ao diagnóstico da organização"
+        },
+        {
+          "list": [
+            "Dimensão e características da organização, atividades e processos, funções e pessoas responsáveis, riscos, oportunidades e pontos de atenção, e as respostas aos questionários."
+          ]
+        },
+        {
+          "p": "Evite introduzir dados pessoais sensíveis ou dados de terceiros que não sejam necessários."
+        },
+        {
+          "h": "Utilização da plataforma e preferências"
+        },
+        {
+          "list": [
+            "A data em que o diagnóstico foi concluído.",
+            "Os modelos que descarregou e a data de cada download.",
+            "O idioma, o tamanho do texto e o contraste que escolher."
+          ]
+        },
+        {
+          "p": "Estes dados ficam associados à sua conta. Os indicadores que a equipa consulta são agregados (totais, medianas e intervalos) e não mostram contas individuais."
+        },
+        {
+          "h": "Mensagens de contacto"
+        },
+        {
+          "list": [
+            "Pelo formulário de contacto: nome, email e texto da mensagem. A plataforma não guarda a mensagem na base de dados; envia-a por email para a caixa de correio da responsável.",
+            "Se nos escrever diretamente por email: o seu endereço, o assunto, o conteúdo e a data, bem como a nossa resposta."
+          ]
+        },
+        {
+          "h": "Registo de segurança da conta"
+        },
+        {
+          "list": [
+            "Entradas na conta, tentativas falhadas, saídas, alterações de palavra-passe, de dados da conta, de perfil e de foto, exportações e apagamento de dados, sempre com a data.",
+            "Nas ações de administração sobre uma empresa, o registo indica qual a conta afetada; essa referência é removida quando a conta é apagada."
+          ]
+        },
+        {
+          "p": "O registo de segurança não inclui o endereço IP."
+        },
+        {
+          "h": "Endereço IP e registos técnicos"
+        },
+        {
+          "list": [
+            "Endereço IP: é usado apenas para limitar tentativas abusivas (início de sessão, registo, confirmação de email, recuperação de palavra-passe, contacto e apagamento de contas). Não é guardado em claro: guardamos um código calculado a partir do IP com uma chave secreta (hash com chave), combinado com o tipo de operação e, em algumas operações, com o email, e um contador. Este registo deixa de ter efeito ao fim de no máximo 1 hora e é apagado automaticamente na limpeza seguinte, feita a cada 15 minutos. Mesmo assim, é um dado pessoal pseudonimizado e é tratado como tal.",
+            "Registos técnicos do alojamento: o fornecedor de alojamento (Vercel) regista os pedidos feitos ao site e à API, o que pode incluir o endereço IP, a página pedida, a data e o tipo de browser. Estes registos são conservados pelo fornecedor durante o prazo curto do serviço contratado e servem apenas para diagnosticar falhas e incidentes de segurança. A própria aplicação não escreve dados pessoais nos seus registos técnicos.",
+            "Registos de envio de email: o fornecedor de email (Resend) conserva, durante o prazo do serviço contratado, os dados de entrega das mensagens que enviamos (destinatário, assunto e estado da entrega)."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "4. Para que usamos os dados e com que fundamento",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Finalidade",
+              "Fundamento jurídico"
+            ],
+            "rows": [
+              [
+                "Criar, gerir e manter a conta",
+                "Execução de contrato (art. 6.º, n.º 1, al. b) do RGPD)"
+              ],
+              [
+                "Autenticar e gerir sessões",
+                "Execução de contrato"
+              ],
+              [
+                "Enviar emails de confirmação e de recuperação de acesso",
+                "Execução de contrato"
+              ],
+              [
+                "Disponibilizar o diagnóstico e as ferramentas de gestão",
+                "Execução de contrato"
+              ],
+              [
+                "Proteger a plataforma contra acessos indevidos e abusos, incluindo o registo de segurança e a limitação de tentativas",
+                "Interesse legítimo (art. 6.º, n.º 1, al. f) do RGPD)"
+              ],
+              [
+                "Responder a mensagens de contacto e pedidos de suporte",
+                "Diligências pré-contratuais a pedido do titular ou interesse legítimo, conforme o caso"
+              ],
+              [
+                "Produzir indicadores agregados sobre a utilização, para melhorar o serviço",
+                "Interesse legítimo"
+              ],
+              [
+                "Cumprir obrigações legais",
+                "Obrigação jurídica (art. 6.º, n.º 1, al. c) do RGPD)"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Quando se aplicar a LGPD, o tratamento assenta nas bases legais do seu artigo 7.º."
+        },
+        {
+          "p": "Não usamos os dados para publicidade, não os vendemos e não os usamos para finalidades incompatíveis com as indicadas. Não tomamos decisões exclusivamente automatizadas com efeitos jurídicos ou com impacto significativo sobre si."
+        }
+      ]
+    },
+    {
+      "title": "5. Princípios que seguimos",
+      "blocks": [
+        {
+          "list": [
+            "Licitude, lealdade e transparência: tratamos os dados com fundamento jurídico e informamos de forma clara.",
+            "Limitação das finalidades: usamos os dados apenas para as finalidades indicadas.",
+            "Minimização: pedimos apenas o necessário para prestar o serviço.",
+            "Exatidão: pode corrigir e atualizar os seus dados no perfil.",
+            "Limitação da conservação: conservamos os dados apenas durante os prazos da secção 9.",
+            "Integridade e confidencialidade: aplicamos as medidas da secção 11.",
+            "Responsabilização: mantemos procedimentos e registos que permitem demonstrar o cumprimento."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "6. Cookies e armazenamento no browser",
+      "blocks": [
+        {
+          "p": "Usamos apenas um cookie essencial:"
+        },
+        {
+          "list": [
+            "Nome: integra_session.",
+            "Finalidade: manter a sessão iniciada.",
+            "Duração máxima: 7 dias.",
+            "Atributos: HttpOnly (não pode ser lido por scripts), Secure (só circula por HTTPS) e SameSite=Lax."
+          ]
+        },
+        {
+          "p": "Não usamos cookies de publicidade nem de análise, nem tecnologias de rastreamento. Não guardamos tokens de autenticação, palavras-passe nem outros dados pessoais no armazenamento local do browser. Se no futuro usarmos ferramentas não essenciais, atualizaremos esta política e pediremos o seu consentimento antes de as ativar."
+        }
+      ]
+    },
+    {
+      "title": "7. Quem trata os dados por nossa conta",
+      "blocks": [
+        {
+          "p": "Não vendemos, alugamos nem comercializamos dados pessoais. Para o serviço funcionar, recorremos a estes subcontratantes:"
+        },
+        {
+          "list": [
+            "Vercel Inc.: alojamento do site e da API, e os respetivos registos técnicos.",
+            "Neon Inc.: base de dados, armazenamento de ficheiros (fotos de perfil) e cópias de segurança da base de dados.",
+            "Resend Inc.: envio de emails."
+          ]
+        },
+        {
+          "p": "Estes fornecedores tratam os dados apenas na medida necessária ao serviço, segundo as nossas instruções, com obrigações de confidencialidade e segurança, e eliminam ou devolvem os dados no fim do serviço, nos termos dos acordos de tratamento de dados (art. 28.º do RGPD) que celebramos com cada um."
+        }
+      ]
+    },
+    {
+      "title": "8. Transferências internacionais",
+      "blocks": [
+        {
+          "p": "Alguns destes fornecedores podem tratar dados fora do Espaço Económico Europeu, nomeadamente nos Estados Unidos. Nesses casos aplicamos o capítulo V do RGPD: a transferência assenta numa decisão de adequação da Comissão Europeia (incluindo o Quadro de Privacidade de Dados UE-EUA, apenas quando o fornecedor está certificado) ou em cláusulas contratuais-tipo aprovadas pela Comissão Europeia, com medidas adicionais quando a avaliação de risco o justifica."
+        }
+      ]
+    },
+    {
+      "title": "9. Durante quanto tempo guardamos os dados",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Dados",
+              "Prazo de conservação"
+            ],
+            "rows": [
+              [
+                "Dados da conta, da organização e do perfil, preferências e dados de utilização",
+                "Enquanto a conta estiver ativa"
+              ],
+              [
+                "Foto de perfil",
+                "Até a substituir ou remover, ou até a conta ser apagada"
+              ],
+              [
+                "Respostas ao diagnóstico",
+                "Enquanto a conta estiver ativa"
+              ],
+              [
+                "Registo de segurança da conta",
+                "Até 12 meses, ou até a conta ser apagada, se for antes. Fica apenas a indicação de que uma conta foi apagada, com a data e sem identificar a conta"
+              ],
+              [
+                "Mensagens de contacto",
+                "Até 12 meses depois de o pedido ser respondido e encerrado"
+              ],
+              [
+                "Sessões",
+                "Até 7 dias, ou até terminar a sessão, mudar a palavra-passe ou apagar a conta"
+              ],
+              [
+                "Ligações de confirmação de email e de recuperação de palavra-passe",
+                "Até serem usadas ou expirarem"
+              ],
+              [
+                "Registos de limitação de tentativas (IP em hash com chave)",
+                "Até 1 hora; apagados automaticamente na limpeza seguinte, a cada 15 minutos"
+              ],
+              [
+                "Registos técnicos do alojamento e do envio de emails",
+                "O prazo curto do serviço contratado com cada fornecedor"
+              ],
+              [
+                "Cópias de segurança da base de dados",
+                "Segundo o ciclo de cópias de segurança da base de dados, no máximo 30 dias"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A limpeza de sessões, ligações, registos de limitação de tentativas e registos de segurança antigos é automática e corre a cada 15 minutos."
+        },
+        {
+          "p": "Se apagar a conta no perfil, os seus dados são eliminados de imediato da base de dados e do armazenamento de ficheiros. Se o pedir por email, tratamos o pedido no prazo de um mês. As cópias de segurança que ainda contenham esses dados ficam protegidas e deixam de existir no fim do seu prazo. Se alguma vez for necessário restaurar uma cópia, voltamos a aplicar as eliminações feitas depois da data dessa cópia."
+        }
+      ]
+    },
+    {
+      "title": "10. Os seus direitos",
+      "blocks": [
+        {
+          "p": "Nos termos do RGPD e, quando aplicável, da LGPD, tem direito a:"
+        },
+        {
+          "list": [
+            "Acesso: saber se tratamos dados seus e obter uma cópia.",
+            "Retificação: corrigir dados inexatos ou incompletos.",
+            "Apagamento: pedir a eliminação dos seus dados, quando a lei o permita.",
+            "Limitação do tratamento: pedir que suspendamos temporariamente o uso dos dados, nos casos previstos na lei.",
+            "Portabilidade: receber os seus dados num formato estruturado e de leitura automática.",
+            "Oposição: opor-se a tratamentos baseados no interesse legítimo.",
+            "Retirar o consentimento, quando o tratamento se basear nele, sem afetar o tratamento já feito.",
+            "Apresentar reclamação a uma autoridade de controlo (secção 15)."
+          ]
+        },
+        {
+          "p": "No seu perfil, na secção «Os seus dados», pode descarregar os seus dados e apagar a conta; no resto do perfil pode corrigir a maior parte da informação. Para os outros pedidos, contacte {{email}}. Os pedidos são gratuitos, salvo nos casos previstos na lei. Respondemos no prazo de um mês, que pode ser prolongado por mais dois meses quando necessário, avisando-o. Quando se aplicar a LGPD, respeitamos também os prazos e procedimentos previstos nessa lei."
+        }
+      ]
+    },
+    {
+      "title": "11. Segurança da informação",
+      "blocks": [
+        {
+          "p": "Aplicamos medidas técnicas e organizativas que protegem a confidencialidade, a integridade e a disponibilidade dos dados, ajustadas aos riscos:"
+        },
+        {
+          "list": [
+            "Comunicação: todo o tráfego usa HTTPS, com cabeçalhos de segurança que impedem a página de ser incorporada noutros sites e limitam o código que o browser executa.",
+            "Credenciais: palavras-passe protegidas com Argon2id, nunca guardadas em texto; sessões com cookies seguros, inacessíveis a scripts e guardadas apenas em hash na base de dados.",
+            "Controlo de acessos: acesso administrativo restrito, menor privilégio, separação entre contas de clientes e de administração, e limitação de tentativas abusivas. Apagar uma empresa exige a palavra-passe da pessoa administradora.",
+            "Dados guardados: ficheiros num armazenamento privado, acessível apenas por ligações temporárias assinadas; acesso à base de dados e aos segredos da infraestrutura restrito; nenhum segredo no código público nem no código que corre no browser.",
+            "Rastreabilidade: registo das operações relevantes para a segurança, sem endereço IP, acessível apenas à equipa do Integra SGI.",
+            "Continuidade: cópias de segurança da base de dados e procedimento documentado de recuperação."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "12. Incidentes e violações de dados",
+      "blocks": [
+        {
+          "p": "Temos um procedimento para identificar, avaliar, registar e responder a incidentes de segurança. Em caso de violação de dados pessoais, avaliamos a natureza do incidente, os dados e as pessoas afetadas, as consequências possíveis e as medidas para limitar os efeitos. Quando a violação for suscetível de implicar um risco para os direitos e liberdades das pessoas, notificamos a autoridade de controlo até 72 horas depois de termos conhecimento dela (art. 33.º do RGPD) e, quando o risco for elevado, informamos também as pessoas afetadas (art. 34.º)."
+        }
+      ]
+    },
+    {
+      "title": "13. Dados pessoais introduzidos pelas organizações",
+      "blocks": [
+        {
+          "p": "Quando uma organização usa a plataforma para tratar dados de colaboradores, fornecedores, clientes ou outras pessoas, é ela a responsável por esses dados e deve garantir que têm fundamento jurídico, foram obtidos de forma lícita e são necessários e proporcionais. O Integra SGI trata esses dados apenas segundo as instruções documentadas da organização e o acordo de tratamento de dados aplicável."
+        }
+      ]
+    },
+    {
+      "title": "14. Alterações a esta política",
+      "blocks": [
+        {
+          "p": "Atualizamos esta política quando houver alterações relevantes na plataforma, nos fornecedores ou na lei. Se a alteração tiver impacto significativo no tratamento dos seus dados, avisamos na plataforma ou por outro meio adequado. A versão em vigor está sempre nesta página, com a data da última atualização no topo."
+        }
+      ]
+    },
+    {
+      "title": "15. Autoridades de controlo e reclamações",
+      "blocks": [
+        {
+          "list": [
+            "Portugal: Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt",
+            "Brasil: Autoridade Nacional de Proteção de Dados (ANPD), www.gov.br/anpd"
+          ]
+        },
+        {
+          "p": "Apresentar uma reclamação não prejudica o direito de recorrer a outros meios administrativos ou judiciais."
+        }
+      ]
+    }
+  ]
+}

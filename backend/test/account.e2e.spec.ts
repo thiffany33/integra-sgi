@@ -152,6 +152,7 @@ describe('account export and deletion', () => {
       const customer = await account('customer-delete');
       await prisma.customerProfile.update({ where: { userId: customer.id }, data: { avatarObjectKey: `avatars/${customer.id}/photo.png` } });
       const deleteUrl = `/api/v1/admin/customers/${customer.id}/delete`;
+      await request(app.getHttpServer()).get(`/api/v1/admin/customers/${customer.id}/export`).set('Cookie', operator.cookie).expect(200);
 
       await request(app.getHttpServer()).post(deleteUrl).set('Cookie', customer.cookie).send({ password }).expect(403);
       await request(app.getHttpServer()).post(deleteUrl).set('Cookie', operator.cookie).send({ password: 'not-the-password' }).expect(401)
@@ -166,6 +167,9 @@ describe('account export and deletion', () => {
       await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', customer.cookie).expect(401);
       await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', operator.cookie).expect(200);
       expect(await prisma.auditEvent.count({ where: { action: 'admin.customer_deleted', userId: operator.id } })).toBe(1);
+      // The export stays in the log, but no longer points at the deleted account.
+      const exported = await prisma.auditEvent.findFirstOrThrow({ where: { action: 'admin.customer_exported', userId: operator.id } });
+      expect(exported.metadata).toBeNull();
       await request(app.getHttpServer()).post(deleteUrl).set('Cookie', operator.cookie).send({ password }).expect(404);
     });
 

@@ -51,6 +51,11 @@ export const envSchema = z
       (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
       z.email().optional(),
     ),
+    // Bearer secret for the scheduled retention purge; while unset, the endpoint does not exist.
+    RETENTION_JOB_SECRET: z.preprocess(
+      (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+      z.string().min(32).optional(),
+    ),
     AWS_ACCESS_KEY_ID: storageValue,
     AWS_SECRET_ACCESS_KEY: storageValue,
     AWS_ENDPOINT_URL_S3: storageEndpoint,

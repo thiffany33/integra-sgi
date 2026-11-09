@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 @Injectable()
@@ -28,10 +29,14 @@ export class AccountRepository {
     });
   }
 
-  /** Sessions, tokens, profile, answers and progress cascade with the user; the systems history does not. */
+  /**
+   * Sessions, tokens, profile, answers and progress cascade with the user; the systems history does
+   * not. Administrators' audit events keep the action but lose the reference to the deleted account.
+   */
   async deleteUser(userId: string): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.customerSystemsChange.deleteMany({ where: { targetUserId: userId } }),
+      this.prisma.auditEvent.updateMany({ where: { metadata: { path: ['customerId'], equals: userId } }, data: { metadata: Prisma.DbNull } }),
       this.prisma.user.delete({ where: { id: userId } }),
     ]);
   }

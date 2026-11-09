@@ -1,0 +1,32 @@
+name: Data retention
+
+# Deletes expired sessions, one-time tokens, rate-limit records (at most 1 hour old) and audit
+# events past 12 months, even when nobody uses the platform (docs/SECURITY.md §6).
+on:
+  schedule:
+    # Every 15 minutes, so a rate-limit record is gone soon after its 1-hour window ends.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: retention
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Purge expired data in production
+        env:
+          RETENTION_JOB_SECRET: ${{ secrets.RETENTION_JOB_SECRET }}
+        run: |
+          if [ -z "$RETENTION_JOB_SECRET" ]; then
+            echo "::error::RETENTION_JOB_SECRET is not configured in the repository secrets."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --max-time 60 --retry 2 --retry-all-errors \
+            -X POST -H "Authorization: Bearer $RETENTION_JOB_SECRET" \
+            https://integrasig.pt/api/v1/internal/retention/purge
