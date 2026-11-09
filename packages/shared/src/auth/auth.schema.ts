@@ -38,6 +38,9 @@ export const updateCustomerProfileSchema = z.object({
   profile: editableCustomerProfileSchema,
 }).strict();
 export const updateLocaleSchema = z.object({ locale: localeSchema }).strict();
+/** Saved per account, never in the browser: 'default' is the 18 px reading base. */
+export const textSizes = ['default', 'large', 'larger'] as const;
+export const readingPreferencesSchema = z.object({ textSize: z.enum(textSizes), highContrast: z.boolean() }).strict();
 export const updateAccountSchema = z.object({
   name: z.string().trim().min(1).max(160),
   email: accountEmailSchema,
@@ -58,5 +61,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileSchema>;
 export type SupportedLocale = z.infer<typeof localeSchema>;
+export type TextSize = (typeof textSizes)[number];
+export type ReadingPreferences = z.infer<typeof readingPreferencesSchema>;
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
+import type { ReadingPreferences, SupportedLocale, UpdateAccountInput } from '@integra/shared/auth';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
@@ -11,6 +11,8 @@ const publicUserSelect = {
   locale: true,
   emailVerifiedAt: true,
   isAdmin: true,
+  textSize: true,
+  highContrast: true,
 } as const;
 
 export type PublicUserRecord = {
@@ -20,6 +22,8 @@ export type PublicUserRecord = {
   locale: string;
   emailVerifiedAt: Date | null;
   isAdmin: boolean;
+  textSize: string;
+  highContrast: boolean;
 };
 
 class VerificationTokenRace extends Error {}
@@ -84,6 +88,8 @@ export class AuthRepository {
         locale: user.locale,
         emailVerifiedAt: user.emailVerifiedAt,
         isAdmin: user.isAdmin,
+        textSize: user.textSize,
+        highContrast: user.highContrast,
       },
       passwordHash: user.passwordHash,
       profile: user.customerProfile?.data ?? null,
@@ -139,6 +145,8 @@ export class AuthRepository {
         locale: user.locale,
         emailVerifiedAt: user.emailVerifiedAt,
         isAdmin: user.isAdmin,
+        textSize: user.textSize,
+        highContrast: user.highContrast,
       },
       profile: user.customerProfile.data,
     };
@@ -149,8 +157,16 @@ export class AuthRepository {
   }
 
   async updateLocale(userId: string, locale: SupportedLocale): Promise<PublicUserRecord | null> {
+    return this.updatePublicUser(userId, { locale });
+  }
+
+  async updateReadingPreferences(userId: string, preferences: ReadingPreferences): Promise<PublicUserRecord | null> {
+    return this.updatePublicUser(userId, preferences);
+  }
+
+  private async updatePublicUser(userId: string, data: Prisma.UserUpdateInput): Promise<PublicUserRecord | null> {
     const user = await this.prisma.user.update({
-      where: { id: userId }, data: { locale }, select: publicUserSelect,
+      where: { id: userId }, data, select: publicUserSelect,
     }).catch((error: unknown) => {
       if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') return null;
       throw error;

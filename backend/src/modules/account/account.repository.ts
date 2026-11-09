@@ -10,7 +10,7 @@ export class AccountRepository {
     return this.prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, name: true, email: true, locale: true, emailVerifiedAt: true, createdAt: true, updatedAt: true, isAdmin: true,
+        id: true, name: true, email: true, locale: true, emailVerifiedAt: true, createdAt: true, updatedAt: true, isAdmin: true, textSize: true, highContrast: true,
         customerProfile: { select: { data: true, avatarObjectKey: true, createdAt: true, updatedAt: true } },
         requirementResponses: { select: { requirementCode: true, data: true, createdAt: true, updatedAt: true }, orderBy: { requirementCode: 'asc' } },
         guidedFlows: { select: { flowKey: true, status: true, currentStep: true, completedSteps: true, createdAt: true, updatedAt: true, completedAt: true } },

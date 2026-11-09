@@ -15,7 +15,7 @@ import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateAccountInput
 import type { Request, Response } from 'express';
 import type { Environment } from '../../config/env.schema';
 import { ZodValidationPipe } from '../../middlewares/zod-validation.pipe';
-import { changePasswordSchema, loginSchema, registerSchema, updateAccountSchema, updateLocaleSchema } from '@integra/shared/auth';
+import { changePasswordSchema, loginSchema, readingPreferencesSchema, registerSchema, updateAccountSchema, updateLocaleSchema, type ReadingPreferences } from '@integra/shared/auth';
 import { forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema } from './password-reset.schema';
 import { AuthService } from './auth.service';
 import { SessionGuard } from './session.guard';
@@ -116,6 +116,15 @@ export class AuthController {
     @Body(new ZodValidationPipe(updateLocaleSchema)) body: { locale: import('@integra/shared/auth').SupportedLocale },
   ) {
     return this.authService.updateLocale(request.userId!, body.locale);
+  }
+
+  @Patch('me/reading-preferences')
+  @UseGuards(SessionGuard)
+  updateReadingPreferences(
+    @Req() request: Request,
+    @Body(new ZodValidationPipe(readingPreferencesSchema)) body: ReadingPreferences,
+  ) {
+    return this.authService.updateReadingPreferences(request.userId!, body);
   }
 
   @Patch('me')

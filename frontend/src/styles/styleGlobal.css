@@ -9,14 +9,14 @@
   --color-primary: var(--primary);
   --color-primary-foreground: #ffffff;
   --color-secondary: #e6f1eb;
-  --color-secondary-foreground: #0b5a34;
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: #edf1f4;
-  --color-muted-foreground: #4d5b6a;
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: #e6f1eb;
   --color-accent-foreground: #0b5532;
   --color-destructive: var(--brand-red);
-  --color-border: #d3dbe3;
-  --color-input: #7e8b98;
+  --color-border: var(--border);
+  --color-input: var(--input);
   --color-ring: var(--brand-green);
   /* The four rings of the Integra SGI logo. */
   --color-brand-blue: var(--brand-blue);
@@ -39,12 +39,33 @@
   --foreground: #1d3049;
   --card: #fff;
   --primary: var(--brand-blue);
+  --muted-foreground: #4d5b6a;
+  --secondary-foreground: #0b5a34;
+  --border: #d3dbe3;
+  --input: #7e8b98;
   font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
+
+/* Reading preferences saved in the account (profile → reading). Everything is sized in rem, so it scales. */
+html[data-text-size="large"] { font-size: 112.5%; }
+html[data-text-size="larger"] { font-size: 125%; }
+
+/* High contrast: darker text, secondary text and borders; links always underlined. */
+html[data-contrast="high"] {
+  --background: #ffffff;
+  --foreground: #0b1726;
+  --muted-foreground: #1f2b38;
+  --secondary-foreground: #063d22;
+  --border: #4d5b6a;
+  --input: #1f2b38;
+  --brand-blue: #142b45;
+  --brand-green: #0a5631;
+}
+html[data-contrast="high"] a { text-decoration-line: underline; }
 
 @layer base {
   * { @apply border-border; }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { startTransition, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale } from '@integra/shared/auth';
+import type { ReadingPreferences, SupportedLocale } from '@integra/shared/auth';
 import type { ChangePasswordInput, UpdateAccountInput, UpdateCustomerProfileInput } from '@integra/shared/auth';
 import { authApi, type AuthUser } from '../api/auth.api';
 import { accountApi } from '../api/account.api';
@@ -9,6 +9,15 @@ import { customersApi } from '../api/customers.api';
 import { profileApi } from '../api/profile.api';
 import { AuthContext, type AuthContextValue, type AuthState } from './auth-context-value';
 import i18n from '../i18n';
+import { readingPreferencesOf } from '../lib/reading-preferences';
+
+function applyReadingPreferences(preferences: ReadingPreferences | undefined) {
+  const root = document.documentElement;
+  if (preferences && preferences.textSize !== 'default') root.dataset.textSize = preferences.textSize;
+  else delete root.dataset.textSize;
+  if (preferences?.highContrast) root.dataset.contrast = 'high';
+  else delete root.dataset.contrast;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading', user: null, profile: null, error: null });
@@ -32,6 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { void Promise.resolve().then(refresh); }, [refresh]);
+
+  // Reading preferences belong to the account: they apply while signed in and are never kept in the browser.
+  const preferences = state.status === 'authenticated' ? readingPreferencesOf(state.user) : undefined;
+  useEffect(() => {
+    applyReadingPreferences(preferences);
+  }, [preferences]);
 
   const accept = useCallback(async (result: { user: AuthUser; profile: CustomerProfileInput }) => {
     const saved = await customersApi.me();
@@ -102,9 +117,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ ...state, user });
   }, [state]);
 
+  const updateReadingPreferences = useCallback(async (next: ReadingPreferences) => {
+    if (state.status !== 'authenticated') throw new Error('Sign in to save reading preferences.');
+    const user = await authApi.updateReadingPreferences(next);
+    setState(current => current.status === 'authenticated' ? { ...current, user } : current);
+  }, [state.status]);
+
   const value = useMemo<AuthContextValue>(() => ({
-    ...state, refresh, retry: refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale,
-  }), [state, refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale]);
+    ...state, refresh, retry: refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences,
+  }), [state, refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }
