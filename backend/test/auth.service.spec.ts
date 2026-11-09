@@ -21,6 +21,14 @@ const publicUser = {
   locale: 'pt-PT',
   emailVerifiedAt: null,
   isAdmin: false,
+  textSize: 'large',
+  highContrast: false,
+};
+// What the service returns for that record: the preference columns become one object.
+const publicResult = {
+  id: publicUser.id, name: publicUser.name, email: publicUser.email, locale: publicUser.locale,
+  emailVerifiedAt: publicUser.emailVerifiedAt, isAdmin: publicUser.isAdmin,
+  readingPreferences: { textSize: 'large', highContrast: false },
 };
 
 function makeService() {
@@ -182,7 +190,7 @@ describe('AuthService', () => {
     expect(repository.updateAccount).toHaveBeenCalledWith('user-1', { name: 'Ana Maria', email: 'new@example.pt' }, {
       tokenHash: 'prepared-hash', expiresAt: new Date('2030-01-01'),
     });
-    expect(result.user).toEqual({ ...publicUser, name: 'Ana Maria', email: 'new@example.pt', emailVerifiedAt: null });
+    expect(result.user).toEqual({ ...publicResult, name: 'Ana Maria', email: 'new@example.pt', emailVerifiedAt: null });
     expect(authEmail.sendPreparedVerification).toHaveBeenCalledWith('new@example.pt', 'pt-PT', 'prepared-token');
     repository.updateAccount.mockResolvedValue({ user: publicUser, emailChanged: false });
     await service.updateAccount('user-1', { name: 'Ana Silva', email: 'ana@example.pt' });
@@ -220,7 +228,7 @@ describe('AuthService', () => {
     expect(input.currentTokenHash).toBe(createHash('sha256').update('current-token').digest('hex'));
     expect(input.newTokenHash).toBe(createHash('sha256').update(result.sessionToken).digest('hex'));
     expect(result.sessionToken).not.toBe('current-token');
-    expect(result.user).toEqual(publicUser);
+    expect(result.user).toEqual(publicResult);
     expect(result.user).not.toHaveProperty('passwordHash');
   });
 });

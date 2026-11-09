@@ -381,6 +381,23 @@ describe('authentication HTTP flow', () => {
       .expect(({ body }) => expect(body.user.locale).toBe('de'));
   });
 
+  it('saves reading preferences to the account and rejects unknown values', async () => {
+    const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
+      .send({ email, password: 'new-correct-horse-battery' }).expect(200)
+      .expect(({ body }) => expect(body.user.readingPreferences).toEqual({ textSize: 'default', highContrast: false }));
+    const cookie = (login.headers['set-cookie'] as string[])[0].split(';')[0];
+    await request(app.getHttpServer()).patch('/api/v1/auth/me/reading-preferences').send({ textSize: 'large', highContrast: true }).expect(401);
+    await request(app.getHttpServer()).patch('/api/v1/auth/me/reading-preferences')
+      .set('Cookie', cookie).send({ textSize: 'huge', highContrast: true }).expect(400);
+    await request(app.getHttpServer()).patch('/api/v1/auth/me/reading-preferences')
+      .set('Cookie', cookie).send({ textSize: 'large', highContrast: true, extra: 1 }).expect(400);
+    await request(app.getHttpServer()).patch('/api/v1/auth/me/reading-preferences')
+      .set('Cookie', cookie).send({ textSize: 'larger', highContrast: true }).expect(200)
+      .expect(({ body }) => expect(body.user.readingPreferences).toEqual({ textSize: 'larger', highContrast: true }));
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', cookie).expect(200)
+      .expect(({ body }) => expect(body.user.readingPreferences).toEqual({ textSize: 'larger', highContrast: true }));
+  });
+
   it('updates account details, rejects duplicate emails, and revokes sessions until the new address is verified', async () => {
     const login = await request(app.getHttpServer()).post('/api/v1/auth/login')
       .send({ email, password: 'new-correct-horse-battery' }).expect(200);

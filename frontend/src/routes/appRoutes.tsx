@@ -17,6 +17,10 @@ import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import VerifyEmail from "../pages/auth/verify-email";
 import Profile from "../pages/profile/profile";
+import ProfileAccount from "../pages/profile/profile-account";
+import ProfileOrganization from "../pages/profile/profile-organization";
+import ProfileSecurity from "../pages/profile/profile-security";
+import ProfileReading from "../pages/profile/profile-reading";
 import { RedirectIfAuthenticated, RequireAuth, RequireCustomer } from "../components/auth/require-auth";
 import { RequirePlatformAdmin } from "../components/auth/require-platform-admin";
 import { homePath } from "../lib/return-to";
@@ -220,8 +224,12 @@ function AppRoutes() {
             <Route path="/admin/insights" element={<RequirePlatformAdmin><AdminInsights /></RequirePlatformAdmin>} />
             <Route element={<RequireAuth><Outlet /></RequireAuth>}>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/account" element={<ProfileAccount />} />
+            <Route path="/profile/security" element={<ProfileSecurity />} />
+            <Route path="/profile/reading" element={<ProfileReading />} />
             <Route element={<RequireCustomer><Outlet /></RequireCustomer>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile/organization" element={<ProfileOrganization />} />
             <Route path="/organization-discovery" element={<OrganizationDiscovery />} />
             <Route path="/downloads" element={<Downloads />} />
 

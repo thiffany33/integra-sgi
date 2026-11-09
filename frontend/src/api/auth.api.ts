@@ -1,5 +1,5 @@
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { SupportedLocale } from '@integra/shared/auth';
+import type { ReadingPreferences, SupportedLocale } from '@integra/shared/auth';
 import { api } from '../lib/api';
 
 export type AuthUser = {
@@ -9,6 +9,7 @@ export type AuthUser = {
   locale: SupportedLocale;
   emailVerifiedAt: string | null;
   isAdmin: boolean;
+  readingPreferences: ReadingPreferences;
 };
 
 export type AuthPayload = { user: AuthUser; profile: CustomerProfileInput };
@@ -45,6 +46,10 @@ export const authApi = {
   },
   async resendVerification(email: string): Promise<void> {
     await api.post('/auth/resend-verification', { email });
+  },
+  async updateReadingPreferences(preferences: ReadingPreferences): Promise<AuthUser> {
+    const { data } = await api.patch<{ user: AuthUser }>('/auth/me/reading-preferences', preferences);
+    return data.user;
   },
   async updateLocale(locale: SupportedLocale): Promise<AuthUser> {
     const { data } = await api.patch<{ user: AuthUser }>('/auth/me/locale', { locale });

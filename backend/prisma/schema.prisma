@@ -20,6 +20,8 @@ model User {
   emailVerifiedAt      DateTime?
   isAdmin              Boolean                    @default(false)
   locale               String                     @default("pt-PT") @db.VarChar(5)
+  textSize             String               @default("default") @db.VarChar(16)
+  highContrast         Boolean              @default(false)
   createdAt            DateTime                   @default(now())
   updatedAt            DateTime                   @updatedAt
   session              Session[]

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { ChangePasswordInput, SupportedLocale, UpdateAccountInput, UpdateCustomerProfileInput } from '@integra/shared/auth';
+import type { ChangePasswordInput, ReadingPreferences, SupportedLocale, UpdateAccountInput, UpdateCustomerProfileInput } from '@integra/shared/auth';
 import type { AuthUser } from '../api/auth.api';
 import type { CustomerProfile } from '../api/customers.api';
 
@@ -23,6 +23,7 @@ export type AuthContextValue = AuthState & {
   updateOrganization: (profile: UpdateCustomerProfileInput['profile']) => Promise<CustomerProfile>;
   changePassword: (input: ChangePasswordInput) => Promise<void>;
   updateLocale: (locale: SupportedLocale) => Promise<void>;
+  updateReadingPreferences: (preferences: ReadingPreferences) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
