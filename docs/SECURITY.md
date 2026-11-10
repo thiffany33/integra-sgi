@@ -91,7 +91,7 @@ Segue a Política de Retenção e Eliminação de Dados. `RetentionService.purge
 | `PasswordResetToken`, `EmailVerificationToken` | Usados ou expirados. |
 | `AuditEvent` | Com mais de 12 meses. |
 
-Corre de duas formas: o workflow `Data retention` chama `POST /api/v1/internal/retention/purge` a cada 15 minutos com `Authorization: Bearer <RETENTION_JOB_SECRET>`, e a API corre-a também no tráfego normal, no máximo a cada 15 minutos por instância. Sem `RETENTION_JOB_SECRET` na Vercel, a rota responde 404; o segredo errado dá 401 (comparação em tempo constante). A resposta tem só contagens. O segredo (32+ caracteres) existe na Vercel (projeto `integra-sgi-api`, produção) e nos segredos do repositório GitHub, não no ambiente `production`, para o agendamento não esperar aprovação.
+Corre de duas formas: o workflow `Data retention` chama `POST /api/v1/internal/retention/purge` a cada 15 minutos com `Authorization: Bearer <RETENTION_JOB_SECRET>`, e a API corre-a também no tráfego normal, no máximo a cada 15 minutos por instância. Os deploys são *prebuilt*, por isso o "Redeploy" da Vercel não serve: depois de mudar uma variável na Vercel, é preciso re-rodar o workflow `Deploy` no GitHub (`gh run rerun <id>`) para a API ler o valor novo. Sem `RETENTION_JOB_SECRET` na Vercel, a rota responde 404; o segredo errado dá 401 (comparação em tempo constante). A resposta tem só contagens. O segredo (32+ caracteres) existe na Vercel (projeto `integra-sgi-api`, produção) e nos segredos do repositório GitHub, não no ambiente `production`, para o agendamento não esperar aprovação.
 
 Os dados de conta, organização, foto, diagnóstico, preferências e utilização são apagados com a conta (cascata na base de dados e remoção da foto no armazenamento).
 
