@@ -97,7 +97,7 @@ Os dados de conta, organização, foto, diagnóstico, preferências e utilizaç�
 
 ### 6.2 Cópias de segurança e recuperação
 
-- **Base de dados**: o Neon mantém o histórico de recuperação (point-in-time restore) da branch de produção, durante a janela configurada no plano do projeto, no máximo 30 dias. É a única cópia: não há exportações (`pg_dump`) guardadas noutro lado, para não multiplicar cópias de dados pessoais.
+- **Base de dados**: o Neon mantém o histórico de recuperação (point-in-time restore) da branch de produção durante **6 horas** (plano atual, confirmado no console em novembro de 2026). Não há snapshots nem agendamentos. É a única cópia: não há exportações (`pg_dump`) guardadas noutro lado, para não multiplicar cópias de dados pessoais.
 - **Ficheiros**: as fotos de perfil não têm cópia própria; uma foto apagada não se recupera.
 - **Acesso**: só quem mantém o projeto tem acesso ao Neon (§4).
 - **Restauro**: restaura-se primeiro para uma branch nova, nunca diretamente sobre a produção. Antes de a promover, reaplicam-se as eliminações feitas depois do ponto restaurado: as contas que existem na branch restaurada mas já não existem na produção atual foram apagadas e são apagadas de novo (`DELETE FROM "User" WHERE id IN (...)`, o que apaga em cascata o resto). As fotos dessas contas já não existem no armazenamento. Só depois se troca a ligação da API.
@@ -172,7 +172,6 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thi
 | Lacuna | Estado |
 | --- | --- |
 | NIF e morada do responsável na política de privacidade | A definir. O email de privacidade é thiffanyg33@gmail.com. |
-| Janela de recuperação do Neon | Confirmar no console do Neon (Settings → Instant restore / History retention) e registar aqui. |
 | Teste de restauro (§6.2) | Ainda não feito. |
 
 ---
