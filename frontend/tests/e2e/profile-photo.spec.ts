@@ -22,11 +22,18 @@ test.beforeEach(async ({ page }) => {
 
 test('uploads and previews a profile photo, replaces it, and removes it without browser storage', async ({ page }) => {
   const calls: string[] = [];
+  // Behaves like the API: a load returns the photo saved last, and the signed URLs really load,
+  // so the account menu never has to ask for a fresh URL in the middle of the test.
+  let saved: string | null = null;
+  await page.route('https://storage.example/**', route => route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
   await page.route('**/api/v1/customers/me/avatar', async route => {
     const method = route.request().method(); calls.push(method);
-    if (method === 'GET') return route.fulfill({ json: { photoUrl: calls.length === 1 ? null : 'https://storage.example/avatar.png?signature=short' } });
-    if (method === 'POST') return route.fulfill({ json: { photoUrl: `https://storage.example/avatar-${calls.filter(item => item === 'POST').length}.png?signature=short` } });
-    if (method === 'DELETE') return route.fulfill({ status: 204 });
+    if (method === 'GET') return route.fulfill({ json: { photoUrl: saved } });
+    if (method === 'POST') {
+      saved = `https://storage.example/avatar-${calls.filter(item => item === 'POST').length}.png?signature=short`;
+      return route.fulfill({ json: { photoUrl: saved } });
+    }
+    if (method === 'DELETE') { saved = null; return route.fulfill({ status: 204 }); }
     return route.fallback();
   });
 
