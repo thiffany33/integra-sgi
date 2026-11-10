@@ -76,7 +76,7 @@ O tratamento de dados pessoais segue o RGPD. O detalhe para os utilizadores est�
 - **Dados agregados**: os indicadores do painel de administração usam apenas dados agregados e não expõem respostas individuais fora do perfil de administração.
 - **Indicadores de uso**: a data de conclusão do diagnóstico e os downloads de modelos por clientes (`TemplateDownload`: conta, modelo e data) alimentam só contagens agregadas no painel do admin. Os downloads de admins não contam. Uma falha ao registar nunca bloqueia o download. Os dados saem na exportação e são apagados com a conta.
 - **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não têm esta secção no perfil e não se podem apagar a si próprias. Na página Empresas, um admin descarrega os dados de uma empresa (`GET /api/v1/admin/customers/:id/export`) ou apaga a conta (`POST /api/v1/admin/customers/:id/delete`), por exemplo para responder a um pedido recebido por email. Apagar exige a palavra-passe do próprio admin e nunca se aplica a outra conta de administração. As duas ações ficam no registo de auditoria (`admin.customer_exported`, `admin.customer_deleted`). Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de um mês (art. 12.º, n.º 3 do RGPD).
-- **Subcontratantes**: Vercel (alojamento), Neon (base de dados e ficheiros), Resend (email).
+- **Subcontratantes**: Vercel (alojamento), Neon (base de dados, ficheiros e cópias de segurança), Resend (email) e GitHub (código e workflows; os runners acedem à base de produção ao aplicar migrações e chamam a limpeza automática). Lista e regras de alteração em §6.4.
 - **Registos técnicos**: a aplicação não escreve dados pessoais nos seus logs (só nomes de erro e códigos). Os logs de pedidos da Vercel podem incluir IP, caminho e user agent, e os logs do Resend o destinatário e o assunto; ficam com a retenção do plano de cada fornecedor e só se consultam para diagnóstico de falhas e incidentes.
 - **Mensagens de contacto**: não ficam na base de dados. O formulário envia-as por email (Resend) para a caixa da responsável, onde são apagadas manualmente até 12 meses depois de o pedido ser encerrado.
 
@@ -110,6 +110,27 @@ Os dados de conta, organização, foto, diagnóstico, preferências e utilizaç�
 3. Avaliação: que dados, que contas e que período, com base no `AuditEvent` e nos logs dos fornecedores.
 4. Registo: todo o incidente fica documentado (data, descrição, dados afetados, decisão sobre notificação, medidas), mesmo que não seja notificado (art. 33.º, n.º 5 do RGPD).
 5. Notificação: se houver risco para as pessoas, notifica-se a CNPD em até 72 horas depois de conhecido o incidente; se o risco for elevado, avisam-se também as pessoas afetadas (art. 34.º).
+6. Organizações clientes: quando o incidente afeta dados que o Integra SGI trata por conta de uma organização (acordo de tratamento de dados), a organização é avisada sem demora injustificada, com o objetivo de o fazer em até 24 horas depois de confirmado o incidente. O aviso inclui, na medida do que se sabe: natureza do incidente, categorias de dados e de titulares afetados, consequências prováveis, medidas de contenção e medidas corretivas previstas. A decisão de notificar a CNPD sobre esses dados cabe à organização.
+
+### 6.4 Subcontratantes
+
+| Fornecedor | Serviço | Dados a que tem acesso |
+| --- | --- | --- |
+| Vercel Inc. | Alojamento do site e da API | Todo o tráfego; logs de pedidos (IP, caminho, user agent) |
+| Neon Inc. | Base de dados, ficheiros e histórico de recuperação | Todos os dados guardados |
+| Resend Inc. | Envio de emails | Destinatário, assunto e conteúdo dos emails |
+| GitHub, Inc. | Código, CI/CD e workflows agendados | Base de produção durante as migrações; logs dos workflows (sem dados pessoais) |
+
+Antes de adicionar ou trocar um subcontratante que trate dados pessoais:
+
+1. Verificar se o fornecedor tem acordo de tratamento de dados (art. 28.º do RGPD) e o mecanismo de transferência para fora do EEE (adequação, Data Privacy Framework ou cláusulas contratuais-tipo).
+2. Avisar por email as organizações clientes, com pelo menos 30 dias de antecedência, indicando o fornecedor, o serviço e os dados envolvidos. Quem tiver uma objeção fundamentada responde nesse prazo, e procura-se uma solução antes da mudança.
+3. Atualizar esta tabela, a `/privacidade` (4 idiomas) e o Anexo III do acordo de tratamento de dados.
+
+### 6.5 Pedidos dos titulares
+
+- **Sobre a própria conta** (quem usa a plataforma): o Integra SGI é o responsável. A pessoa usa o perfil (exportar, corrigir, apagar) ou escreve para o contacto de privacidade; resposta em até um mês.
+- **Sobre dados introduzidos por uma organização** (por exemplo, uma pessoa indicada no diagnóstico): a organização é a responsável. O pedido é encaminhado à organização em até 5 dias úteis, sem responder ao mérito, e a pessoa é informada de que o pedido foi encaminhado. O Integra SGI ajuda a organização a cumprir o pedido (exportação ou eliminação pela página Empresas).
 
 ## 7. Testes de invasão
 

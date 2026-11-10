@@ -225,7 +225,7 @@
           "list": [
             "Vercel Inc.: alojamento do site e da API, e os respetivos registos técnicos.",
             "Neon Inc.: base de dados, armazenamento de ficheiros (fotos de perfil) e cópias de segurança da base de dados.",
-            "Resend Inc.: envio de emails."
+            "Resend Inc.: envio de emails.", "GitHub, Inc.: alojamento do código-fonte e execução dos processos automáticos de publicação e manutenção, incluindo as atualizações da base de dados e a limpeza automática de dados; durante esses processos tem acesso técnico à base de dados."
           ]
         },
         {
@@ -355,7 +355,7 @@
       "title": "13. Dados pessoais introduzidos pelas organizações",
       "blocks": [
         {
-          "p": "Quando uma organização usa a plataforma para tratar dados de colaboradores, fornecedores, clientes ou outras pessoas, é ela a responsável por esses dados e deve garantir que têm fundamento jurídico, foram obtidos de forma lícita e são necessários e proporcionais. O Integra SGI trata esses dados apenas segundo as instruções documentadas da organização e o acordo de tratamento de dados aplicável."
+          "p": "Quando uma organização usa a plataforma para tratar dados de colaboradores, fornecedores, clientes ou outras pessoas, é ela a responsável por esses dados e deve garantir que têm fundamento jurídico, foram obtidos de forma lícita e são necessários e proporcionais. O Integra SGI trata esses dados apenas segundo as instruções documentadas da organização e o acordo de tratamento de dados aplicável. Se nos fizer um pedido sobre dados que uma organização introduziu na plataforma, encaminhamo-lo para essa organização e informamo-lo disso."
         }
       ]
     },
