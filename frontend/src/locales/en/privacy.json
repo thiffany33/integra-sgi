@@ -289,7 +289,7 @@
               ],
               [
                 "Database backups",
-                "According to the database backup cycle, at most 30 days"
+                "Up to 6 hours (database restore history)"
               ]
             ]
           }

@@ -289,7 +289,7 @@
               ],
               [
                 "Cópias de segurança da base de dados",
-                "Segundo o ciclo de cópias de segurança da base de dados, no máximo 30 dias"
+                "Até 6 horas (histórico de recuperação da base de dados)"
               ]
             ]
           }

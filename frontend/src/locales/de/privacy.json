@@ -289,7 +289,7 @@
               ],
               [
                 "Datenbanksicherungen",
-                "Gemäß dem Sicherungszyklus der Datenbank, höchstens 30 Tage"
+                "Bis zu 6 Stunden (Wiederherstellungsverlauf der Datenbank)"
               ]
             ]
           }

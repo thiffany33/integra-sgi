@@ -8,7 +8,7 @@ const PRIVACY_CONTROLLER = {
   address: '[morada por definir]',
   email: 'thiffanyg33@gmail.com',
 };
-const LAST_UPDATED = '2026-11-09';
+const LAST_UPDATED = '2026-11-10';
 
 type Block = { p: string } | { h: string } | { list: string[] } | { table: { head: [string, string]; rows: [string, string][] } };
 type Section = { title: string; blocks: Block[] };

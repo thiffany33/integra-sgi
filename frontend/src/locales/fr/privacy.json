@@ -289,7 +289,7 @@
               ],
               [
                 "Sauvegardes de la base de données",
-                "Selon le cycle de sauvegarde de la base de données, 30 jours au maximum"
+                "Jusqu'à 6 heures (historique de restauration de la base de données)"
               ]
             ]
           }
