@@ -32,7 +32,7 @@ Arquitetura de referência:
 | Cookie | `integra_session` com `HttpOnly`, `Secure` (homologação/produção), `SameSite=Lax`, validade de 7 dias. |
 | Armazenamento no browser | Proibido guardar tokens ou dados pessoais em `localStorage`/`sessionStorage`. Os testes e2e verificam que o `localStorage` fica vazio. |
 | Verificação de email | Obrigatória antes do primeiro login. |
-| Limite de tentativas | Por IP e email: login 10/15 min; registo, recuperação e redefinição de palavra-passe 5/h; verificação de email 10/h. |
+| Limite de tentativas | Por IP e email: login 10/15 min; registo, recuperação e redefinição de palavra-passe 5/h; verificação de email 10/h. O IP nunca é guardado em claro: a chave de cada registo (`AuthRateLimitBucket`) é um HMAC-SHA256, com `SESSION_SECRET`, do tipo de operação, do IP e do email (ou token/conta). É um dado pseudonimizado, não anónimo. Cada janela dura no máximo 1 hora e a limpeza automática (§6.1) apaga os registos expirados. |
 | Encerramento de sessão | O logout invalida a sessão no servidor e apaga o cookie. A alteração do email termina a sessão. |
 
 ## 3. Proteção da aplicação
@@ -50,7 +50,7 @@ Arquitetura de referência:
 5. **Validação de entrada**: todos os corpos de pedido são validados com Zod, com esquemas partilhados entre web e API (`packages/shared`).
 6. **Uploads**: foto de perfil limitada a 4 MiB e a JPEG, PNG ou WebP, com o tipo confirmado pelos bytes do ficheiro (não pela extensão). Os ficheiros ficam num bucket privado e só são servidos por URLs assinadas de curta duração (120 s).
 7. **Erros**: o filtro global (`sanitized-exception.filter.ts`) não devolve stack traces nem detalhes internos ao cliente.
-8. **Registo de auditoria** (`AuditEvent`, `audit.service.ts`): regista entradas, tentativas falhadas contra contas existentes, saídas, alterações e recuperação de palavra-passe, alterações de conta, de perfil e de foto, exportações e apagamentos de conta, incluindo os feitos por admins. Guarda apenas a conta, a ação e a data, sem IP nem conteúdo do pedido. Os registos são apagados ao fim de 12 meses, ou com a conta; o apagamento de uma conta deixa só um evento anónimo. As alterações de sistemas feitas por admins ficam em `CustomerSystemsChange`. Uma falha ao gravar o registo nunca bloqueia a ação.
+8. **Registo de auditoria** (`AuditEvent`, `audit.service.ts`): regista entradas, tentativas falhadas contra contas existentes, saídas, alterações e recuperação de palavra-passe, alterações de conta, de perfil e de foto, exportações e apagamentos de conta, incluindo os feitos por admins. Guarda apenas a conta, a ação e a data, sem IP nem conteúdo do pedido. Os registos são apagados ao fim de 12 meses, ou com a conta; o apagamento de uma conta deixa só um evento anónimo, e os eventos de admins que apontavam para essa conta (`metadata.customerId`) perdem a referência. As alterações de sistemas feitas por admins ficam em `CustomerSystemsChange`. Uma falha ao gravar o registo nunca bloqueia a ação.
 9. **Acesso à API em pré-visualização**: os deploys da Vercel estão protegidos e o site acede à API com um segredo de bypass que só existe no servidor.
 
 ## 4. Controlo de acesso
@@ -75,8 +75,41 @@ O tratamento de dados pessoais segue o RGPD. O detalhe para os utilizadores est�
 - **Finalidade**: prestação do serviço de apoio à implementação de sistemas de gestão.
 - **Dados agregados**: os indicadores do painel de administração usam apenas dados agregados e não expõem respostas individuais fora do perfil de administração.
 - **Indicadores de uso**: a data de conclusão do diagnóstico e os downloads de modelos por clientes (`TemplateDownload`: conta, modelo e data) alimentam só contagens agregadas no painel do admin. Os downloads de admins não contam. Uma falha ao registar nunca bloqueia o download. Os dados saem na exportação e são apagados com a conta.
-- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não têm esta secção no perfil e não se podem apagar a si próprias. Na página Empresas, um admin descarrega os dados de uma empresa (`GET /api/v1/admin/customers/:id/export`) ou apaga a conta (`POST /api/v1/admin/customers/:id/delete`), por exemplo para responder a um pedido recebido por email. Apagar exige a palavra-passe do próprio admin e nunca se aplica a outra conta de administração. As duas ações ficam no registo de auditoria (`admin.customer_exported`, `admin.customer_deleted`). Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de 30 dias.
+- **Direitos dos titulares** (acesso, retificação, apagamento, portabilidade): no perfil, a pessoa corrige os dados, descarrega uma cópia em JSON (`GET /api/v1/account/export`) e apaga a conta (`POST /api/v1/account/delete`). Apagar exige a palavra-passe, tem limite de tentativas e remove a foto, as respostas, as sessões e o histórico de sistemas. As contas de administração não têm esta secção no perfil e não se podem apagar a si próprias. Na página Empresas, um admin descarrega os dados de uma empresa (`GET /api/v1/admin/customers/:id/export`) ou apaga a conta (`POST /api/v1/admin/customers/:id/delete`), por exemplo para responder a um pedido recebido por email. Apagar exige a palavra-passe do próprio admin e nunca se aplica a outra conta de administração. As duas ações ficam no registo de auditoria (`admin.customer_exported`, `admin.customer_deleted`). Outros pedidos são tratados pelo contacto de privacidade, no prazo legal de um mês (art. 12.º, n.º 3 do RGPD).
 - **Subcontratantes**: Vercel (alojamento), Neon (base de dados e ficheiros), Resend (email).
+- **Registos técnicos**: a aplicação não escreve dados pessoais nos seus logs (só nomes de erro e códigos). Os logs de pedidos da Vercel podem incluir IP, caminho e user agent, e os logs do Resend o destinatário e o assunto; ficam com a retenção do plano de cada fornecedor e só se consultam para diagnóstico de falhas e incidentes.
+- **Mensagens de contacto**: não ficam na base de dados. O formulário envia-as por email (Resend) para a caixa da responsável, onde são apagadas manualmente até 12 meses depois de o pedido ser encerrado.
+
+### 6.1 Conservação e eliminação automática
+
+Segue a Política de Retenção e Eliminação de Dados. `RetentionService.purgeExpired` apaga numa transação:
+
+| Dados | Regra |
+| --- | --- |
+| `AuthRateLimitBucket` | Janela expirada (no máximo 1 hora). |
+| `Session` | Expirada (7 dias) ou revogada (logout, mudança de palavra-passe ou de email). |
+| `PasswordResetToken`, `EmailVerificationToken` | Usados ou expirados. |
+| `AuditEvent` | Com mais de 12 meses. |
+
+Corre de duas formas: o workflow `Data retention` chama `POST /api/v1/internal/retention/purge` a cada 15 minutos com `Authorization: Bearer <RETENTION_JOB_SECRET>`, e a API corre-a também no tráfego normal, no máximo a cada 15 minutos por instância. Sem `RETENTION_JOB_SECRET` na Vercel, a rota responde 404; o segredo errado dá 401 (comparação em tempo constante). A resposta tem só contagens. O segredo (32+ caracteres) existe na Vercel (projeto `integra-sgi-api`, produção) e nos segredos do repositório GitHub, não no ambiente `production`, para o agendamento não esperar aprovação.
+
+Os dados de conta, organização, foto, diagnóstico, preferências e utilização são apagados com a conta (cascata na base de dados e remoção da foto no armazenamento).
+
+### 6.2 Cópias de segurança e recuperação
+
+- **Base de dados**: o Neon mantém o histórico de recuperação (point-in-time restore) da branch de produção, durante a janela configurada no plano do projeto, no máximo 30 dias. É a única cópia: não há exportações (`pg_dump`) guardadas noutro lado, para não multiplicar cópias de dados pessoais.
+- **Ficheiros**: as fotos de perfil não têm cópia própria; uma foto apagada não se recupera.
+- **Acesso**: só quem mantém o projeto tem acesso ao Neon (§4).
+- **Restauro**: restaura-se primeiro para uma branch nova, nunca diretamente sobre a produção. Antes de a promover, reaplicam-se as eliminações feitas depois do ponto restaurado: as contas que existem na branch restaurada mas já não existem na produção atual foram apagadas e são apagadas de novo (`DELETE FROM "User" WHERE id IN (...)`, o que apaga em cascata o resto). As fotos dessas contas já não existem no armazenamento. Só depois se troca a ligação da API.
+- **Teste**: o restauro para uma branch de teste faz-se pelo menos uma vez por ano e depois de mudanças grandes no esquema, e fica registado (data, ponto restaurado, resultado) neste documento.
+
+### 6.3 Incidentes e violações de dados
+
+1. Quem detetar um incidente avisa de imediato thiffanyg33@gmail.com.
+2. Contenção: rodar os segredos afetados (§1), revogar sessões (`UPDATE "Session" SET "revokedAt" = now()`) e, se preciso, desativar o deploy na Vercel.
+3. Avaliação: que dados, que contas e que período, com base no `AuditEvent` e nos logs dos fornecedores.
+4. Registo: todo o incidente fica documentado (data, descrição, dados afetados, decisão sobre notificação, medidas), mesmo que não seja notificado (art. 33.º, n.º 5 do RGPD).
+5. Notificação: se houver risco para as pessoas, notifica-se a CNPD em até 72 horas depois de conhecido o incidente; se o risco for elevado, avisam-se também as pessoas afetadas (art. 34.º).
 
 ## 7. Testes de invasão
 
@@ -139,6 +172,8 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thi
 | Lacuna | Estado |
 | --- | --- |
 | NIF e morada do responsável na política de privacidade | A definir. O email de privacidade é thiffanyg33@gmail.com. |
+| Janela de recuperação do Neon | Confirmar no console do Neon (Settings → Instant restore / History retention) e registar aqui. |
+| Teste de restauro (§6.2) | Ainda não feito. |
 
 ---
 

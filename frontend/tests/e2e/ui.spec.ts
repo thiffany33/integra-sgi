@@ -123,7 +123,11 @@ test('o rodapé leva à política de privacidade', async ({ page }) => {
   await page.getByRole('contentinfo').getByRole('link', { name: 'Política de privacidade' }).click()
   await expect(page).toHaveURL('/privacidade')
   await expect(page.getByRole('heading', { level: 1, name: 'Política de Privacidade' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: '7. Os seus direitos' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '10. Os seus direitos' })).toBeVisible()
+  await expect(page.getByRole('main')).toContainText('Email de contacto: thiffanyg33@gmail.com')
+  await expect(page.getByRole('main')).not.toContainText('{{')
+  await expect(page.getByRole('main')).toContainText('O registo de segurança não inclui o endereço IP.')
+  await expect(page.getByRole('main')).toContainText('Até 1 hora; apagados automaticamente na limpeza seguinte, a cada 15 minutos')
 })
 
 test('formulário de contacto envia a mensagem e confirma o envio', async ({ page }) => {

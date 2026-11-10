@@ -1,1 +1,385 @@
-{"eyebrow": "Privacy", "title": "Privacy Policy", "description": "How Integra SGI handles the personal data of the organizations and people who use the platform.", "updated": "Last updated: {{date}}", "controllerTitle": "1. Data controller", "controllerBody": "The data controller is {{name}}, tax number {{nif}}, at {{address}}. For any privacy question, contact {{email}}.", "dataTitle": "2. What data we collect", "dataItems": ["Organization details: name, tax number, business sector and main email.", "Representative details: name and, if provided, secondary email and phone.", "Credentials: the sign-in email and the password, stored only as a hash, never as plain text.", "Profile photo, if you choose to upload one.", "Answers to the organization discovery (size, activities, responsible people, processes and areas needing attention).", "Platform use: the date the diagnostic was completed and the templates you downloaded, with the date. Used only for aggregated indicators.", "Reading preferences: the text size and contrast you choose in your profile.", "Messages sent through the contact form: name, email and text.", "Account security log: sign-ins, failed attempts, password, profile and photo changes, exports and deletion, with the date. It does not include the IP address.", "Technical data: the IP address, used only to limit abusive attempts, and the session cookie."], "purposeTitle": "3. How we use the data", "purposeItems": ["To create and manage the account and provide the management-system implementation service (performance of a contract, GDPR Art. 6(1)(b)).", "To send emails the service needs, such as email verification and password recovery (performance of a contract).", "To protect the platform against unauthorized access and abuse, including the account security log (legitimate interest, Art. 6(1)(f)).", "To reply to contact messages (steps at your request and legitimate interest).", "To produce aggregated, anonymous usage insights to improve the service (legitimate interest)."], "purposeNote": "We do not use the data for advertising, we do not sell it, and we do not make automated decisions with legal effects about you.", "cookiesTitle": "4. Cookies and browser storage", "cookiesBody": "We use a single essential session cookie (integra_session), which keeps you signed in for up to 7 days and cannot be read by scripts. We use no advertising or analytics cookies, and we do not store personal data in the browser's local storage.", "processorsTitle": "5. Who processes data on our behalf", "processorsItems": ["Vercel Inc.: hosting of the website and API.", "Neon Inc.: database and file storage.", "Resend Inc.: email delivery."], "processorsNote": "These providers process data only on our instructions. Some servers are outside the European Economic Area (in the United States); in those cases, transfers rely on the EU-US Data Privacy Framework or on the standard contractual clauses approved by the European Commission.", "retentionTitle": "6. How long we keep the data", "retentionItems": ["Account details, photo and discovery answers: while the account is active. If you delete the account in your profile, they are erased immediately; if you request it by email, within {{accountDays}} days.", "Contact messages: up to {{contactMonths}} months after our reply.", "Account security log: up to 12 months, or until you delete the account.", "Sessions: up to 7 days, or until you sign out.", "Rate-limiting records: up to 1 hour."], "rightsTitle": "7. Your rights", "rightsBody": "You can download your data and delete the account directly in your profile, under “Your data”, and correct most information there. You can also request access, rectification, erasure, restriction of processing or portability of your data, or object to processing, by contacting {{email}}. We reply within 30 days.", "rightsComplaint": "You also have the right to lodge a complaint with the Portuguese data protection authority (CNPD) at www.cnpd.pt.", "securityTitle": "8. Security", "securityBody": "Data always travels over HTTPS. Passwords are protected with Argon2id, sessions use secure cookies that scripts cannot read, files are kept in private storage, and administrative access is restricted to the Integra SGI team.", "changesTitle": "9. Changes to this policy", "changesBody": "If this policy changes materially, we will let you know on the platform. The date of the last update is shown at the top of the page."}
+{
+  "eyebrow": "Privacy",
+  "title": "Privacy Policy",
+  "description": "How Integra SGI handles the personal data of the organizations and people who use the platform.",
+  "updated": "Last updated: {{date}}",
+  "sections": [
+    {
+      "title": "1. Scope",
+      "blocks": [
+        {
+          "p": "This policy explains how Integra SGI collects, uses, keeps, protects and deletes personal data. We process data lawfully, fairly, transparently and securely, in line with the General Data Protection Regulation (GDPR), Portuguese Law No. 58/2019 and, where applicable, the Brazilian General Data Protection Law (LGPD, Law No. 13.709/2018)."
+        },
+        {
+          "p": "The platform's security and privacy practices use the ISO/IEC 27001:2022 and ISO/IEC 27701:2025 standards as their reference."
+        },
+        {
+          "p": "It applies to people who use the platform, people who represent organizations, people who contact us and anyone else whose data is processed as part of the service."
+        }
+      ]
+    },
+    {
+      "title": "2. Data controller",
+      "blocks": [
+        {
+          "list": [
+            "Controller: {{name}}",
+            "Tax number (NIF): {{nif}}",
+            "Address: {{address}}",
+            "Contact email: {{email}}"
+          ]
+        },
+        {
+          "p": "Use this email for any privacy question or to exercise your rights."
+        },
+        {
+          "p": "When an organization enters other people's personal data into the platform to manage its own processes, that organization is the controller of that data and Integra SGI processes it as a processor, only on the organization's documented instructions and under the applicable data processing agreement."
+        }
+      ]
+    },
+    {
+      "title": "3. What data we collect",
+      "blocks": [
+        {
+          "p": "We only collect the data needed to provide, maintain and improve the service."
+        },
+        {
+          "h": "Organization details"
+        },
+        {
+          "list": [
+            "Name or company name, tax number, business sector and main email."
+          ]
+        },
+        {
+          "h": "Representative details"
+        },
+        {
+          "list": [
+            "Name and, if provided, secondary email and phone.",
+            "Profile photo, if you choose to upload one."
+          ]
+        },
+        {
+          "h": "Authentication data"
+        },
+        {
+          "list": [
+            "The sign-in email.",
+            "The password, stored only as an Argon2id hash, never as text.",
+            "The session identifier. The database only keeps a hash of it; the value itself exists only in your browser's cookie."
+          ]
+        },
+        {
+          "h": "Organization assessment answers"
+        },
+        {
+          "list": [
+            "Size and characteristics of the organization, activities and processes, roles and responsible people, risks, opportunities and points of attention, and the answers to the questionnaires."
+          ]
+        },
+        {
+          "p": "Please avoid entering sensitive personal data or third-party data that is not needed."
+        },
+        {
+          "h": "Platform use and preferences"
+        },
+        {
+          "list": [
+            "The date the assessment was completed.",
+            "The templates you downloaded and the date of each download.",
+            "The language, text size and contrast you choose."
+          ]
+        },
+        {
+          "p": "This data is linked to your account. The indicators the team sees are aggregated (totals, medians and ranges) and do not show individual accounts."
+        },
+        {
+          "h": "Contact messages"
+        },
+        {
+          "list": [
+            "Through the contact form: name, email and message text. The platform does not store the message in the database; it sends it by email to the controller's mailbox.",
+            "If you write to us directly by email: your address, the subject, the content and the date, as well as our reply."
+          ]
+        },
+        {
+          "h": "Account security log"
+        },
+        {
+          "list": [
+            "Sign-ins, failed attempts, sign-outs, changes to the password, account details, profile and photo, data exports and deletions, always with the date.",
+            "For administration actions on a company, the log records which account was affected; that reference is removed when the account is deleted."
+          ]
+        },
+        {
+          "p": "The security log does not include the IP address."
+        },
+        {
+          "h": "IP address and technical logs"
+        },
+        {
+          "list": [
+            "IP address: used only to limit abusive attempts (sign-in, registration, email confirmation, password recovery, contact and account deletion). It is not stored in clear: we store a code computed from the IP with a secret key (keyed hash), combined with the type of operation and, for some operations, the email, plus a counter. This record stops having any effect after at most 1 hour and is deleted automatically at the next cleanup, which runs every 15 minutes. Even so, it is pseudonymized personal data and is treated as such.",
+            "Hosting technical logs: the hosting provider (Vercel) logs requests to the site and the API, which may include the IP address, the requested page, the date and the browser type. The provider keeps these logs for the short period of the contracted service, and they are used only to diagnose failures and security incidents. The application itself does not write personal data to its technical logs.",
+            "Email delivery logs: the email provider (Resend) keeps, for the period of the contracted service, the delivery data of the messages we send (recipient, subject and delivery status)."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "4. Why we use the data and on what legal basis",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Purpose",
+              "Legal basis"
+            ],
+            "rows": [
+              [
+                "Creating, managing and maintaining the account",
+                "Performance of a contract (Art. 6(1)(b) GDPR)"
+              ],
+              [
+                "Authenticating and managing sessions",
+                "Performance of a contract"
+              ],
+              [
+                "Sending confirmation and access recovery emails",
+                "Performance of a contract"
+              ],
+              [
+                "Providing the assessment and the management tools",
+                "Performance of a contract"
+              ],
+              [
+                "Protecting the platform against unauthorized access and abuse, including the security log and attempt limiting",
+                "Legitimate interest (Art. 6(1)(f) GDPR)"
+              ],
+              [
+                "Answering contact messages and support requests",
+                "Pre-contractual steps at the data subject's request, or legitimate interest, depending on the case"
+              ],
+              [
+                "Producing aggregated usage indicators to improve the service",
+                "Legitimate interest"
+              ],
+              [
+                "Complying with legal obligations",
+                "Legal obligation (Art. 6(1)(c) GDPR)"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Where the LGPD applies, processing relies on the legal bases in its Article 7."
+        },
+        {
+          "p": "We do not use the data for advertising, we do not sell it and we do not use it for purposes incompatible with those stated. We do not make solely automated decisions with legal or similarly significant effects on you."
+        }
+      ]
+    },
+    {
+      "title": "5. Principles we follow",
+      "blocks": [
+        {
+          "list": [
+            "Lawfulness, fairness and transparency: we process data on a legal basis and inform you clearly.",
+            "Purpose limitation: we only use the data for the stated purposes.",
+            "Data minimization: we only ask for what is needed to provide the service.",
+            "Accuracy: you can correct and update your data in your profile.",
+            "Storage limitation: we only keep data for the periods in section 9.",
+            "Integrity and confidentiality: we apply the measures in section 11.",
+            "Accountability: we keep procedures and records that demonstrate compliance."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "6. Cookies and browser storage",
+      "blocks": [
+        {
+          "p": "We only use one essential cookie:"
+        },
+        {
+          "list": [
+            "Name: integra_session.",
+            "Purpose: keeping you signed in.",
+            "Maximum duration: 7 days.",
+            "Attributes: HttpOnly (scripts cannot read it), Secure (only sent over HTTPS) and SameSite=Lax."
+          ]
+        },
+        {
+          "p": "We do not use advertising or analytics cookies, or tracking technologies. We do not store authentication tokens, passwords or other personal data in the browser's local storage. If we ever use non-essential tools, we will update this policy and ask for your consent before enabling them."
+        }
+      ]
+    },
+    {
+      "title": "7. Who processes data on our behalf",
+      "blocks": [
+        {
+          "p": "We do not sell, rent or trade personal data. For the service to work, we use these processors:"
+        },
+        {
+          "list": [
+            "Vercel Inc.: hosting of the site and the API, and the related technical logs.",
+            "Neon Inc.: database, file storage (profile photos) and database backups.",
+            "Resend Inc.: sending emails."
+          ]
+        },
+        {
+          "p": "These providers only process data as needed for the service, on our instructions, under confidentiality and security obligations, and delete or return the data at the end of the service, under the data processing agreements (Art. 28 GDPR) we have with each of them."
+        }
+      ]
+    },
+    {
+      "title": "8. International transfers",
+      "blocks": [
+        {
+          "p": "Some of these providers may process data outside the European Economic Area, notably in the United States. In those cases we apply Chapter V of the GDPR: the transfer relies on a European Commission adequacy decision (including the EU-US Data Privacy Framework, only where the provider is certified) or on standard contractual clauses approved by the European Commission, with additional measures where the risk assessment calls for them."
+        }
+      ]
+    },
+    {
+      "title": "9. How long we keep data",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Data",
+              "Retention period"
+            ],
+            "rows": [
+              [
+                "Account, organization and profile details, preferences and usage data",
+                "While the account is active"
+              ],
+              [
+                "Profile photo",
+                "Until you replace or remove it, or until the account is deleted"
+              ],
+              [
+                "Assessment answers",
+                "While the account is active"
+              ],
+              [
+                "Account security log",
+                "Up to 12 months, or until the account is deleted, whichever comes first. Only a record that an account was deleted remains, with the date and without identifying the account"
+              ],
+              [
+                "Contact messages",
+                "Up to 12 months after the request has been answered and closed"
+              ],
+              [
+                "Sessions",
+                "Up to 7 days, or until you sign out, change your password or delete the account"
+              ],
+              [
+                "Email confirmation and password recovery links",
+                "Until they are used or expire"
+              ],
+              [
+                "Attempt-limiting records (IP as a keyed hash)",
+                "Up to 1 hour; deleted automatically at the next cleanup, every 15 minutes"
+              ],
+              [
+                "Hosting and email delivery technical logs",
+                "The short period of the service contracted with each provider"
+              ],
+              [
+                "Database backups",
+                "According to the database backup cycle, at most 30 days"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Sessions, links, attempt-limiting records and old security log entries are cleaned up automatically every 15 minutes."
+        },
+        {
+          "p": "If you delete the account in your profile, your data is deleted immediately from the database and from file storage. If you request it by email, we handle the request within one month. Backups that still contain that data stay protected and cease to exist at the end of their period. If a backup ever has to be restored, we re-apply the deletions made after that backup's date."
+        }
+      ]
+    },
+    {
+      "title": "10. Your rights",
+      "blocks": [
+        {
+          "p": "Under the GDPR and, where applicable, the LGPD, you have the right to:"
+        },
+        {
+          "list": [
+            "Access: know whether we process your data and obtain a copy.",
+            "Rectification: correct inaccurate or incomplete data.",
+            "Erasure: ask for your data to be deleted, where the law allows.",
+            "Restriction of processing: ask us to temporarily stop using the data, in the cases provided by law.",
+            "Portability: receive your data in a structured, machine-readable format.",
+            "Objection: object to processing based on legitimate interest.",
+            "Withdraw consent, where processing is based on it, without affecting processing already carried out.",
+            "Lodge a complaint with a supervisory authority (section 15)."
+          ]
+        },
+        {
+          "p": "In your profile, under \"Your data\", you can download your data and delete the account; elsewhere in the profile you can correct most of the information. For other requests, contact {{email}}. Requests are free of charge, except in the cases provided by law. We reply within one month, which may be extended by two further months where necessary, in which case we will let you know. Where the LGPD applies, we also respect the deadlines and procedures it sets."
+        }
+      ]
+    },
+    {
+      "title": "11. Information security",
+      "blocks": [
+        {
+          "p": "We apply technical and organizational measures that protect the confidentiality, integrity and availability of data, adjusted to the risks:"
+        },
+        {
+          "list": [
+            "Communication: all traffic uses HTTPS, with security headers that prevent the page from being embedded in other sites and limit the code the browser runs.",
+            "Credentials: passwords protected with Argon2id, never stored as text; sessions with secure cookies that scripts cannot read, stored only as a hash in the database.",
+            "Access control: restricted administrative access, least privilege, separation between customer and administration accounts, and limiting of abusive attempts. Deleting a company requires the administrator's password.",
+            "Stored data: files in private storage, accessible only through temporary signed links; restricted access to the database and infrastructure secrets; no secrets in public code or in the code that runs in the browser.",
+            "Traceability: a log of security-relevant operations, without IP address, accessible only to the Integra SGI team.",
+            "Continuity: database backups and a documented recovery procedure."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "12. Incidents and data breaches",
+      "blocks": [
+        {
+          "p": "We have a procedure to identify, assess, record and respond to security incidents. In the event of a personal data breach, we assess the nature of the incident, the data and people affected, the possible consequences and the measures to limit its effects. Where the breach is likely to result in a risk to people's rights and freedoms, we notify the supervisory authority within 72 hours of becoming aware of it (Art. 33 GDPR) and, where the risk is high, we also inform the people affected (Art. 34)."
+        }
+      ]
+    },
+    {
+      "title": "13. Personal data entered by organizations",
+      "blocks": [
+        {
+          "p": "When an organization uses the platform to process data about employees, suppliers, customers or other people, it is the controller of that data and must ensure it has a legal basis, was obtained lawfully and is necessary and proportionate. Integra SGI only processes that data on the organization's documented instructions and under the applicable data processing agreement."
+        }
+      ]
+    },
+    {
+      "title": "14. Changes to this policy",
+      "blocks": [
+        {
+          "p": "We update this policy when there are relevant changes to the platform, the providers or the law. If a change significantly affects how your data is processed, we will let you know on the platform or by other appropriate means. The current version is always on this page, with the date of the last update at the top."
+        }
+      ]
+    },
+    {
+      "title": "15. Supervisory authorities and complaints",
+      "blocks": [
+        {
+          "list": [
+            "Portugal: Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt",
+            "Brazil: Autoridade Nacional de Proteção de Dados (ANPD), www.gov.br/anpd"
+          ]
+        },
+        {
+          "p": "Lodging a complaint does not affect your right to other administrative or judicial remedies."
+        }
+      ]
+    }
+  ]
+}

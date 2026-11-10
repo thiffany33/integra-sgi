@@ -1,1 +1,385 @@
-{"eyebrow": "Datenschutz", "title": "Datenschutzerklärung", "description": "Wie Integra SGI die personenbezogenen Daten der Organisationen und Personen verarbeitet, die die Plattform nutzen.", "updated": "Zuletzt aktualisiert: {{date}}", "controllerTitle": "1. Verantwortliche Stelle", "controllerBody": "Verantwortlich für die Datenverarbeitung ist {{name}}, Steuernummer {{nif}}, Anschrift {{address}}. Bei Fragen zum Datenschutz wenden Sie sich an {{email}}.", "dataTitle": "2. Welche Daten wir erheben", "dataItems": ["Daten der Organisation: Name, Steuernummer, Branche und Haupt-E-Mail.", "Daten der vertretenden Person: Name und, falls angegeben, zweite E-Mail-Adresse und Telefon.", "Zugangsdaten: die Anmelde-E-Mail und das Passwort, das nur als Hash gespeichert wird, nie im Klartext.", "Profilfoto, falls Sie eines hochladen.", "Antworten zur Bestandsaufnahme der Organisation (Größe, Tätigkeiten, Verantwortliche, Prozesse und Handlungsfelder).", "Nutzung der Plattform: das Datum, an dem die Bestandsaufnahme abgeschlossen wurde, und die heruntergeladenen Vorlagen mit Datum. Nur für zusammengefasste Kennzahlen verwendet.", "Leseeinstellungen: die Textgröße und der Kontrast, die Sie im Profil wählen.", "Über das Kontaktformular gesendete Nachrichten: Name, E-Mail und Text.", "Sicherheitsprotokoll des Kontos: Anmeldungen, fehlgeschlagene Versuche, Änderungen von Passwort, Profil und Foto, Exporte und Löschung, jeweils mit Datum. Die IP-Adresse wird nicht gespeichert.", "Technische Daten: die IP-Adresse, nur zur Begrenzung missbräuchlicher Versuche, und das Sitzungscookie."], "purposeTitle": "3. Wofür wir die Daten verwenden", "purposeItems": ["Konto anlegen und verwalten und den Dienst zur Einführung von Managementsystemen erbringen (Vertragserfüllung, Art. 6 Abs. 1 lit. b DSGVO).", "Für den Dienst notwendige E-Mails senden, etwa zur Bestätigung der E-Mail-Adresse und zur Passwortwiederherstellung (Vertragserfüllung).", "Die Plattform vor unbefugtem Zugriff und Missbrauch schützen, einschließlich des Sicherheitsprotokolls des Kontos (berechtigtes Interesse, Art. 6 Abs. 1 lit. f).", "Kontaktanfragen beantworten (Maßnahmen auf Ihre Anfrage und berechtigtes Interesse).", "Zusammengefasste, anonyme Nutzungskennzahlen zur Verbesserung des Dienstes erstellen (berechtigtes Interesse)."], "purposeNote": "Wir nutzen die Daten nicht für Werbung, verkaufen sie nicht und treffen keine automatisierten Entscheidungen mit rechtlicher Wirkung über Sie.", "cookiesTitle": "4. Cookies und Speicherung im Browser", "cookiesBody": "Wir verwenden nur ein notwendiges Sitzungscookie (integra_session), das Sie bis zu 7 Tage angemeldet hält und von Skripten nicht gelesen werden kann. Wir verwenden keine Werbe- oder Analysecookies und speichern keine personenbezogenen Daten im lokalen Speicher des Browsers.", "processorsTitle": "5. Wer Daten in unserem Auftrag verarbeitet", "processorsItems": ["Vercel Inc.: Hosting der Website und der API.", "Neon Inc.: Datenbank und Dateispeicher.", "Resend Inc.: E-Mail-Versand."], "processorsNote": "Diese Anbieter verarbeiten Daten nur nach unseren Weisungen. Einige Server befinden sich außerhalb des Europäischen Wirtschaftsraums (in den USA); in diesen Fällen stützt sich die Übermittlung auf den EU-US-Datenschutzrahmen oder auf die von der Europäischen Kommission genehmigten Standardvertragsklauseln.", "retentionTitle": "6. Wie lange wir Daten speichern", "retentionItems": ["Kontodaten, Foto und Antworten zur Bestandsaufnahme: solange das Konto aktiv ist. Wenn Sie das Konto im Profil löschen, werden sie sofort gelöscht; bei einer Anfrage per E-Mail innerhalb von {{accountDays}} Tagen.", "Kontaktnachrichten: bis zu {{contactMonths}} Monate nach unserer Antwort.", "Sicherheitsprotokoll des Kontos: bis zu 12 Monate oder bis zur Löschung des Kontos.", "Sitzungen: bis zu 7 Tage oder bis zur Abmeldung.", "Einträge zur Begrenzung von Versuchen: bis zu 1 Stunde."], "rightsTitle": "7. Ihre Rechte", "rightsBody": "Sie können Ihre Daten herunterladen und das Konto direkt in Ihrem Profil unter „Ihre Daten“ löschen sowie dort die meisten Angaben korrigieren. Sie können außerdem Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung oder Datenübertragbarkeit verlangen oder der Verarbeitung widersprechen, indem Sie sich an {{email}} wenden. Wir antworten innerhalb von 30 Tagen.", "rightsComplaint": "Sie haben außerdem das Recht, sich bei der portugiesischen Datenschutzbehörde (CNPD) unter www.cnpd.pt zu beschweren.", "securityTitle": "8. Sicherheit", "securityBody": "Daten werden immer über HTTPS übertragen. Passwörter sind mit Argon2id geschützt, Sitzungen nutzen sichere, für Skripte unzugängliche Cookies, Dateien liegen in privatem Speicher, und der Verwaltungszugang ist auf das Integra-SGI-Team beschränkt.", "changesTitle": "9. Änderungen dieser Erklärung", "changesBody": "Wenn sich diese Erklärung wesentlich ändert, informieren wir Sie auf der Plattform. Das Datum der letzten Aktualisierung steht oben auf der Seite."}
+{
+  "eyebrow": "Datenschutz",
+  "title": "Datenschutzerklärung",
+  "description": "Wie Integra SGI die personenbezogenen Daten der Organisationen und Personen verarbeitet, die die Plattform nutzen.",
+  "updated": "Zuletzt aktualisiert: {{date}}",
+  "sections": [
+    {
+      "title": "1. Rahmen und Geltungsbereich",
+      "blocks": [
+        {
+          "p": "Diese Erklärung beschreibt, wie Integra SGI personenbezogene Daten erhebt, nutzt, aufbewahrt, schützt und löscht. Wir verarbeiten Daten rechtmäßig, nach Treu und Glauben, transparent und sicher, gemäß der Datenschutz-Grundverordnung (DSGVO), dem portugiesischen Gesetz Nr. 58/2019 und, soweit anwendbar, dem brasilianischen Datenschutzgesetz (LGPD, Gesetz Nr. 13.709/2018)."
+        },
+        {
+          "p": "Die Sicherheits- und Datenschutzpraktiken der Plattform orientieren sich an den Normen ISO/IEC 27001:2022 und ISO/IEC 27701:2025."
+        },
+        {
+          "p": "Sie gilt für Personen, die die Plattform nutzen, Personen, die Organisationen vertreten, Personen, die uns kontaktieren, und alle weiteren Personen, deren Daten im Rahmen des Dienstes verarbeitet werden."
+        }
+      ]
+    },
+    {
+      "title": "2. Verantwortliche Stelle",
+      "blocks": [
+        {
+          "list": [
+            "Verantwortlich: {{name}}",
+            "Steuernummer (NIF): {{nif}}",
+            "Anschrift: {{address}}",
+            "Kontakt-E-Mail: {{email}}"
+          ]
+        },
+        {
+          "p": "Nutzen Sie diese Adresse für alle Fragen zum Datenschutz und zur Ausübung Ihrer Rechte."
+        },
+        {
+          "p": "Wenn eine Organisation personenbezogene Daten anderer Personen in die Plattform eingibt, um ihre eigenen Prozesse zu verwalten, ist diese Organisation für diese Daten verantwortlich, und Integra SGI verarbeitet sie als Auftragsverarbeiter, ausschließlich nach den dokumentierten Weisungen der Organisation und gemäß dem geltenden Auftragsverarbeitungsvertrag."
+        }
+      ]
+    },
+    {
+      "title": "3. Welche Daten wir erheben",
+      "blocks": [
+        {
+          "p": "Wir erheben nur die Daten, die für die Bereitstellung, Wartung und Verbesserung des Dienstes nötig sind."
+        },
+        {
+          "h": "Daten der Organisation"
+        },
+        {
+          "list": [
+            "Name oder Firma, Steuernummer, Branche und Haupt-E-Mail."
+          ]
+        },
+        {
+          "h": "Daten der vertretenden Person"
+        },
+        {
+          "list": [
+            "Name und, falls angegeben, zweite E-Mail und Telefon.",
+            "Profilfoto, wenn Sie eines hochladen."
+          ]
+        },
+        {
+          "h": "Anmeldedaten"
+        },
+        {
+          "list": [
+            "Die Anmelde-E-Mail.",
+            "Das Passwort, nur als Argon2id-Hash gespeichert, nie im Klartext.",
+            "Die Sitzungskennung. In der Datenbank wird nur ein Hash davon gespeichert; der Wert selbst existiert nur im Cookie Ihres Browsers."
+          ]
+        },
+        {
+          "h": "Antworten auf die Bestandsaufnahme der Organisation"
+        },
+        {
+          "list": [
+            "Größe und Merkmale der Organisation, Tätigkeiten und Prozesse, Funktionen und verantwortliche Personen, Risiken, Chancen und Handlungsfelder sowie die Antworten auf die Fragebögen."
+          ]
+        },
+        {
+          "p": "Bitte geben Sie keine sensiblen personenbezogenen Daten oder nicht benötigte Daten Dritter ein."
+        },
+        {
+          "h": "Nutzung der Plattform und Einstellungen"
+        },
+        {
+          "list": [
+            "Das Datum, an dem die Bestandsaufnahme abgeschlossen wurde.",
+            "Die heruntergeladenen Vorlagen und das Datum jedes Downloads.",
+            "Die gewählte Sprache, Textgröße und der Kontrast."
+          ]
+        },
+        {
+          "p": "Diese Daten sind mit Ihrem Konto verknüpft. Die Kennzahlen, die das Team sieht, sind aggregiert (Summen, Mediane und Bereiche) und zeigen keine einzelnen Konten."
+        },
+        {
+          "h": "Kontaktnachrichten"
+        },
+        {
+          "list": [
+            "Über das Kontaktformular: Name, E-Mail und Nachrichtentext. Die Plattform speichert die Nachricht nicht in der Datenbank; sie sendet sie per E-Mail an das Postfach der Verantwortlichen.",
+            "Wenn Sie uns direkt per E-Mail schreiben: Ihre Adresse, den Betreff, den Inhalt und das Datum sowie unsere Antwort."
+          ]
+        },
+        {
+          "h": "Sicherheitsprotokoll des Kontos"
+        },
+        {
+          "list": [
+            "Anmeldungen, fehlgeschlagene Versuche, Abmeldungen, Änderungen von Passwort, Kontodaten, Profil und Foto, Datenexporte und -löschungen, jeweils mit Datum.",
+            "Bei Verwaltungsaktionen zu einem Unternehmen hält das Protokoll fest, welches Konto betroffen war; dieser Verweis wird entfernt, wenn das Konto gelöscht wird."
+          ]
+        },
+        {
+          "p": "Das Sicherheitsprotokoll enthält keine IP-Adresse."
+        },
+        {
+          "h": "IP-Adresse und technische Protokolle"
+        },
+        {
+          "list": [
+            "IP-Adresse: wird nur verwendet, um missbräuchliche Versuche zu begrenzen (Anmeldung, Registrierung, E-Mail-Bestätigung, Passwort-Wiederherstellung, Kontakt und Kontolöschung). Sie wird nicht im Klartext gespeichert: Wir speichern einen mit einem geheimen Schlüssel aus der IP berechneten Code (Hash mit Schlüssel), kombiniert mit der Art des Vorgangs und bei manchen Vorgängen mit der E-Mail, sowie einen Zähler. Dieser Eintrag ist nach höchstens 1 Stunde wirkungslos und wird bei der nächsten Bereinigung, die alle 15 Minuten läuft, automatisch gelöscht. Dennoch ist er ein pseudonymisiertes personenbezogenes Datum und wird als solches behandelt.",
+            "Technische Protokolle des Hostings: Der Hosting-Anbieter (Vercel) protokolliert Anfragen an die Website und die API; dazu können die IP-Adresse, die aufgerufene Seite, das Datum und der Browsertyp gehören. Der Anbieter bewahrt diese Protokolle für die kurze Dauer des vertraglich vereinbarten Dienstes auf; sie dienen nur zur Diagnose von Fehlern und Sicherheitsvorfällen. Die Anwendung selbst schreibt keine personenbezogenen Daten in ihre technischen Protokolle.",
+            "E-Mail-Versandprotokolle: Der E-Mail-Anbieter (Resend) bewahrt für die Dauer des vertraglich vereinbarten Dienstes die Zustelldaten der von uns gesendeten Nachrichten auf (Empfänger, Betreff und Zustellstatus)."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "4. Wofür wir die Daten nutzen und auf welcher Rechtsgrundlage",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Zweck",
+              "Rechtsgrundlage"
+            ],
+            "rows": [
+              [
+                "Konto erstellen, verwalten und pflegen",
+                "Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO)"
+              ],
+              [
+                "Anmeldung und Sitzungsverwaltung",
+                "Vertragserfüllung"
+              ],
+              [
+                "Bestätigungs- und Wiederherstellungs-E-Mails senden",
+                "Vertragserfüllung"
+              ],
+              [
+                "Bestandsaufnahme und Managementwerkzeuge bereitstellen",
+                "Vertragserfüllung"
+              ],
+              [
+                "Schutz der Plattform vor unbefugtem Zugriff und Missbrauch, einschließlich Sicherheitsprotokoll und Begrenzung von Versuchen",
+                "Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO)"
+              ],
+              [
+                "Kontaktnachrichten und Supportanfragen beantworten",
+                "Vorvertragliche Maßnahmen auf Anfrage der betroffenen Person oder berechtigtes Interesse, je nach Fall"
+              ],
+              [
+                "Aggregierte Nutzungskennzahlen zur Verbesserung des Dienstes erstellen",
+                "Berechtigtes Interesse"
+              ],
+              [
+                "Gesetzliche Pflichten erfüllen",
+                "Rechtliche Verpflichtung (Art. 6 Abs. 1 lit. c DSGVO)"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Soweit die LGPD gilt, stützt sich die Verarbeitung auf die Rechtsgrundlagen ihres Artikels 7."
+        },
+        {
+          "p": "Wir nutzen die Daten nicht für Werbung, verkaufen sie nicht und nutzen sie nicht für Zwecke, die mit den genannten unvereinbar sind. Wir treffen keine ausschließlich automatisierten Entscheidungen, die Ihnen gegenüber rechtliche Wirkung entfalten oder Sie in ähnlicher Weise erheblich beeinträchtigen."
+        }
+      ]
+    },
+    {
+      "title": "5. Grundsätze, denen wir folgen",
+      "blocks": [
+        {
+          "list": [
+            "Rechtmäßigkeit, Treu und Glauben, Transparenz: Wir verarbeiten Daten auf einer Rechtsgrundlage und informieren Sie klar.",
+            "Zweckbindung: Wir nutzen die Daten nur für die genannten Zwecke.",
+            "Datenminimierung: Wir fragen nur, was für den Dienst nötig ist.",
+            "Richtigkeit: Sie können Ihre Daten im Profil korrigieren und aktualisieren.",
+            "Speicherbegrenzung: Wir bewahren Daten nur für die Fristen in Abschnitt 9 auf.",
+            "Integrität und Vertraulichkeit: Wir wenden die Maßnahmen aus Abschnitt 11 an.",
+            "Rechenschaftspflicht: Wir führen Verfahren und Aufzeichnungen, die die Einhaltung belegen."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "6. Cookies und Speicherung im Browser",
+      "blocks": [
+        {
+          "p": "Wir verwenden nur ein einziges notwendiges Cookie:"
+        },
+        {
+          "list": [
+            "Name: integra_session.",
+            "Zweck: Sie angemeldet halten.",
+            "Höchstdauer: 7 Tage.",
+            "Attribute: HttpOnly (für Skripte nicht lesbar), Secure (nur über HTTPS) und SameSite=Lax."
+          ]
+        },
+        {
+          "p": "Wir verwenden keine Werbe- oder Analyse-Cookies und keine Tracking-Technologien. Wir speichern keine Anmelde-Tokens, Passwörter oder anderen personenbezogenen Daten im lokalen Speicher des Browsers. Sollten wir künftig nicht notwendige Werkzeuge einsetzen, aktualisieren wir diese Erklärung und holen vor der Aktivierung Ihre Einwilligung ein."
+        }
+      ]
+    },
+    {
+      "title": "7. Wer Daten in unserem Auftrag verarbeitet",
+      "blocks": [
+        {
+          "p": "Wir verkaufen, vermieten oder handeln nicht mit personenbezogenen Daten. Damit der Dienst funktioniert, setzen wir diese Auftragsverarbeiter ein:"
+        },
+        {
+          "list": [
+            "Vercel Inc.: Hosting der Website und der API sowie die zugehörigen technischen Protokolle.",
+            "Neon Inc.: Datenbank, Dateispeicher (Profilfotos) und Datenbanksicherungen.",
+            "Resend Inc.: E-Mail-Versand."
+          ]
+        },
+        {
+          "p": "Diese Anbieter verarbeiten Daten nur im für den Dienst nötigen Umfang, nach unseren Weisungen, unter Vertraulichkeits- und Sicherheitspflichten, und löschen oder geben die Daten am Ende des Dienstes zurück, gemäß den Auftragsverarbeitungsverträgen (Art. 28 DSGVO), die wir mit jedem von ihnen geschlossen haben."
+        }
+      ]
+    },
+    {
+      "title": "8. Internationale Übermittlungen",
+      "blocks": [
+        {
+          "p": "Einige dieser Anbieter können Daten außerhalb des Europäischen Wirtschaftsraums verarbeiten, insbesondere in den Vereinigten Staaten. In diesen Fällen wenden wir Kapitel V der DSGVO an: Die Übermittlung stützt sich auf einen Angemessenheitsbeschluss der Europäischen Kommission (einschließlich des EU-US-Datenschutzrahmens, nur wenn der Anbieter zertifiziert ist) oder auf von der Europäischen Kommission genehmigte Standardvertragsklauseln, mit zusätzlichen Maßnahmen, wenn die Risikobewertung dies erfordert."
+        }
+      ]
+    },
+    {
+      "title": "9. Wie lange wir Daten aufbewahren",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Daten",
+              "Aufbewahrungsfrist"
+            ],
+            "rows": [
+              [
+                "Konto-, Organisations- und Profildaten, Einstellungen und Nutzungsdaten",
+                "Solange das Konto aktiv ist"
+              ],
+              [
+                "Profilfoto",
+                "Bis Sie es ersetzen oder entfernen oder bis das Konto gelöscht wird"
+              ],
+              [
+                "Antworten auf die Bestandsaufnahme",
+                "Solange das Konto aktiv ist"
+              ],
+              [
+                "Sicherheitsprotokoll des Kontos",
+                "Bis zu 12 Monate oder bis zur Löschung des Kontos, je nachdem, was zuerst eintritt. Es bleibt nur der Hinweis, dass ein Konto gelöscht wurde, mit Datum und ohne das Konto zu identifizieren"
+              ],
+              [
+                "Kontaktnachrichten",
+                "Bis zu 12 Monate nach Beantwortung und Abschluss der Anfrage"
+              ],
+              [
+                "Sitzungen",
+                "Bis zu 7 Tage oder bis Sie sich abmelden, das Passwort ändern oder das Konto löschen"
+              ],
+              [
+                "Links zur E-Mail-Bestätigung und Passwort-Wiederherstellung",
+                "Bis sie verwendet werden oder ablaufen"
+              ],
+              [
+                "Einträge zur Begrenzung von Versuchen (IP als Hash mit Schlüssel)",
+                "Bis zu 1 Stunde; bei der nächsten Bereinigung, alle 15 Minuten, automatisch gelöscht"
+              ],
+              [
+                "Technische Protokolle von Hosting und E-Mail-Versand",
+                "Die kurze Dauer des mit dem jeweiligen Anbieter vereinbarten Dienstes"
+              ],
+              [
+                "Datenbanksicherungen",
+                "Gemäß dem Sicherungszyklus der Datenbank, höchstens 30 Tage"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Sitzungen, Links, Einträge zur Begrenzung von Versuchen und alte Einträge im Sicherheitsprotokoll werden alle 15 Minuten automatisch bereinigt."
+        },
+        {
+          "p": "Wenn Sie das Konto im Profil löschen, werden Ihre Daten sofort aus der Datenbank und dem Dateispeicher gelöscht. Wenn Sie es per E-Mail verlangen, bearbeiten wir die Anfrage innerhalb eines Monats. Sicherungen, die diese Daten noch enthalten, bleiben geschützt und hören am Ende ihrer Frist auf zu existieren. Muss jemals eine Sicherung wiederhergestellt werden, wenden wir die nach deren Datum vorgenommenen Löschungen erneut an."
+        }
+      ]
+    },
+    {
+      "title": "10. Ihre Rechte",
+      "blocks": [
+        {
+          "p": "Nach der DSGVO und, soweit anwendbar, der LGPD haben Sie das Recht auf:"
+        },
+        {
+          "list": [
+            "Auskunft: erfahren, ob wir Daten von Ihnen verarbeiten, und eine Kopie erhalten.",
+            "Berichtigung: unrichtige oder unvollständige Daten korrigieren.",
+            "Löschung: die Löschung Ihrer Daten verlangen, soweit das Gesetz es erlaubt.",
+            "Einschränkung der Verarbeitung: verlangen, dass wir die Nutzung der Daten in den gesetzlich vorgesehenen Fällen vorübergehend aussetzen.",
+            "Datenübertragbarkeit: Ihre Daten in einem strukturierten, maschinenlesbaren Format erhalten.",
+            "Widerspruch: einer Verarbeitung auf Grundlage des berechtigten Interesses widersprechen.",
+            "Widerruf der Einwilligung, wenn die Verarbeitung darauf beruht, ohne die bereits erfolgte Verarbeitung zu berühren.",
+            "Beschwerde bei einer Aufsichtsbehörde (Abschnitt 15)."
+          ]
+        },
+        {
+          "p": "In Ihrem Profil können Sie unter „Ihre Daten“ Ihre Daten herunterladen und das Konto löschen; im übrigen Profil können Sie die meisten Angaben korrigieren. Für andere Anfragen wenden Sie sich an {{email}}. Anfragen sind kostenlos, außer in den gesetzlich vorgesehenen Fällen. Wir antworten innerhalb eines Monats; diese Frist kann bei Bedarf um zwei weitere Monate verlängert werden, worüber wir Sie informieren. Soweit die LGPD gilt, halten wir auch deren Fristen und Verfahren ein."
+        }
+      ]
+    },
+    {
+      "title": "11. Informationssicherheit",
+      "blocks": [
+        {
+          "p": "Wir setzen technische und organisatorische Maßnahmen ein, die Vertraulichkeit, Integrität und Verfügbarkeit der Daten schützen und an die Risiken angepasst sind:"
+        },
+        {
+          "list": [
+            "Kommunikation: Der gesamte Verkehr läuft über HTTPS, mit Sicherheits-Headern, die das Einbetten der Seite in andere Websites verhindern und den im Browser ausgeführten Code begrenzen.",
+            "Zugangsdaten: Passwörter mit Argon2id geschützt, nie im Klartext gespeichert; Sitzungen mit sicheren, für Skripte unlesbaren Cookies, in der Datenbank nur als Hash gespeichert.",
+            "Zugriffskontrolle: eingeschränkter Verwaltungszugang, minimale Rechte, Trennung zwischen Kunden- und Verwaltungskonten sowie Begrenzung missbräuchlicher Versuche. Das Löschen eines Unternehmens erfordert das Passwort der verwaltenden Person.",
+            "Gespeicherte Daten: Dateien in privatem Speicher, nur über zeitlich begrenzte signierte Links erreichbar; eingeschränkter Zugriff auf die Datenbank und die Geheimnisse der Infrastruktur; keine Geheimnisse im öffentlichen Code oder im Code, der im Browser läuft.",
+            "Nachvollziehbarkeit: Protokoll sicherheitsrelevanter Vorgänge, ohne IP-Adresse, nur für das Integra-SGI-Team zugänglich.",
+            "Kontinuität: Datenbanksicherungen und ein dokumentiertes Wiederherstellungsverfahren."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "12. Vorfälle und Datenschutzverletzungen",
+      "blocks": [
+        {
+          "p": "Wir haben ein Verfahren, um Sicherheitsvorfälle zu erkennen, zu bewerten, zu dokumentieren und darauf zu reagieren. Bei einer Verletzung des Schutzes personenbezogener Daten bewerten wir die Art des Vorfalls, die betroffenen Daten und Personen, die möglichen Folgen und die Maßnahmen zur Begrenzung der Auswirkungen. Wenn die Verletzung voraussichtlich zu einem Risiko für die Rechte und Freiheiten der Personen führt, melden wir sie der Aufsichtsbehörde innerhalb von 72 Stunden, nachdem sie uns bekannt wurde (Art. 33 DSGVO), und bei hohem Risiko benachrichtigen wir auch die betroffenen Personen (Art. 34)."
+        }
+      ]
+    },
+    {
+      "title": "13. Von Organisationen eingegebene personenbezogene Daten",
+      "blocks": [
+        {
+          "p": "Wenn eine Organisation die Plattform nutzt, um Daten von Mitarbeitenden, Lieferanten, Kunden oder anderen Personen zu verarbeiten, ist sie für diese Daten verantwortlich und muss sicherstellen, dass eine Rechtsgrundlage besteht, die Daten rechtmäßig erhoben wurden und erforderlich sowie verhältnismäßig sind. Integra SGI verarbeitet diese Daten nur nach den dokumentierten Weisungen der Organisation und gemäß dem geltenden Auftragsverarbeitungsvertrag."
+        }
+      ]
+    },
+    {
+      "title": "14. Änderungen dieser Erklärung",
+      "blocks": [
+        {
+          "p": "Wir aktualisieren diese Erklärung bei wesentlichen Änderungen der Plattform, der Anbieter oder der Rechtslage. Wenn eine Änderung die Verarbeitung Ihrer Daten erheblich betrifft, informieren wir Sie auf der Plattform oder auf andere geeignete Weise. Die geltende Fassung steht immer auf dieser Seite, mit dem Datum der letzten Aktualisierung oben."
+        }
+      ]
+    },
+    {
+      "title": "15. Aufsichtsbehörden und Beschwerden",
+      "blocks": [
+        {
+          "list": [
+            "Portugal: Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt",
+            "Brasilien: Autoridade Nacional de Proteção de Dados (ANPD), www.gov.br/anpd"
+          ]
+        },
+        {
+          "p": "Eine Beschwerde lässt das Recht auf andere verwaltungsrechtliche oder gerichtliche Rechtsbehelfe unberührt."
+        }
+      ]
+    }
+  ]
+}

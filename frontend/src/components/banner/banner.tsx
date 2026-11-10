@@ -12,8 +12,8 @@ export default function Banner() {
       <h1 id="welcome-title" className="max-w-xl text-4xl sm:text-5xl lg:text-6xl">{t('home:heroTitle')} <span className="text-secondary-foreground">{t('home:heroAccent')}</span></h1>
       <p className="max-w-xl text-lg text-muted-foreground">{t('home:heroDescription')}</p>
       <div className="flex flex-wrap gap-3">
-        <Button asChild size="lg"><Link to="/register">{t('home:startPlan')} <ArrowRight className="size-5" aria-hidden="true" /></Link></Button>
-        <Button asChild variant="outline" size="lg"><Link to="/requirement">{t('home:learnGuide')}</Link></Button>
+        <Button asChild size="lg" className="max-w-full"><Link to="/register">{t('home:startPlan')} <ArrowRight className="size-5" aria-hidden="true" /></Link></Button>
+        <Button asChild variant="outline" size="lg" className="max-w-full"><Link to="/requirement">{t('home:learnGuide')}</Link></Button>
       </div>
       <p className="flex items-start gap-2 text-base text-muted-foreground"><Check className="mt-1 size-5 shrink-0 text-secondary-foreground" aria-hidden="true" />{t('home:noStandards')}</p>
     </div>
