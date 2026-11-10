@@ -225,7 +225,7 @@
           "list": [
             "Vercel Inc.: Hosting der Website und der API sowie die zugehörigen technischen Protokolle.",
             "Neon Inc.: Datenbank, Dateispeicher (Profilfotos) und Datenbanksicherungen.",
-            "Resend Inc.: E-Mail-Versand."
+            "Resend Inc.: E-Mail-Versand.", "GitHub, Inc.: Hosting des Quellcodes und Ausführung der automatisierten Veröffentlichungs- und Wartungsprozesse, einschließlich Datenbankaktualisierungen und der automatischen Datenbereinigung; während dieser Prozesse hat GitHub technischen Zugriff auf die Datenbank."
           ]
         },
         {
@@ -355,7 +355,7 @@
       "title": "13. Von Organisationen eingegebene personenbezogene Daten",
       "blocks": [
         {
-          "p": "Wenn eine Organisation die Plattform nutzt, um Daten von Mitarbeitenden, Lieferanten, Kunden oder anderen Personen zu verarbeiten, ist sie für diese Daten verantwortlich und muss sicherstellen, dass eine Rechtsgrundlage besteht, die Daten rechtmäßig erhoben wurden und erforderlich sowie verhältnismäßig sind. Integra SGI verarbeitet diese Daten nur nach den dokumentierten Weisungen der Organisation und gemäß dem geltenden Auftragsverarbeitungsvertrag."
+          "p": "Wenn eine Organisation die Plattform nutzt, um Daten von Mitarbeitenden, Lieferanten, Kunden oder anderen Personen zu verarbeiten, ist sie für diese Daten verantwortlich und muss sicherstellen, dass eine Rechtsgrundlage besteht, die Daten rechtmäßig erhoben wurden und erforderlich sowie verhältnismäßig sind. Integra SGI verarbeitet diese Daten nur nach den dokumentierten Weisungen der Organisation und gemäß dem geltenden Auftragsverarbeitungsvertrag. Wenn Sie uns eine Anfrage zu Daten senden, die eine Organisation in die Plattform eingegeben hat, leiten wir sie an diese Organisation weiter und informieren Sie darüber."
         }
       ]
     },
