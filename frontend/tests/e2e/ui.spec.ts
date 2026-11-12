@@ -1,6 +1,7 @@
 import { TERMS_VERSION } from '@integra/shared/auth'
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { STANDARDS } from '../../src/lib/standards'
 
 async function signInForPrivatePages(page: import('@playwright/test').Page) {
   const profile = { schemaVersion: 1, organization: { name: 'Cooperativa Exemplo', nif: '123456789', sector: 'Serviços', email: 'contato@example.pt' }, representative: { name: 'Maria Silva', email: '', phone: '' }, selectedSystems: ['sgq'] }
@@ -106,12 +107,24 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   await expect(download).toHaveAccessibleName(/abre num novo separador/)
 })
 
-for (const route of ['/requirement4_1', '/requirement4_3', '/requirement4_4', '/requirement10']) {
-  test(`a referência oficial em ${route} leva ao IPQ, não ao catálogo ISO internacional`, async ({ page }) => {
+const officialReferences: Record<string, (keyof typeof STANDARDS)[]> = {
+  '/requirement4_1': ['iso9001', 'iso14001', 'iso45001'],
+  '/requirement10': ['iso9001', 'iso14001', 'iso45001'],
+  '/requirement5_4': ['iso45001'],
+  '/requirement8_3': ['iso9001'],
+  '/requirement8_8': ['iso22000'],
+}
+for (const [route, standards] of Object.entries(officialReferences)) {
+  test(`a referência oficial em ${route} leva à página da norma no catálogo do IPQ`, async ({ page }) => {
     await signInForPrivatePages(page)
     await page.goto(route)
     await page.getByRole('button', { name: /Referência oficial/i }).click()
-    await expect(page.getByRole('link', { name: 'Instituto Português da Qualidade (IPQ)' })).toHaveAttribute('href', 'https://www.ipq.pt')
+    for (const id of standards) {
+      const link = page.getByRole('link', { name: new RegExp(STANDARDS[id].reference) })
+      await expect(link).toHaveAttribute('href', STANDARDS[id].url)
+      await expect(link).toHaveAttribute('target', '_blank')
+    }
+    await expect(page.locator('a[href^="https://www.ipq.pt/loja/normas/norma/"]')).toHaveCount(standards.length)
     await expect(page.locator('a[href*="iso.org"]')).toHaveCount(0)
   })
 }

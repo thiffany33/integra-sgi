@@ -3,6 +3,7 @@ import RequirementNavigation from "../../components/requirementNavigation/requir
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
 import { filesApi } from "@/api/files.api";
 import { useTranslation } from "react-i18next";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement5_4() {
     const { t } = useTranslation('requirements');
@@ -105,19 +106,7 @@ function Requirement5_4() {
 
             <Accordion title="Referência Oficial">
 
-                <p>
-                    Consulte a versão oficial da norma através do{" "}
-
-                    <a
-                        href="https://www.ipq.pt"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Instituto Português da Qualidade (IPQ)
-                    </a>
-                    .
-
-                </p>
+                <OfficialReference standards={["iso45001"]} />
 
             </Accordion>
 

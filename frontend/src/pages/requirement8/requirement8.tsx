@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 const stages = [
   ["/requirement8_1", "8.1 — Planear e controlar", "Definir como os processos são realizados e controlados."],
@@ -110,16 +111,7 @@ function Requirement8() {
       </Accordion>
 
       <Accordion title="Referência Oficial">
-        <p>
-          Consulte a versão oficial da norma através do{" "}
-          <a
-            href="https://www.ipq.pt"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Instituto Português da Qualidade (IPQ)
-          </a>.
-        </p>
+        <OfficialReference />
       </Accordion>
 
       <RequirementNavigation

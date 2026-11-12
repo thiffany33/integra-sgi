@@ -1,5 +1,6 @@
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement8_8() {
   return (
@@ -52,16 +53,7 @@ function Requirement8_8() {
       </Accordion>
 
       <Accordion title="Referência Oficial">
-        <p>
-          Consulte a versão oficial da norma através do{" "}
-          <a
-            href="https://www.ipq.pt"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Instituto Português da Qualidade (IPQ)
-          </a>.
-        </p>
+        <OfficialReference standards={["iso22000"]} />
       </Accordion>
 
       <RequirementNavigation

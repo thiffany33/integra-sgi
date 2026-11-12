@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement10() {
   return (
@@ -86,12 +87,7 @@ function Requirement10() {
       </Accordion>
 
       <Accordion title="Referência Oficial">
-        <p>
-          Consulte as versões oficiais aplicáveis junto do{" "}
-          <a href="https://www.ipq.pt" target="_blank" rel="noreferrer">
-            Instituto Português da Qualidade (IPQ)
-          </a>.
-        </p>
+        <OfficialReference />
       </Accordion>
 
       <RequirementNavigation

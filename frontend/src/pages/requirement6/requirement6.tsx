@@ -1,6 +1,7 @@
 import { useOnboarding } from "@/contexts/onboarding-state";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement6() {
 
@@ -81,19 +82,7 @@ function Requirement6() {
 
             <Accordion title="Referência Oficial">
 
-                <p>
-                    Consulte a versão oficial da norma através do{" "}
-
-                    <a
-                        href="https://www.ipq.pt"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Instituto Português da Qualidade (IPQ)
-                    </a>
-                    .
-
-                </p>
+                <OfficialReference />
 
             </Accordion>
 
