@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { changePasswordSchema, registerSchema, resetPasswordSchema, updateAccountSchema, updateCustomerProfileSchema } from '../src/auth/auth.schema';
+import { TERMS_VERSION, changePasswordSchema, registerSchema, resetPasswordSchema, updateAccountSchema, updateCustomerProfileSchema } from '../src/auth/auth.schema';
 
 const validRegistration = {
   name: 'Ana Silva',
   email: ' ANA@EXAMPLE.PT ',
   password: 'correct-horse-battery-staple',
   locale: 'pt-PT',
+  acceptedTermsVersion: TERMS_VERSION,
   profile: {
     schemaVersion: 1,
     organization: {
@@ -22,6 +23,12 @@ const validRegistration = {
 describe('registerSchema', () => {
   it('normalizes account email to lowercase', () => {
     expect(registerSchema.parse(validRegistration).email).toBe('ana@example.pt');
+  });
+
+  it('requires the current Terms of Use version', () => {
+    const { acceptedTermsVersion: _omitted, ...withoutTerms } = validRegistration;
+    expect(registerSchema.safeParse(withoutTerms).success).toBe(false);
+    expect(registerSchema.safeParse({ ...validRegistration, acceptedTermsVersion: '2000-01-01' }).success).toBe(false);
   });
 
   it('rejects passwords shorter than 12 characters', () => {
