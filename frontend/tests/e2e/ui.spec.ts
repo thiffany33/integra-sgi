@@ -124,10 +124,20 @@ for (const [route, standards] of Object.entries(officialReferences)) {
       await expect(link).toHaveAttribute('href', STANDARDS[id].url)
       await expect(link).toHaveAttribute('target', '_blank')
     }
-    await expect(page.locator('a[href^="https://www.ipq.pt/loja/normas/norma/"]')).toHaveCount(standards.length)
+    await expect(page.getByRole('region', { name: /Referência oficial/i }).locator('a[href^="https://www.ipq.pt/loja/normas/norma/"]')).toHaveCount(standards.length)
     await expect(page.locator('a[href*="iso.org"]')).toHaveCount(0)
   })
 }
+
+test('a nota do 5.4 liga cada norma citada à sua ficha no IPQ', async ({ page }) => {
+  await signInForPrivatePages(page)
+  await page.goto('/requirement5_4')
+  const note = page.locator('p', { hasText: 'Nota: Este requisito é exclusivo da' })
+  if (!(await note.isVisible())) await page.getByRole('button', { name: 'Explicação do requisito' }).click()
+  for (const [name, id] of [['NP EN ISO 45001:2023', 'iso45001'], ['ISO 9001', 'iso9001'], ['ISO 14001', 'iso14001'], ['ISO 22000', 'iso22000']] as const) {
+    await expect(note.getByRole('link', { name: new RegExp(`^${name}`) })).toHaveAttribute('href', STANDARDS[id].url)
+  }
+})
 
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/termos', '/login', '/nao-existe']) {
   test(`acessibilidade e leitura mobile em ${route}`, async ({ page }) => {
