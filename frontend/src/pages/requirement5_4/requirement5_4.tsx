@@ -84,7 +84,7 @@ function Requirement5_4() {
                     </p>
 
                     <p>
-                        Nota: Este requisito é exclusivo da NP EN ISO 45001:2018 (Segurança e Saúde no Trabalho),
+                        Nota: Este requisito é exclusivo da NP EN ISO 45001:2023 (Segurança e Saúde no Trabalho),
                         não existindo um requisito equivalente nas normas ISO 9001 (Qualidade),
                         ISO 14001 (Ambiente) ou ISO 22000 (Segurança Alimentar).
                     </p>
