@@ -12,6 +12,7 @@ export type AuditAction =
   | 'auth.password_reset'
   | 'account.updated'
   | 'account.exported'
+  | 'account.terms_accepted'
   | 'account.deleted'
   | 'profile.updated'
   | 'profile.photo_uploaded'

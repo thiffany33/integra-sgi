@@ -1,0 +1,76 @@
+{
+  "eyebrow": "Nutzungsbedingungen",
+  "title": "Nutzungsbedingungen",
+  "description": "Die Regeln für die Nutzung von Integra SGI, einschließlich der Vereinbarung über die Verarbeitung der Daten, die Ihre Organisation in die Plattform eingibt.",
+  "updated": "Gültige Fassung seit {{date}}",
+  "sections": [
+    {"title": "1. Gegenstand und Annahme", "blocks": [
+      {"p": "Diese Bedingungen regeln die Nutzung der Plattform Integra SGI, die Organisationen bei der Einführung integrierter Managementsysteme (Qualität, Umwelt sowie Arbeitssicherheit und Gesundheitsschutz) unterstützt."},
+      {"p": "Mit dem Erstellen eines Kontos oder mit der Annahme dieser Bedingungen, wenn sie Ihnen angezeigt werden, bestätigen Sie, dass Sie sie gelesen haben, sie im Namen der von Ihnen vertretenen Organisation annehmen und dazu berechtigt sind. Abschnitt 10 ist der Vertrag über die Verarbeitung personenbezogener Daten zwischen Ihrer Organisation und Integra SGI (Art. 28 DSGVO)."}
+    ]},
+    {"title": "2. Wer den Dienst erbringt", "blocks": [
+      {"p": "Integra SGI wird von {{name}} bereitgestellt. Kontakt: {{email}}."}
+    ]},
+    {"title": "3. Konto und Zugang", "blocks": [
+      {"list": [
+        "Jedes Konto gehört zu einer Organisation und wird von der Person genutzt, die sie vertritt.",
+        "Die bei der Registrierung angegebenen Daten müssen wahr sein und aktuell gehalten werden.",
+        "Das Passwort ist persönlich und darf nicht weitergegeben werden. Bei Verdacht auf unbefugten Zugriff ändern Sie es im Profil und kontaktieren Sie uns.",
+        "Die Organisation ist für die mit ihrem Konto ausgeführten Aktivitäten verantwortlich."
+      ]}
+    ]},
+    {"title": "4. Zulässige Nutzung", "blocks": [
+      {"p": "Nicht erlaubt ist:"},
+      {"list": [
+        "Die Plattform für rechtswidrige Zwecke oder entgegen diesen Bedingungen zu nutzen.",
+        "Zu versuchen, ohne Berechtigung auf Konten, Daten oder Bereiche zuzugreifen oder Sicherheitsmaßnahmen zu umgehen.",
+        "Den Dienst zu überlasten oder zu stören, auch durch missbräuchliche automatisierte Zugriffe.",
+        "Rechtswidrige oder beleidigende Inhalte oder Inhalte einzugeben, die Rechte Dritter verletzen.",
+        "Die Plattform ohne Erlaubnis weiterzuverkaufen oder Dritten zur Verfügung zu stellen."
+      ]}
+    ]},
+    {"title": "5. Inhalte der Organisation", "blocks": [
+      {"p": "Die Daten und Antworten, die die Organisation eingibt, bleiben ihre eigenen. Die Organisation erlaubt Integra SGI, sie nur zur Erbringung des Dienstes zu speichern und zu verarbeiten, gemäß Abschnitt 10 und der Datenschutzerklärung."},
+      {"p": "Die Organisation ist für die Richtigkeit und Rechtmäßigkeit der eingegebenen Inhalte verantwortlich, einschließlich der Daten anderer Personen."}
+    ]},
+    {"title": "6. Art der Hinweise und Vorlagen", "blocks": [
+      {"p": "Die Hinweise und Dokumentvorlagen sind informatives Hilfsmaterial auf Grundlage der Anforderungen von ISO 9001, ISO 14001 und ISO 45001. Sie ersetzen keine fachliche Beratung und kein Audit, und die Nutzung der Plattform garantiert keine Zertifizierung der Organisation. Die Organisation passt die Vorlagen an ihre Situation an und entscheidet über deren Anwendung."}
+    ]},
+    {"title": "7. Geistiges Eigentum", "blocks": [
+      {"p": "Die Plattform, die Texte, Hinweise und Vorlagen gehören Integra SGI oder den jeweiligen Rechteinhabern. Die Organisation darf die Vorlagen für den internen Gebrauch herunterladen und anpassen. Sie darf sie nicht weitergeben oder als eigenes Material verkaufen."},
+      {"p": "Die Texte der ISO-Normen gehören der ISO und den Normungsorganisationen. Die Plattform gibt sie nicht wieder, sondern erläutert nur die Anforderungen."}
+    ]},
+    {"title": "8. Verfügbarkeit und Änderungen des Dienstes", "blocks": [
+      {"p": "Wir bemühen uns, die Plattform verfügbar und sicher zu halten, es kann aber Unterbrechungen wegen Wartung, technischer Störungen oder Ursachen außerhalb unserer Kontrolle geben. Wir können Funktionen verbessern, ändern oder entfernen; wenn eine Änderung die Nutzung wesentlich betrifft, informieren wir mit angemessener Frist."},
+      {"p": "Etwaige Zahlungsbedingungen werden mitgeteilt, bevor sie gelten, und gelten erst nach ihrer Annahme."}
+    ]},
+    {"title": "9. Schließen des Kontos", "blocks": [
+      {"p": "Die Organisation kann ihre Daten jederzeit im Profil unter „Ihre Daten“ herunterladen und das Konto löschen. Wir können ein Konto sperren oder schließen, das schwer oder wiederholt gegen diese Bedingungen verstößt, und kündigen dies nach Möglichkeit vorher an, mit der Gelegenheit, die Daten herunterzuladen, sofern Gesetz oder Sicherheit der Plattform dem nicht entgegenstehen."}
+    ]},
+    {"title": "10. Vertrag über die Verarbeitung personenbezogener Daten", "blocks": [
+      {"p": "Wenn die Organisation Daten anderer Personen in die Plattform eingibt (zum Beispiel Mitarbeitende oder in der Bestandsaufnahme genannte verantwortliche Personen), ist die Organisation Verantwortliche und Integra SGI Auftragsverarbeiter. In diesem Rahmen verpflichtet sich Integra SGI:"},
+      {"list": [
+        "Diese Daten nur zur Erbringung des Dienstes und nach den dokumentierten Weisungen der Organisation zu verarbeiten; Weisungen sind diese Bedingungen und die Aktionen der Organisation auf der Plattform. Hält Integra SGI eine Weisung für rechtswidrig, informiert es die Organisation.",
+        "Sicherzustellen, dass alle Personen mit Zugriff auf die Daten zur Vertraulichkeit verpflichtet sind und der Zugriff auf das Notwendige beschränkt ist.",
+        "Die in Abschnitt 11 der Datenschutzerklärung beschriebenen Sicherheitsmaßnahmen anzuwenden.",
+        "Nur die in der Datenschutzerklärung genannten Unterauftragsverarbeiter einzusetzen (Vercel, Neon, Resend und GitHub). Die Organisation erteilt dafür eine allgemeine Genehmigung. Jede Ergänzung oder Ersetzung wird 30 Tage vorher per E-Mail angekündigt, und die Organisation kann innerhalb dieser Frist begründet widersprechen.",
+        "Die Organisation bei Anfragen betroffener Personen zu unterstützen (Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch). Anfragen zu diesen Daten, die direkt eingehen, werden an die Organisation weitergeleitet.",
+        "Die Organisation unverzüglich über eine sie betreffende Datenschutzverletzung zu informieren, mit dem Ziel, dies innerhalb von 24 Stunden nach deren Bestätigung zu tun, mit den verfügbaren Informationen, damit die Organisation über die Meldung an die Aufsichtsbehörde entscheiden kann.",
+        "Im zumutbaren Umfang bei Datenschutz-Folgenabschätzungen und Konsultationen der Aufsichtsbehörde zu helfen.",
+        "Am Ende des Dienstes die Daten nach Wahl der Organisation zurückzugeben (über den Export im Profil) oder zu löschen. Sicherungen verschwinden am Ende ihres Zyklus von höchstens 6 Stunden.",
+        "Die zum Nachweis der Einhaltung dieser Pflichten nötigen Informationen bereitzustellen und angemessene, vorher vereinbarte Audits zu ermöglichen."
+      ]},
+      {"p": "Die Organisation verpflichtet sich, für die eingegebenen Daten eine Rechtsgrundlage zu haben, die betroffenen Personen zu informieren und keine besonderen Kategorien personenbezogener Daten (Art. 9 und 10 DSGVO), etwa Gesundheitsdaten, ohne vorherige Prüfung und Vereinbarung einzugeben."},
+      {"p": "Die vollständige Beschreibung der Verarbeitung und der technischen Maßnahmen steht im Auftragsverarbeitungsvertrag von Integra SGI, den Sie über {{email}} anfordern können. Bei Widersprüchen geht dieser Vertrag in Datenschutzfragen vor."}
+    ]},
+    {"title": "11. Haftung", "blocks": [
+      {"p": "Wir haften für Schäden aus der Verletzung dieser Bedingungen nach den gesetzlichen Vorschriften. Soweit gesetzlich zulässig, haften wir nicht für Entscheidungen, die die Organisation auf Grundlage der Hinweise und Vorlagen trifft, und nicht für indirekte Schäden oder entgangenen Gewinn. Nichts in diesen Bedingungen schränkt die Rechte ein, die das Gesetz betroffenen Personen oder Verbrauchern gewährt."}
+    ]},
+    {"title": "12. Änderungen dieser Bedingungen", "blocks": [
+      {"p": "Wir können diese Bedingungen aktualisieren, wenn sich die Plattform, die Anbieter oder die Rechtslage ändern. Jede Fassung ist datiert. Bei einer neuen Fassung bitten wir Sie, sie anzunehmen, bevor Sie die Plattform weiter nutzen; nehmen Sie sie nicht an, können Sie Ihre Daten herunterladen und das Konto löschen."}
+    ]},
+    {"title": "13. Anwendbares Recht", "blocks": [
+      {"p": "Diese Bedingungen unterliegen portugiesischem Recht und dem anwendbaren Recht der Europäischen Union. Für Streitigkeiten sind die zuständigen portugiesischen Gerichte zuständig, unbeschadet zwingender Vorschriften zum Schutz von Verbrauchern und betroffenen Personen."}
+    ]}
+  ]
+}

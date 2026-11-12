@@ -11,11 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateAccountInput } from '@integra/shared/auth';
+import type { AcceptTermsInput, ChangePasswordInput, LoginInput, RegisterInput, UpdateAccountInput } from '@integra/shared/auth';
 import type { Request, Response } from 'express';
 import type { Environment } from '../../config/env.schema';
 import { ZodValidationPipe } from '../../middlewares/zod-validation.pipe';
-import { changePasswordSchema, loginSchema, readingPreferencesSchema, registerSchema, updateAccountSchema, updateLocaleSchema, type ReadingPreferences } from '@integra/shared/auth';
+import { acceptTermsSchema, changePasswordSchema, loginSchema, readingPreferencesSchema, registerSchema, updateAccountSchema, updateLocaleSchema, type ReadingPreferences } from '@integra/shared/auth';
 import { forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema } from './password-reset.schema';
 import { AuthService } from './auth.service';
 import { SessionGuard } from './session.guard';
@@ -116,6 +116,16 @@ export class AuthController {
     @Body(new ZodValidationPipe(updateLocaleSchema)) body: { locale: import('@integra/shared/auth').SupportedLocale },
   ) {
     return this.authService.updateLocale(request.userId!, body.locale);
+  }
+
+  @Post('me/terms')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionGuard)
+  acceptTerms(
+    @Req() request: Request,
+    @Body(new ZodValidationPipe(acceptTermsSchema)) body: AcceptTermsInput,
+  ) {
+    return this.authService.acceptTerms(request.userId!, body.version);
   }
 
   @Patch('me/reading-preferences')

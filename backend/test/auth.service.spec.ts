@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '@integra/shared/auth';
 import { createHash } from 'node:crypto';
 import type { AuditService } from '../src/modules/audit/audit.service';
 import { describe, expect, it, vi } from 'vitest';
@@ -23,12 +24,14 @@ const publicUser = {
   isAdmin: false,
   textSize: 'large',
   highContrast: false,
+  termsVersion: TERMS_VERSION,
 };
 // What the service returns for that record: the preference columns become one object.
 const publicResult = {
   id: publicUser.id, name: publicUser.name, email: publicUser.email, locale: publicUser.locale,
   emailVerifiedAt: publicUser.emailVerifiedAt, isAdmin: publicUser.isAdmin,
   readingPreferences: { textSize: 'large', highContrast: false },
+  termsAccepted: true,
 };
 
 function makeService() {
@@ -79,6 +82,7 @@ describe('AuthService', () => {
       password: 'correct-horse-battery-staple',
       locale: 'pt-PT',
       profile,
+      acceptedTermsVersion: TERMS_VERSION,
     }, '127.0.0.1');
 
     const [created] = repository.createUserWithProfile.mock.calls[0] as [Record<string, unknown>];
@@ -87,6 +91,7 @@ describe('AuthService', () => {
     expect(created.email).toBe('ana@example.pt');
     expect(created.passwordHash).toBe('$argon2id$hashed-value');
     expect(created.passwordHash).not.toBe('correct-horse-battery-staple');
+    expect(created.termsVersion).toBe(TERMS_VERSION);
     expect(result.message).toContain('Check your email');
     expect(repository.createSession).not.toHaveBeenCalled();
     expect(authEmail.sendVerification).toHaveBeenCalledWith('user-1', 'ana@example.pt', 'pt-PT');

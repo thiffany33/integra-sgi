@@ -24,8 +24,6 @@
         {
           "list": [
             "Responsável: {{name}}",
-            "NIF: {{nif}}",
-            "Morada: {{address}}",
             "Email de contacto: {{email}}"
           ]
         },
@@ -225,7 +223,8 @@
           "list": [
             "Vercel Inc.: alojamento do site e da API, e os respetivos registos técnicos.",
             "Neon Inc.: base de dados, armazenamento de ficheiros (fotos de perfil) e cópias de segurança da base de dados.",
-            "Resend Inc.: envio de emails.", "GitHub, Inc.: alojamento do código-fonte e execução dos processos automáticos de publicação e manutenção, incluindo as atualizações da base de dados e a limpeza automática de dados; durante esses processos tem acesso técnico à base de dados."
+            "Resend Inc.: envio de emails.",
+            "GitHub, Inc.: alojamento do código-fonte e execução dos processos automáticos de publicação e manutenção, incluindo as atualizações da base de dados e a limpeza automática de dados; durante esses processos tem acesso técnico à base de dados."
           ]
         },
         {

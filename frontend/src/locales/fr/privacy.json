@@ -24,8 +24,6 @@
         {
           "list": [
             "Responsable : {{name}}",
-            "Numéro fiscal (NIF) : {{nif}}",
-            "Adresse : {{address}}",
             "E-mail de contact : {{email}}"
           ]
         },
@@ -225,7 +223,8 @@
           "list": [
             "Vercel Inc. : hébergement du site et de l'API, et journaux techniques associés.",
             "Neon Inc. : base de données, stockage des fichiers (photos de profil) et sauvegardes de la base de données.",
-            "Resend Inc. : envoi des e-mails.", "GitHub, Inc. : hébergement du code source et exécution des processus automatisés de publication et de maintenance, y compris les mises à jour de la base de données et le nettoyage automatique des données ; pendant ces processus, il dispose d'un accès technique à la base de données."
+            "Resend Inc. : envoi des e-mails.",
+            "GitHub, Inc. : hébergement du code source et exécution des processus automatisés de publication et de maintenance, y compris les mises à jour de la base de données et le nettoyage automatique des données ; pendant ces processus, il dispose d'un accès technique à la base de données."
           ]
         },
         {

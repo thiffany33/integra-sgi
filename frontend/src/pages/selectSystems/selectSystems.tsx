@@ -28,11 +28,12 @@ export default function SelectSystems() {
   const returnTo = searchParams.has('returnTo') ? safeReturnTo(searchParams.get('returnTo')) : null;
   const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const selected = Object.values(systems).some(Boolean);
   async function createAccount() {
-    if (!selected) return;
+    if (!selected || !termsAccepted) return;
     setBusy(true);
     setError("");
     try {
@@ -71,6 +72,13 @@ export default function SelectSystems() {
       </fieldset>
       {!selected && <p role="alert" className="rounded-lg border bg-secondary p-4 text-base">{t('chooseOneSystem')}</p>}
       <div className="field"><Label htmlFor="account-password">{t('createPassword')}</Label><Input id="account-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={event => setPassword(event.target.value)} aria-describedby="password-help" /><p id="password-help" className="field-hint">{t('passwordHint')}</p></div>
+      <div className="space-y-2">
+        <label className="flex min-h-12 items-start gap-3 rounded-lg border px-4 py-3 text-base">
+          <input type="checkbox" required className="mt-1 size-5 shrink-0 accent-primary" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} aria-describedby="terms-link" />
+          <span>{t('common:acceptTermsLabel')}</span>
+        </label>
+        <p id="terms-link" className="text-base"><Link className="text-link" to="/termos" target="_blank" rel="noopener noreferrer">{t('common:readTerms')}<span className="sr-only"> {t('common:opensInNewTab')}</span></Link></p>
+      </div>
       <p className="text-base text-muted-foreground">{t('common:privacyConsent')} <Link className="text-link" to="/privacidade" target="_blank" rel="noopener noreferrer">{t('common:privacyPolicy').toLowerCase()}<span className="sr-only"> {t('common:opensInNewTab')}</span></Link>.</p>
       {error && <p role="alert" className="text-base text-destructive">{error}</p>}
       <div className="form-actions"><Button asChild variant="outline"><Link to={`/representative${query}`}><ArrowLeft aria-hidden="true" />{t('backRepresentative')}</Link></Button><Button type="submit" disabled={!selected || busy}>{busy ? t('creatingAccount') : t('createAccountPlan')}<ArrowRight aria-hidden="true" /></Button></div>

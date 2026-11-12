@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '@integra/shared/auth';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { INestApplication } from '@nestjs/common';
@@ -54,7 +55,7 @@ describe('authentication HTTP flow', () => {
     };
     registrationResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
-      .send({ name: 'Ana Silva', email: email.toUpperCase(), password, locale: 'pt-PT', profile });
+      .send({ name: 'Ana Silva', email: email.toUpperCase(), password, locale: 'pt-PT', profile, acceptedTermsVersion: TERMS_VERSION });
     const storedUser = await prisma.user.findUniqueOrThrow({ where: { email } });
     registrationUserId = storedUser.id;
   }, 30_000);
@@ -338,7 +339,7 @@ describe('authentication HTTP flow', () => {
     const testVerifyEmail = `verify-${randomUUID()}@example.pt`;
     await request(app.getHttpServer())
       .post('/api/v1/auth/register')
-      .send({ name: 'Verify Test', email: testVerifyEmail, password: 'correct-horse-battery-staple', locale: 'pt-PT', profile })
+      .send({ name: 'Verify Test', email: testVerifyEmail, password: 'correct-horse-battery-staple', locale: 'pt-PT', profile, acceptedTermsVersion: TERMS_VERSION })
       .expect(201);
     const verifyUser = await prisma.user.findUniqueOrThrow({ where: { email: testVerifyEmail } });
     try {
@@ -449,7 +450,7 @@ describe('authentication HTTP flow', () => {
   it('rejects a stale verification token when a newer verification is requested', async () => {
     const raceEmail = `race-${randomUUID()}@example.pt`;
     await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      name: 'Race Account', email: raceEmail, password: 'correct-horse-battery', profile,
+      name: 'Race Account', email: raceEmail, password: 'correct-horse-battery', profile, acceptedTermsVersion: TERMS_VERSION,
     }).expect(201);
     const raceUser = await prisma.user.findUniqueOrThrow({ where: { email: raceEmail } });
     try {

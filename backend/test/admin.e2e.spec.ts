@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '@integra/shared/auth';
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -40,7 +41,7 @@ describe('platform administrator HTTP flow', () => {
     await prisma.$executeRawUnsafe('DELETE FROM "AuthRateLimitBucket"');
     const registerAndLogin = async (name: string, email: string) => {
       const registration = await request(app.getHttpServer())
-        .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile });
+        .post('/api/v1/auth/register').send({ name, email, password: 'correct-horse-battery', profile, acceptedTermsVersion: TERMS_VERSION });
       expect(registration.status).toBe(201);
       const user = await prisma.user.update({
         where: { email },
@@ -102,7 +103,7 @@ describe('platform administrator HTTP flow', () => {
   it('returns the next customer page using an opaque cursor', async () => {
     const extraEmail = `second-${marker}@example.pt`;
     await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      name: 'Second customer', email: extraEmail, password: 'correct-horse-battery', profile,
+      name: 'Second customer', email: extraEmail, password: 'correct-horse-battery', profile, acceptedTermsVersion: TERMS_VERSION,
     }).expect(201);
     const extraUser = await prisma.user.findUniqueOrThrow({ where: { email: extraEmail } });
     const extraId = extraUser.id;
@@ -144,7 +145,7 @@ describe('platform administrator HTTP flow', () => {
   it('accepts exactly one of two simultaneous administrators and audits only the winning change', async () => {
     const secondAdminEmail = `second-admin-${marker}@example.pt`;
     await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      name: 'Second administrator', email: secondAdminEmail, password: 'correct-horse-battery', profile,
+      name: 'Second administrator', email: secondAdminEmail, password: 'correct-horse-battery', profile, acceptedTermsVersion: TERMS_VERSION,
     }).expect(201);
     const secondAdminUser = await prisma.user.update({
       where: { email: secondAdminEmail },

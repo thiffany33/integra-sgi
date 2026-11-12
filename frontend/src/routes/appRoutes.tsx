@@ -10,6 +10,7 @@ import Requirement from "../pages/requirement/requirement";
 import Downloads from "../pages/downloads/downloads";
 import Contact from "../pages/contact/contact";
 import Privacy from "../pages/privacy/privacy";
+import Terms from "../pages/terms/terms";
 import NotFound from "../pages/notFound/notFound";
 import Layout from "../components/layout/layout";
 import Representative from "../pages/representative/representative";
@@ -219,6 +220,7 @@ function AppRoutes() {
             <Route path="/requirement" element={<Requirement />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacidade" element={<Privacy />} />
+            <Route path="/termos" element={<Terms />} />
             <Route path="/representative" element={<Representative />} />
             <Route path="/admin/customers" element={<RequirePlatformAdmin><AdminCustomers /></RequirePlatformAdmin>} />
             <Route path="/admin/insights" element={<RequirePlatformAdmin><AdminInsights /></RequirePlatformAdmin>} />

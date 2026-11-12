@@ -1,0 +1,76 @@
+{
+  "eyebrow": "Terms",
+  "title": "Terms of Use",
+  "description": "The rules for using Integra SGI, including the agreement on processing the data your organization enters into the platform.",
+  "updated": "Version in force since {{date}}",
+  "sections": [
+    {"title": "1. Purpose and acceptance", "blocks": [
+      {"p": "These Terms govern the use of the Integra SGI platform, which helps organizations implement Integrated Management Systems (quality, environment, and occupational health and safety)."},
+      {"p": "By creating an account, or by accepting these Terms when they are shown to you, you confirm that you have read and accept them on behalf of the organization you represent, and that you are authorized to do so. Section 10 is the personal data processing agreement between your organization and Integra SGI (Art. 28 GDPR)."}
+    ]},
+    {"title": "2. Who provides the service", "blocks": [
+      {"p": "Integra SGI is provided by {{name}}. Contact: {{email}}."}
+    ]},
+    {"title": "3. Account and access", "blocks": [
+      {"list": [
+        "Each account belongs to one organization and is used by the person who represents it.",
+        "The details given at registration must be true and kept up to date.",
+        "The password is personal and must not be shared. If you suspect unauthorized access, change it in your profile and contact us.",
+        "The organization is responsible for the activity carried out with its account."
+      ]}
+    ]},
+    {"title": "4. Permitted use", "blocks": [
+      {"p": "You may not:"},
+      {"list": [
+        "Use the platform for unlawful purposes or against these Terms.",
+        "Try to access accounts, data or areas without authorization, or bypass security measures.",
+        "Overload or disrupt the service, including through abusive automated access.",
+        "Enter unlawful or offensive content, or content that infringes third-party rights.",
+        "Resell the platform or make it available to third parties without authorization."
+      ]}
+    ]},
+    {"title": "5. The organization's content", "blocks": [
+      {"p": "The data and answers the organization enters remain its own. The organization authorizes Integra SGI to store and process them only to provide the service, under section 10 and the Privacy Policy."},
+      {"p": "The organization is responsible for the accuracy and lawfulness of what it enters, including other people's data."}
+    ]},
+    {"title": "6. Nature of the guidance and templates", "blocks": [
+      {"p": "The guidance and document templates are supporting, informational material based on the requirements of ISO 9001, ISO 14001 and ISO 45001. They do not replace specialist consultancy or audits, and using the platform does not guarantee the organization's certification. The organization is responsible for adapting the templates to its situation and deciding how to apply them."}
+    ]},
+    {"title": "7. Intellectual property", "blocks": [
+      {"p": "The platform, texts, guidance and templates belong to Integra SGI or their respective owners. The organization may download and adapt the templates for internal use. It may not redistribute or sell them as its own material."},
+      {"p": "The texts of the ISO standards belong to ISO and the standards bodies. The platform does not reproduce them; it only explains the requirements."}
+    ]},
+    {"title": "8. Availability and changes to the service", "blocks": [
+      {"p": "We aim to keep the platform available and secure, but there may be interruptions for maintenance, technical failures or causes beyond our control. We may improve, change or withdraw features; if a change significantly affects your use, we will give reasonable notice."},
+      {"p": "Any payment terms are communicated before they apply and only take effect once accepted."}
+    ]},
+    {"title": "9. Closing the account", "blocks": [
+      {"p": "The organization can download its data and delete the account at any time in the profile, under \"Your data\". We may suspend or close an account that seriously or repeatedly breaches these Terms, giving notice beforehand whenever possible and the chance to download the data, unless the law or the platform's security prevents it."}
+    ]},
+    {"title": "10. Personal data processing agreement", "blocks": [
+      {"p": "When the organization enters other people's data into the platform (for example, employees or responsible people named in the assessment), the organization is the controller and Integra SGI is the processor. In that context, Integra SGI undertakes to:"},
+      {"list": [
+        "Process that data only to provide the service and on the organization's documented instructions, which are these Terms and the actions the organization takes on the platform. If an instruction appears unlawful, it informs the organization.",
+        "Ensure that anyone with access to the data is bound by confidentiality and that access is limited to what is necessary.",
+        "Apply the security measures described in section 11 of the Privacy Policy.",
+        "Only use the processors listed in the Privacy Policy (Vercel, Neon, Resend and GitHub). The organization gives general authorization for these. Any addition or replacement is announced by email 30 days in advance, and the organization may raise a reasoned objection within that period.",
+        "Help the organization respond to data subjects' requests (access, rectification, erasure, restriction, portability and objection). Requests it receives directly about that data are forwarded to the organization.",
+        "Notify the organization of a data breach affecting it without undue delay, aiming to do so within 24 hours of confirming it, with the information available so the organization can decide on notifying the supervisory authority.",
+        "Assist, as far as reasonable, with impact assessments and consultations with the supervisory authority.",
+        "At the end of the service, return the data (through the export available in the profile) or delete it, as the organization chooses. Backups disappear at the end of their cycle, of at most 6 hours.",
+        "Make available the information needed to demonstrate compliance with these obligations and allow reasonable audits, agreed in advance."
+      ]},
+      {"p": "The organization undertakes to have a legal basis for the data it enters, to inform the people the data concerns, and not to enter special categories of data (Art. 9 and 10 GDPR), such as health data, without prior assessment and agreement."},
+      {"p": "The full description of the processing and the technical measures is in the Integra SGI Personal Data Processing Agreement, which you can request from {{email}}. In case of conflict, that agreement prevails on data protection matters."}
+    ]},
+    {"title": "11. Liability", "blocks": [
+      {"p": "We are liable for damage caused by breach of these Terms as provided by law. To the extent permitted by law, we are not liable for decisions the organization makes based on the guidance and templates, or for indirect damage or loss of profits. Nothing in these Terms limits the rights the law grants to data subjects or consumers."}
+    ]},
+    {"title": "12. Changes to these Terms", "blocks": [
+      {"p": "We may update these Terms when the platform, the providers or the law change. Each version is dated. When there is a new version, we ask you to accept it before you continue using the platform; if you do not accept it, you can download your data and delete the account."}
+    ]},
+    {"title": "13. Governing law", "blocks": [
+      {"p": "These Terms are governed by Portuguese law and applicable European Union law. Disputes are settled by the competent Portuguese courts, without prejudice to mandatory consumer and data protection rules."}
+    ]}
+  ]
+}
