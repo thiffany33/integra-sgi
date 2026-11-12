@@ -1,6 +1,7 @@
 import { TERMS_VERSION } from '@integra/shared/auth'
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { STANDARDS } from '../../src/lib/standards'
 
 async function signInForPrivatePages(page: import('@playwright/test').Page) {
   const profile = { schemaVersion: 1, organization: { name: 'Cooperativa Exemplo', nif: '123456789', sector: 'Serviços', email: 'contato@example.pt' }, representative: { name: 'Maria Silva', email: '', phone: '' }, selectedSystems: ['sgq'] }
@@ -104,6 +105,38 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   await expect(download).toHaveAttribute('target', '_blank')
   await expect(download).toHaveAttribute('rel', 'noopener noreferrer')
   await expect(download).toHaveAccessibleName(/abre num novo separador/)
+})
+
+const officialReferences: Record<string, (keyof typeof STANDARDS)[]> = {
+  '/requirement4_1': ['iso9001', 'iso14001', 'iso45001'],
+  '/requirement10': ['iso9001', 'iso14001', 'iso45001'],
+  '/requirement5_4': ['iso45001'],
+  '/requirement8_3': ['iso9001'],
+  '/requirement8_8': ['iso22000'],
+}
+for (const [route, standards] of Object.entries(officialReferences)) {
+  test(`a referência oficial em ${route} leva à página da norma no catálogo do IPQ`, async ({ page }) => {
+    await signInForPrivatePages(page)
+    await page.goto(route)
+    await page.getByRole('button', { name: /Referência oficial/i }).click()
+    for (const id of standards) {
+      const link = page.getByRole('link', { name: new RegExp(STANDARDS[id].reference) })
+      await expect(link).toHaveAttribute('href', STANDARDS[id].url)
+      await expect(link).toHaveAttribute('target', '_blank')
+    }
+    await expect(page.getByRole('region', { name: /Referência oficial/i }).locator('a[href^="https://www.ipq.pt/loja/normas/norma/"]')).toHaveCount(standards.length)
+    await expect(page.locator('a[href*="iso.org"]')).toHaveCount(0)
+  })
+}
+
+test('a nota do 5.4 liga cada norma citada à sua ficha no IPQ', async ({ page }) => {
+  await signInForPrivatePages(page)
+  await page.goto('/requirement5_4')
+  const note = page.locator('p', { hasText: 'Nota: Este requisito é exclusivo da' })
+  if (!(await note.isVisible())) await page.getByRole('button', { name: 'Explicação do requisito' }).click()
+  for (const [name, id] of [['NP EN ISO 45001:2023', 'iso45001'], ['ISO 9001', 'iso9001'], ['ISO 14001', 'iso14001'], ['ISO 22000', 'iso22000']] as const) {
+    await expect(note.getByRole('link', { name: new RegExp(`^${name}`) })).toHaveAttribute('href', STANDARDS[id].url)
+  }
 })
 
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/termos', '/login', '/nao-existe']) {

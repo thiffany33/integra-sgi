@@ -3,6 +3,7 @@ import { DownloadLink } from "@/components/downloadLink/downloadLink";
 import { filesApi } from "@/api/files.api";
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement10_1() {
   const { systems } = useOnboarding();
@@ -92,12 +93,7 @@ function Requirement10_1() {
       </Accordion>
 
       <Accordion title="Referência Oficial">
-        <p>
-          Consulte os requisitos aplicáveis junto do{" "}
-          <a href="https://www.ipq.pt" target="_blank" rel="noreferrer">
-            Instituto Português da Qualidade (IPQ)
-          </a>.
-        </p>
+        <OfficialReference />
       </Accordion>
 
       <RequirementNavigation

@@ -2,6 +2,7 @@ import { DownloadLink } from "@/components/downloadLink/downloadLink";
 import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement4_1() {
     return (
@@ -74,9 +75,7 @@ function Requirement4_1() {
 
 
             <Accordion title="REFERÊNCIA OFICIAL">
-                <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
-                </p>
+                <OfficialReference />
             </Accordion>
 
 

@@ -3,6 +3,7 @@ import RequirementNavigation from "../../components/requirementNavigation/requir
 import { DownloadLink } from "@/components/downloadLink/downloadLink";
 import { filesApi } from "@/api/files.api";
 import { useTranslation } from "react-i18next";
+import { OfficialReference, StandardLink } from "@/components/officialReference/officialReference";
 
 function Requirement5_4() {
     const { t } = useTranslation('requirements');
@@ -83,9 +84,9 @@ function Requirement5_4() {
                     </p>
 
                     <p>
-                        Nota: Este requisito é exclusivo da NP EN ISO 45001:2018 (Segurança e Saúde no Trabalho),
-                        não existindo um requisito equivalente nas normas ISO 9001 (Qualidade),
-                        ISO 14001 (Ambiente) ou ISO 22000 (Segurança Alimentar).
+                        Nota: Este requisito é exclusivo da <StandardLink id="iso45001" /> (Segurança e Saúde no Trabalho),
+                        não existindo um requisito equivalente nas normas <StandardLink id="iso9001">ISO 9001</StandardLink> (Qualidade),
+                        {" "}<StandardLink id="iso14001">ISO 14001</StandardLink> (Ambiente) ou <StandardLink id="iso22000">ISO 22000</StandardLink> (Segurança Alimentar).
                     </p>
 
                 </div>
@@ -105,19 +106,7 @@ function Requirement5_4() {
 
             <Accordion title="Referência Oficial">
 
-                <p>
-                    Consulte a versão oficial da norma através do{" "}
-
-                    <a
-                        href="https://www.ipq.pt"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Instituto Português da Qualidade (IPQ)
-                    </a>
-                    .
-
-                </p>
+                <OfficialReference standards={["iso45001"]} />
 
             </Accordion>
 

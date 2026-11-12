@@ -2,6 +2,7 @@ import { DownloadLink } from "@/components/downloadLink/downloadLink";
 import { filesApi } from '@/api/files.api';
 import Accordion from "../../components/accordion/accordion";
 import RequirementNavigation from "../../components/requirementNavigation/requirementNavigation";
+import { OfficialReference } from "@/components/officialReference/officialReference";
 
 function Requirement9_3() {
   return (
@@ -80,16 +81,7 @@ function Requirement9_3() {
       </Accordion>
 
       <Accordion title="Referência Oficial">
-        <p>
-          Consulte a versão oficial da norma através do{" "}
-          <a
-            href="https://www.ipq.pt"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Instituto Português da Qualidade (IPQ)
-          </a>.
-        </p>
+        <OfficialReference />
       </Accordion>
 
       <RequirementNavigation

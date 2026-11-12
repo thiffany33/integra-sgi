@@ -31,7 +31,8 @@ test('requisito 10 apresenta orientações, modelos, referências e navegação 
   await page.getByRole('button', { name: 'Ferramentas de apoio' }).click()
   await expect(page.getByRole('link', { name: /Relatório de acidente de trabalho/ })).toHaveAttribute('href', /files\/templates\/work-accident-report/)
   await page.getByRole('button', { name: 'Referência Oficial' }).click()
-  await expect(page.getByRole('link', { name: /Instituto Português da Qualidade/ })).toHaveAttribute('href', 'https://www.ipq.pt')
+  await expect(page.getByRole('link', { name: /NP EN ISO 45001/ })).toHaveAttribute('href', /^https:\/\/www\.ipq\.pt\/loja\/normas\/norma\//)
+  await expect(page.getByText('Confirme também as obrigações legais aplicáveis com a entidade competente.')).toBeVisible()
   await expect(page.getByRole('link', { name: /Voltar ao guia de gestão/ })).toHaveAttribute('href', '/requirement')
 })
 
