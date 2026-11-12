@@ -93,7 +93,10 @@ function Requirement4_3() {
             <Accordion title="Referência Oficial">
 
                 <p>
-                    Consulte a versão oficial da norma através do Instituto Português da Qualidade (IPQ).
+                    Consulte a versão oficial da norma através do{" "}
+                    <a href="https://www.ipq.pt" target="_blank" rel="noreferrer">
+                        Instituto Português da Qualidade (IPQ)
+                    </a>.
                 </p>
 
             </Accordion>

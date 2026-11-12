@@ -106,6 +106,16 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   await expect(download).toHaveAccessibleName(/abre num novo separador/)
 })
 
+for (const route of ['/requirement4_1', '/requirement4_3', '/requirement4_4', '/requirement10']) {
+  test(`a referência oficial em ${route} leva ao IPQ, não ao catálogo ISO internacional`, async ({ page }) => {
+    await signInForPrivatePages(page)
+    await page.goto(route)
+    await page.getByRole('button', { name: /Referência oficial/i }).click()
+    await expect(page.getByRole('link', { name: 'Instituto Português da Qualidade (IPQ)' })).toHaveAttribute('href', 'https://www.ipq.pt')
+    await expect(page.locator('a[href*="iso.org"]')).toHaveCount(0)
+  })
+}
+
 for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/termos', '/login', '/nao-existe']) {
   test(`acessibilidade e leitura mobile em ${route}`, async ({ page }) => {
     if (['/dashboard', '/requirement4_1', '/downloads'].includes(route)) await signInForPrivatePages(page)
