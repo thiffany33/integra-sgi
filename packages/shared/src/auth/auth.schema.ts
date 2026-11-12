@@ -11,6 +11,9 @@ const accountEmailSchema = z
   .max(254)
   .transform((email) => email.toLowerCase());
 
+/** Changes whenever the Terms of Use change, so every account accepts the current text again. */
+export const TERMS_VERSION = '2026-11-11';
+
 export const registerSchema = z
   .object({
     name: z.string().trim().min(1).max(160),
@@ -18,8 +21,11 @@ export const registerSchema = z
     password: z.string().min(12).max(128),
     locale: localeSchema.default('pt-PT'),
     profile: customerProfileSchema,
+    acceptedTermsVersion: z.literal(TERMS_VERSION),
   })
   .strict();
+
+export const acceptTermsSchema = z.object({ version: z.literal(TERMS_VERSION) }).strict();
 
 export const loginSchema = z
   .object({
@@ -59,6 +65,7 @@ export const verifyEmailSchema = z.object({ token: z.string().min(32).max(256) }
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type AcceptTermsInput = z.infer<typeof acceptTermsSchema>;
 export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileSchema>;
 export type SupportedLocale = z.infer<typeof localeSchema>;
 export type TextSize = (typeof textSizes)[number];

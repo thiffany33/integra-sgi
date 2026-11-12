@@ -101,7 +101,11 @@ Os dados de conta, organização, foto, diagnóstico, preferências e utilizaç�
 - **Ficheiros**: as fotos de perfil não têm cópia própria; uma foto apagada não se recupera.
 - **Acesso**: só quem mantém o projeto tem acesso ao Neon (§4).
 - **Restauro**: restaura-se primeiro para uma branch nova, nunca diretamente sobre a produção. Antes de a promover, reaplicam-se as eliminações feitas depois do ponto restaurado: as contas que existem na branch restaurada mas já não existem na produção atual foram apagadas e são apagadas de novo (`DELETE FROM "User" WHERE id IN (...)`, o que apaga em cascata o resto). As fotos dessas contas já não existem no armazenamento. Só depois se troca a ligação da API.
-- **Teste**: o restauro para uma branch de teste faz-se pelo menos uma vez por ano e depois de mudanças grandes no esquema, e fica registado (data, ponto restaurado, resultado) neste documento.
+- **Teste**: a política de retenção prevê testes de restauro; a responsável decidiu não os fazer por agora e aceitou o risco (ver §9 e `docs/backup-report.md`). O procedimento acima continua a ser o que se segue num restauro real.
+
+### 6.2.1 Termos de Utilização e acordo de tratamento de dados
+
+Os Termos (`/termos`, 4 idiomas) incluem, na secção 10, o acordo de tratamento de dados (art. 28.º do RGPD) para os dados que as organizações introduzem. O registo só cria a conta com `acceptedTermsVersion` igual a `TERMS_VERSION` (`packages/shared/src/auth/auth.schema.ts`); a conta guarda `termsVersion` e `termsAcceptedAt`. Uma conta de cliente sem a versão atual vê o pedido de aceitação antes de qualquer página privada (`POST /api/v1/auth/me/terms`, auditado como `account.terms_accepted`). Mudar o texto dos Termos obriga a mudar `TERMS_VERSION`, o que volta a pedir a aceitação a todas as contas. As contas de administração não passam por este pedido.
 
 ### 6.3 Incidentes e violações de dados
 
@@ -192,8 +196,8 @@ Quem encontrar uma vulnerabilidade deve comunicá-la de forma privada para **thi
 
 | Lacuna | Estado |
 | --- | --- |
-| NIF e morada do responsável na política de privacidade | A definir. O email de privacidade é thiffanyg33@gmail.com. |
-| Teste de restauro (§6.2) | Ainda não feito. |
+| NIF e morada da responsável | Não serão publicados, por decisão da responsável (novembro de 2026). A `/privacidade` e os Termos identificam-na pelo nome e pelo email thiffanyg33@gmail.com. Se a plataforma passar a cobrar ou a funcionar como atividade registada, rever (RGPD art. 13.º, DL 7/2004 art. 10.º). |
+| Teste de restauro (§6.2) | Risco aceite pela responsável (novembro de 2026): não se fazem testes de restauro periódicos. Relatório da situação em `docs/backup-report.md`. |
 
 ---
 

@@ -1,5 +1,5 @@
 import type { CustomerProfileInput } from '@integra/shared/profile';
-import type { ReadingPreferences, SupportedLocale } from '@integra/shared/auth';
+import { TERMS_VERSION, type ReadingPreferences, type SupportedLocale } from '@integra/shared/auth';
 import { api } from '../lib/api';
 
 export type AuthUser = {
@@ -10,6 +10,8 @@ export type AuthUser = {
   emailVerifiedAt: string | null;
   isAdmin: boolean;
   readingPreferences: ReadingPreferences;
+  /** Missing on an older API during a deploy; only an explicit false asks for acceptance. */
+  termsAccepted?: boolean;
 };
 
 export type AuthPayload = { user: AuthUser; profile: CustomerProfileInput };
@@ -30,7 +32,8 @@ export const authApi = {
     locale: SupportedLocale;
     profile: CustomerProfileInput;
   }): Promise<void> {
-    await api.post('/auth/register', input);
+    // The form only submits once the person ticks the box for this version of the Terms.
+    await api.post('/auth/register', { ...input, acceptedTermsVersion: TERMS_VERSION });
   },
   async logout(): Promise<void> {
     await api.post('/auth/logout');
@@ -49,6 +52,10 @@ export const authApi = {
   },
   async updateReadingPreferences(preferences: ReadingPreferences): Promise<AuthUser> {
     const { data } = await api.patch<{ user: AuthUser }>('/auth/me/reading-preferences', preferences);
+    return data.user;
+  },
+  async acceptTerms(): Promise<AuthUser> {
+    const { data } = await api.post<{ user: AuthUser }>('/auth/me/terms', { version: TERMS_VERSION });
     return data.user;
   },
   async updateLocale(locale: SupportedLocale): Promise<AuthUser> {

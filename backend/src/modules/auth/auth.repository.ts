@@ -13,6 +13,7 @@ const publicUserSelect = {
   isAdmin: true,
   textSize: true,
   highContrast: true,
+  termsVersion: true,
 } as const;
 
 export type PublicUserRecord = {
@@ -24,6 +25,7 @@ export type PublicUserRecord = {
   isAdmin: boolean;
   textSize: string;
   highContrast: boolean;
+  termsVersion: string | null;
 };
 
 class VerificationTokenRace extends Error {}
@@ -43,6 +45,7 @@ export class AuthRepository {
     passwordHash: string;
     locale: SupportedLocale;
     profile: CustomerProfileInput;
+    termsVersion: string;
   }): Promise<{ user: PublicUserRecord; profile: Prisma.JsonValue }> {
     return this.prisma.$transaction(async (transaction) => {
       const user = await transaction.user.create({
@@ -51,6 +54,8 @@ export class AuthRepository {
           email: input.email,
           passwordHash: input.passwordHash,
           locale: input.locale,
+          termsVersion: input.termsVersion,
+          termsAcceptedAt: new Date(),
         },
         select: publicUserSelect,
       });
@@ -90,6 +95,7 @@ export class AuthRepository {
         isAdmin: user.isAdmin,
         textSize: user.textSize,
         highContrast: user.highContrast,
+        termsVersion: user.termsVersion,
       },
       passwordHash: user.passwordHash,
       profile: user.customerProfile?.data ?? null,
@@ -147,6 +153,7 @@ export class AuthRepository {
         isAdmin: user.isAdmin,
         textSize: user.textSize,
         highContrast: user.highContrast,
+        termsVersion: user.termsVersion,
       },
       profile: user.customerProfile.data,
     };
@@ -162,6 +169,10 @@ export class AuthRepository {
 
   async updateReadingPreferences(userId: string, preferences: ReadingPreferences): Promise<PublicUserRecord | null> {
     return this.updatePublicUser(userId, preferences);
+  }
+
+  async acceptTerms(userId: string, version: string): Promise<PublicUserRecord | null> {
+    return this.updatePublicUser(userId, { termsVersion: version, termsAcceptedAt: new Date() });
   }
 
   private async updatePublicUser(userId: string, data: Prisma.UserUpdateInput): Promise<PublicUserRecord | null> {

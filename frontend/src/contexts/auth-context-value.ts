@@ -24,6 +24,7 @@ export type AuthContextValue = AuthState & {
   changePassword: (input: ChangePasswordInput) => Promise<void>;
   updateLocale: (locale: SupportedLocale) => Promise<void>;
   updateReadingPreferences: (preferences: ReadingPreferences) => Promise<void>;
+  acceptTerms: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

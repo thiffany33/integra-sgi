@@ -1,0 +1,76 @@
+{
+  "eyebrow": "Termos",
+  "title": "Termos de Utilização",
+  "description": "As regras para usar o Integra SGI, incluindo o acordo de tratamento dos dados que a sua organização introduz na plataforma.",
+  "updated": "Versão em vigor desde {{date}}",
+  "sections": [
+    {"title": "1. Objeto e aceitação", "blocks": [
+      {"p": "Estes Termos regulam a utilização da plataforma Integra SGI, que apoia organizações na implementação de Sistemas Integrados de Gestão (qualidade, ambiente e segurança e saúde no trabalho)."},
+      {"p": "Ao criar uma conta, ou ao aceitar estes Termos quando lhe forem apresentados, confirma que os leu e que os aceita em nome da organização que representa, e que tem poderes para o fazer. A secção 10 é o acordo de tratamento de dados pessoais entre a sua organização e o Integra SGI (art. 28.º do RGPD)."}
+    ]},
+    {"title": "2. Quem presta o serviço", "blocks": [
+      {"p": "O Integra SGI é disponibilizado por {{name}}. Contacto: {{email}}."}
+    ]},
+    {"title": "3. Conta e acesso", "blocks": [
+      {"list": [
+        "Cada conta corresponde a uma organização e é usada pela pessoa que a representa.",
+        "Os dados indicados no registo devem ser verdadeiros e mantidos atualizados.",
+        "A palavra-passe é pessoal e não deve ser partilhada. Se suspeitar de um acesso indevido, altere-a no perfil e contacte-nos.",
+        "A organização é responsável pela atividade feita com a sua conta."
+      ]}
+    ]},
+    {"title": "4. Utilização permitida", "blocks": [
+      {"p": "Não é permitido:"},
+      {"list": [
+        "Usar a plataforma para fins ilícitos ou contrários a estes Termos.",
+        "Tentar aceder a contas, dados ou áreas sem autorização, ou contornar as medidas de segurança.",
+        "Sobrecarregar ou perturbar o serviço, incluindo com acessos automatizados abusivos.",
+        "Introduzir conteúdos ilícitos, ofensivos ou que violem direitos de terceiros.",
+        "Revender ou disponibilizar a plataforma a terceiros sem autorização."
+      ]}
+    ]},
+    {"title": "5. Conteúdos da organização", "blocks": [
+      {"p": "Os dados e respostas que a organização introduz continuam a ser seus. A organização autoriza o Integra SGI a guardá-los e tratá-los apenas para prestar o serviço, nos termos da secção 10 e da Política de Privacidade."},
+      {"p": "A organização é responsável pela exatidão e pela licitude do que introduz, incluindo dados de outras pessoas."}
+    ]},
+    {"title": "6. Natureza das orientações e dos modelos", "blocks": [
+      {"p": "As orientações e os modelos de documentos são material de apoio, de carácter informativo, baseado nos requisitos das normas ISO 9001, ISO 14001 e ISO 45001. Não substituem consultoria especializada nem auditoria, e a utilização da plataforma não garante a certificação da organização. Cabe à organização adaptar os modelos à sua realidade e decidir como os aplica."}
+    ]},
+    {"title": "7. Propriedade intelectual", "blocks": [
+      {"p": "A plataforma, os textos, as orientações e os modelos pertencem ao Integra SGI ou aos respetivos titulares. A organização pode descarregar e adaptar os modelos para uso interno. Não pode redistribuí-los ou vendê-los como material próprio."},
+      {"p": "Os textos das normas ISO pertencem à ISO e aos organismos de normalização. A plataforma não os reproduz; apenas explica os requisitos."}
+    ]},
+    {"title": "8. Disponibilidade e alterações do serviço", "blocks": [
+      {"p": "Procuramos manter a plataforma disponível e segura, mas podem existir interrupções para manutenção, falhas técnicas ou causas fora do nosso controlo. Podemos melhorar, alterar ou retirar funcionalidades; se uma alteração afetar de forma relevante a utilização, avisamos com antecedência razoável."},
+      {"p": "Eventuais condições de pagamento são comunicadas antes de se aplicarem e só valem depois de aceites."}
+    ]},
+    {"title": "9. Encerramento da conta", "blocks": [
+      {"p": "A organização pode descarregar os seus dados e apagar a conta a qualquer momento no perfil, na secção «Os seus dados». Podemos suspender ou encerrar uma conta que viole estes Termos de forma grave ou repetida, avisando antes sempre que possível e dando a oportunidade de descarregar os dados, salvo quando a lei ou a segurança da plataforma o impedirem."}
+    ]},
+    {"title": "10. Acordo de tratamento de dados pessoais", "blocks": [
+      {"p": "Quando a organização introduz na plataforma dados de outras pessoas (por exemplo, colaboradores ou responsáveis indicados no diagnóstico), a organização é a responsável pelo tratamento e o Integra SGI é o subcontratante. Nesse âmbito, o Integra SGI compromete-se a:"},
+      {"list": [
+        "Tratar esses dados apenas para prestar o serviço e segundo as instruções documentadas da organização, que são estes Termos e as ações que a organização faz na plataforma. Se uma instrução lhe parecer contrária à lei, informa a organização.",
+        "Garantir que quem tem acesso aos dados está obrigado a confidencialidade e que o acesso se limita ao necessário.",
+        "Aplicar as medidas de segurança descritas na secção 11 da Política de Privacidade.",
+        "Recorrer apenas aos subcontratantes indicados na Política de Privacidade (Vercel, Neon, Resend e GitHub). A organização dá autorização geral para estes. Qualquer adição ou substituição é comunicada por email com 30 dias de antecedência, e a organização pode opor-se de forma fundamentada nesse prazo.",
+        "Ajudar a organização a responder aos pedidos dos titulares (acesso, retificação, apagamento, limitação, portabilidade e oposição). Os pedidos que receba diretamente sobre esses dados são encaminhados para a organização.",
+        "Avisar a organização de uma violação de dados que a afete sem demora injustificada, com o objetivo de o fazer em até 24 horas depois de a confirmar, com a informação disponível para que a organização decida sobre a notificação à CNPD.",
+        "Ajudar, na medida do razoável, nas avaliações de impacto e nas consultas à autoridade de controlo.",
+        "No fim do serviço, devolver os dados (pela exportação disponível no perfil) ou eliminá-los, à escolha da organização. As cópias de segurança desaparecem no fim do seu ciclo, de no máximo 6 horas.",
+        "Disponibilizar a informação necessária para demonstrar o cumprimento destas obrigações e permitir auditorias razoáveis, combinadas previamente."
+      ]},
+      {"p": "A organização compromete-se a ter fundamento jurídico para os dados que introduz, a informar as pessoas a quem os dados dizem respeito e a não introduzir categorias especiais de dados (art. 9.º e 10.º do RGPD), como dados de saúde, sem avaliação e acordo prévios."},
+      {"p": "A descrição completa do tratamento e das medidas técnicas está no Acordo de Tratamento de Dados Pessoais do Integra SGI, que pode pedir através de {{email}}. Em caso de conflito, prevalece esse acordo nas matérias de proteção de dados."}
+    ]},
+    {"title": "11. Responsabilidade", "blocks": [
+      {"p": "Respondemos pelos danos causados por incumprimento destes Termos nos termos da lei. Na medida em que a lei o permita, não respondemos por decisões que a organização tome com base nas orientações e nos modelos, nem por danos indiretos ou lucros cessantes. Nada nestes Termos limita os direitos que a lei atribui aos titulares dos dados ou aos consumidores."}
+    ]},
+    {"title": "12. Alterações a estes Termos", "blocks": [
+      {"p": "Podemos atualizar estes Termos quando a plataforma, os fornecedores ou a lei mudarem. Cada versão tem uma data. Quando houver uma nova versão, pedimos que a aceite antes de continuar a usar a plataforma; se não a aceitar, pode descarregar os seus dados e apagar a conta."}
+    ]},
+    {"title": "13. Lei aplicável", "blocks": [
+      {"p": "Estes Termos regem-se pela lei portuguesa e pelo direito da União Europeia aplicável. Os litígios são resolvidos nos tribunais portugueses competentes, sem prejuízo das regras imperativas de proteção do consumidor e dos titulares dos dados."}
+    ]}
+  ]
+}

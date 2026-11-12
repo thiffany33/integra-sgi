@@ -15,6 +15,7 @@ export default function Footer() {
         <Link className="text-link inline-flex min-h-12 items-center" to="/requirement">{t('common:footerGuide')}</Link>
         <Link className="text-link inline-flex min-h-12 items-center" to="/contact">{t('common:footerHelp')}</Link>
         <Link className="text-link inline-flex min-h-12 items-center" to="/privacidade">{t('common:privacyPolicy')}</Link>
+        <Link className="text-link inline-flex min-h-12 items-center" to="/termos">{t('common:termsOfUse')}</Link>
       </nav>
     </div>
   </footer>;

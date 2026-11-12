@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/auth-context-value';
 import { homePath, safeReturnTo } from '../../lib/return-to';
+import { AcceptTerms } from './accept-terms';
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -14,6 +15,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     const returnTo = `${location.pathname}${location.search}`;
     return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
+  // Customers accept the current Terms (with the data processing agreement) before using the platform.
+  if (!auth.user.isAdmin && auth.user.termsAccepted === false) return <AcceptTerms />;
   return children;
 }
 

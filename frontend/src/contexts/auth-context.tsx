@@ -123,9 +123,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState(current => current.status === 'authenticated' ? { ...current, user } : current);
   }, [state.status]);
 
+  const acceptTerms = useCallback(async () => {
+    if (state.status !== 'authenticated') throw new Error('Sign in to accept the Terms of Use.');
+    const user = await authApi.acceptTerms();
+    setState(current => current.status === 'authenticated' ? { ...current, user } : current);
+  }, [state.status]);
+
   const value = useMemo<AuthContextValue>(() => ({
-    ...state, refresh, retry: refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences,
-  }), [state, refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences]);
+    ...state, refresh, retry: refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences, acceptTerms,
+  }), [state, refresh, login, register, logout, deleteAccount, updateProfile, updateAccount, updateOrganization, changePassword, updateLocale, updateReadingPreferences, acceptTerms]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

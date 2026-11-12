@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '@integra/shared/auth';
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -26,7 +27,7 @@ describe('account export and deletion', () => {
 
   async function account(prefix: string) {
     const email = `${prefix}-${marker}@example.pt`;
-    await request(app.getHttpServer()).post('/api/v1/auth/register').send({ name: 'Delete Me', email, password, profile }).expect(201);
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({ name: 'Delete Me', email, password, profile, acceptedTermsVersion: TERMS_VERSION }).expect(201);
     const user = await prisma.user.update({ where: { email }, data: { emailVerifiedAt: new Date() } });
     const login = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email, password }).expect(200);
     return { id: user.id, email, cookie: (login.headers['set-cookie'] as string[])[0].split(';')[0] };
@@ -59,6 +60,29 @@ describe('account export and deletion', () => {
   afterAll(async () => {
     if (prisma) await prisma.user.deleteMany({ where: { email: { endsWith: `-${marker}@example.pt` } } });
     if (app) await app.close();
+  });
+
+  it('creates an account only with the current Terms of Use accepted, and asks again when they change', async () => {
+    const email = `no-terms-${marker}@example.pt`;
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({ name: 'No Terms', email, password, profile }).expect(400);
+    await request(app.getHttpServer()).post('/api/v1/auth/register')
+      .send({ name: 'No Terms', email, password, profile, acceptedTermsVersion: '2000-01-01' }).expect(400);
+    expect(await prisma.user.count({ where: { email } })).toBe(0);
+
+    const created = await account('terms');
+    const stored = await prisma.user.findUniqueOrThrow({ where: { id: created.id } });
+    expect(stored.termsVersion).toBe(TERMS_VERSION);
+    expect(stored.termsAcceptedAt).toBeInstanceOf(Date);
+
+    // An account that accepted an older text is asked again, and only the current version is accepted.
+    await prisma.user.update({ where: { id: created.id }, data: { termsVersion: '2000-01-01' } });
+    await request(app.getHttpServer()).get('/api/v1/auth/me').set('Cookie', created.cookie).expect(200)
+      .expect(({ body }) => expect(body.user.termsAccepted).toBe(false));
+    await request(app.getHttpServer()).post('/api/v1/auth/me/terms').send({ version: TERMS_VERSION }).expect(401);
+    await request(app.getHttpServer()).post('/api/v1/auth/me/terms').set('Cookie', created.cookie).send({ version: '2000-01-01' }).expect(400);
+    await request(app.getHttpServer()).post('/api/v1/auth/me/terms').set('Cookie', created.cookie).send({ version: TERMS_VERSION }).expect(200)
+      .expect(({ body }) => expect(body.user.termsAccepted).toBe(true));
+    expect(await prisma.auditEvent.count({ where: { userId: created.id, action: 'account.terms_accepted' } })).toBe(1);
   });
 
   it('exports the signed-in account as a download, without secrets', async () => {

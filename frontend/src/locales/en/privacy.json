@@ -24,8 +24,6 @@
         {
           "list": [
             "Controller: {{name}}",
-            "Tax number (NIF): {{nif}}",
-            "Address: {{address}}",
             "Contact email: {{email}}"
           ]
         },
@@ -225,7 +223,8 @@
           "list": [
             "Vercel Inc.: hosting of the site and the API, and the related technical logs.",
             "Neon Inc.: database, file storage (profile photos) and database backups.",
-            "Resend Inc.: sending emails.", "GitHub, Inc.: hosting of the source code and running of the automated publishing and maintenance processes, including database updates and the automatic data cleanup; during these processes it has technical access to the database."
+            "Resend Inc.: sending emails.",
+            "GitHub, Inc.: hosting of the source code and running of the automated publishing and maintenance processes, including database updates and the automatic data cleanup; during these processes it has technical access to the database."
           ]
         },
         {

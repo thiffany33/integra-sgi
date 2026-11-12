@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 const publicRoutes = [
-  '/', '/register', '/representative', '/select-systems', '/requirement', '/contact', '/privacidade', '/login', '/forgot-password', '/reset-password', '/verify-email',
+  '/', '/register', '/representative', '/select-systems', '/requirement', '/contact', '/privacidade', '/termos', '/login', '/forgot-password', '/reset-password', '/verify-email',
 ]
 
 const privateRoutes = [

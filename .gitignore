@@ -47,3 +47,4 @@ backend/.claude
 /docs/*
 !/docs/deployment-vercel.md
 !/docs/SECURITY.md
+!/docs/backup-report.md

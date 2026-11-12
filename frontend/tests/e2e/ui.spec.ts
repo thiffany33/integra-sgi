@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '@integra/shared/auth'
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
@@ -52,11 +53,17 @@ test('cadastro grava o perfil selecionado pela API sem usar storage do navegador
   await page.getByRole('checkbox', { name: /Gestão Ambiental/ }).uncheck()
   await page.getByRole('checkbox', { name: /Segurança e Saúde no Trabalho/ }).uncheck()
   await page.getByLabel('Crie uma palavra-passe').fill('correct-horse-battery')
+  // Without the Terms ticked, the browser blocks the submission and nothing reaches the API.
+  await page.getByRole('button', { name: 'Criar conta e ver o meu plano' }).click()
+  await expect(page).toHaveURL(/select-systems/)
+  expect(requests).toHaveLength(0)
+  await expect(page.getByRole('link', { name: /Ler os Termos de Utilização/ })).toHaveAttribute('href', '/termos')
+  await page.getByRole('checkbox', { name: /Li e aceito os Termos de Utilização/ }).check()
   await page.getByRole('button', { name: 'Criar conta e ver o meu plano' }).click()
   await expect(page).toHaveURL(/\/verify-email\?email=contato%40atlantico\.pt$/)
   await expect(page.getByText('A conta foi criada. Consulte o email para confirmar o endereço antes de entrar.')).toBeVisible()
   expect(requests).toHaveLength(1)
-  expect(requests[0]).toMatchObject({ email: 'contato@atlantico.pt', name: 'Cooperativa Atlântico', locale: 'pt-PT' })
+  expect(requests[0]).toMatchObject({ email: 'contato@atlantico.pt', name: 'Cooperativa Atlântico', locale: 'pt-PT', acceptedTermsVersion: TERMS_VERSION })
   expect(requests[0].profile).toMatchObject({
     organization: { name: 'Cooperativa Atlântico', nif: '123456789' },
     representative: { name: 'Maria Silva' },
@@ -99,7 +106,7 @@ test('leitura do requisito e link privado do modelo funcionam com teclado', asyn
   await expect(download).toHaveAccessibleName(/abre num novo separador/)
 })
 
-for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/login', '/nao-existe']) {
+for (const route of ['/', '/register', '/select-systems', '/dashboard', '/requirement4_1', '/downloads', '/contact', '/privacidade', '/termos', '/login', '/nao-existe']) {
   test(`acessibilidade e leitura mobile em ${route}`, async ({ page }) => {
     if (['/dashboard', '/requirement4_1', '/downloads'].includes(route)) await signInForPrivatePages(page)
     await page.setViewportSize({ width: 375, height: 812 })
@@ -128,6 +135,15 @@ test('o rodapé leva à política de privacidade', async ({ page }) => {
   await expect(page.getByRole('main')).not.toContainText('{{')
   await expect(page.getByRole('main')).toContainText('O registo de segurança não inclui o endereço IP.')
   await expect(page.getByRole('main')).toContainText('Até 1 hora; apagados automaticamente na limpeza seguinte, a cada 15 minutos')
+})
+
+test('o rodapé leva aos termos de utilização, que incluem o acordo de tratamento de dados', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Termos de utilização' }).click()
+  await expect(page).toHaveURL('/termos')
+  await expect(page.getByRole('heading', { level: 1, name: 'Termos de Utilização' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '10. Acordo de tratamento de dados pessoais' })).toBeVisible()
+  await expect(page.getByRole('main')).not.toContainText('{{')
 })
 
 test('formulário de contacto envia a mensagem e confirma o envio', async ({ page }) => {

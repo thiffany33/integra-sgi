@@ -85,6 +85,7 @@ test('assistente mantém o retorno solicitado até terminar o registo', async ({
   await page.getByRole('checkbox', { name: /Gestão Ambiental/ }).uncheck();
   await page.getByRole('checkbox', { name: /Segurança e Saúde no Trabalho/ }).uncheck();
   await page.getByLabel('Crie uma palavra-passe').fill('correct-horse-battery');
+  await page.getByRole('checkbox', { name: /Li e aceito os Termos de Utilização/ }).check();
   await page.getByRole('button', { name: 'Criar conta e ver o meu plano' }).click();
   await expect(page).toHaveURL(/requirement4_2$/);
 });
@@ -119,3 +120,25 @@ test('uma sessão válida não vê o login nem o cadastro e segue para o destino
   await page.goto('/register');
   await expect(page).toHaveURL(/\/dashboard$/);
 })
+
+test('uma conta sem os termos atuais aceita-os antes de usar a plataforma', async ({ page }) => {
+  let user = { ...authPayload.user, isAdmin: false, termsAccepted: false };
+  const accepted: unknown[] = [];
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ status: 200, json: { user, profile } }));
+  await page.route('**/api/v1/customers/me', route => route.fulfill({ status: 200, json: { profile, revision: 1, updatedAt: new Date().toISOString() } }));
+  await page.route('**/api/v1/auth/me/terms', route => {
+    accepted.push(route.request().postDataJSON());
+    user = { ...user, termsAccepted: true };
+    return route.fulfill({ status: 200, json: { user } });
+  });
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { level: 1, name: 'Termos de Utilização' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Suas áreas de gestão' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Aceitar e continuar' }).click();
+  expect(accepted).toHaveLength(0);
+  await page.getByRole('checkbox', { name: /Li e aceito os Termos de Utilização/ }).check();
+  await page.getByRole('button', { name: 'Aceitar e continuar' }).click();
+  await expect(page.getByRole('heading', { name: 'Suas áreas de gestão' })).toBeVisible();
+  expect(accepted).toHaveLength(1);
+  expect(accepted[0]).toHaveProperty('version');
+});

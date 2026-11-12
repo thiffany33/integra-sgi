@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { CustomerProfileInput } from '@integra/shared/profile';
 import type { ChangePasswordInput, ReadingPreferences, RegisterInput, SupportedLocale, TextSize, UpdateAccountInput } from '@integra/shared/auth';
-import { changePasswordSchema, loginSchema, registerSchema, supportedLocales, textSizes, updateAccountSchema } from '@integra/shared/auth';
+import { TERMS_VERSION, changePasswordSchema, loginSchema, registerSchema, supportedLocales, textSizes, updateAccountSchema } from '@integra/shared/auth';
 import { ApiException } from '../../utils/api-exception';
 import { AuthRateLimitService } from './auth-rate-limit.service';
 import { AuthRepository, type PublicUserRecord } from './auth.repository';
@@ -19,6 +19,8 @@ export type PublicAuthUser = {
   emailVerifiedAt: Date | null;
   isAdmin: boolean;
   readingPreferences: ReadingPreferences;
+  /** False until the account accepts the current Terms of Use; the web app asks before anything else. */
+  termsAccepted: boolean;
 };
 
 export type AuthResult = {
@@ -56,6 +58,7 @@ export class AuthService {
         passwordHash,
         locale: registration.locale,
         profile: registration.profile,
+        termsVersion: registration.acceptedTermsVersion,
       });
       await this.audit.record('auth.registered', created.user.id);
       await this.authEmail.sendVerification(created.user.id, created.user.email, created.user.locale);
@@ -184,6 +187,13 @@ export class AuthService {
     return this.updatedUser(await this.repository.updateReadingPreferences(userId, preferences));
   }
 
+  /** The version is validated against TERMS_VERSION before it gets here, so only the current text is accepted. */
+  async acceptTerms(userId: string, version: string): Promise<{ user: PublicAuthUser }> {
+    const result = this.updatedUser(await this.repository.acceptTerms(userId, version));
+    await this.audit.record('account.terms_accepted', userId, { version });
+    return result;
+  }
+
   private updatedUser(user: PublicUserRecord | null): { user: PublicAuthUser } {
     if (!user) {
       throw new ApiException(HttpStatus.NOT_FOUND, { code: 'USER_NOT_FOUND', message: 'User account not found.' });
@@ -264,6 +274,7 @@ export class AuthService {
         textSize: textSizes.includes(user.textSize as TextSize) ? (user.textSize as TextSize) : 'default',
         highContrast: user.highContrast === true,
       },
+      termsAccepted: user.termsVersion === TERMS_VERSION,
     };
   }
 
